@@ -14,17 +14,62 @@
   --border: rgba(255, 255, 255, 0.08);
   --primary: #E10082;
   --primary-foreground: #ffffff;
-}
 
-@theme inline {
   --color-bg:          #050509;
   --color-surface:     #0A0A12;
   --color-surface-hi:  #0F0F1C;
-  --color-pink:        #E10082;
+  --color-search-bg:   #1a1a2e;
   --color-text:        #E4E4F0;
   --color-text-dim:    #9090B8;
   --color-text-muted:  #52527A;
   --color-border:      rgba(255,255,255,0.06);
+  --color-nav-bg:      rgba(10, 10, 18, 0.92);
+  --color-nav-bg-end:  rgba(10, 10, 18, 0.88);
+  --color-nav-border:  rgba(255, 255, 255, 0.08);
+  --color-nav-shadow:  rgba(0, 0, 0, 0.6);
+  --color-nav-shine:   rgba(255, 255, 255, 0.06);
+  --color-card-shadow: rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="light"] {
+  --pink: #D10076;
+  --pink-lo: rgba(209, 0, 118, 0.10);
+  --pink-mid: rgba(209, 0, 118, 0.20);
+  --pink-glow: rgba(209, 0, 118, 0.30);
+  --border-pink: rgba(209, 0, 118, 0.25);
+
+  --background: #F8F8FC;
+  --foreground: #1A1A2E;
+  --muted-foreground: #6B6B8A;
+  --border: rgba(0, 0, 0, 0.08);
+  --primary: #D10076;
+  --primary-foreground: #ffffff;
+
+  --color-bg:          #F8F8FC;
+  --color-surface:     #FFFFFF;
+  --color-surface-hi:  #FFFFFF;
+  --color-search-bg:   #FFFFFF;
+  --color-text:        #1A1A2E;
+  --color-text-dim:    #4A4A6A;
+  --color-text-muted:  #8888A8;
+  --color-border:      rgba(0, 0, 0, 0.08);
+  --color-nav-bg:      rgba(255, 255, 255, 0.92);
+  --color-nav-bg-end:  rgba(255, 255, 255, 0.88);
+  --color-nav-border:  rgba(0, 0, 0, 0.08);
+  --color-nav-shadow:  rgba(0, 0, 0, 0.08);
+  --color-nav-shine:   rgba(255, 255, 255, 0.5);
+  --color-card-shadow: rgba(0, 0, 0, 0.08);
+}
+
+@theme inline {
+  --color-bg:          var(--color-bg);
+  --color-surface:     var(--color-surface);
+  --color-surface-hi:  var(--color-surface-hi);
+  --color-pink:        var(--pink);
+  --color-text:        var(--color-text);
+  --color-text-dim:    var(--color-text-dim);
+  --color-text-muted:  var(--color-text-muted);
+  --color-border:      var(--color-border);
 
   --font-chakra:   var(--font-chakra);
   --font-mono:     var(--font-mono);
@@ -37,13 +82,30 @@
   --color-primary-foreground: var(--primary-foreground);
 }
 
+/* ── Model card ── */
+.model-card {
+  border-radius: 0.625rem; /* 10px — less rounded than default 2xl */
+}
+
+.model-card .price-box {
+  border-radius: 0.5rem;
+}
+
+/* ── Animated search bar: no custom @utility needed — uses Tailwind arbitrary values ── */
+
 * { box-sizing: border-box; }
 
 html, body {
-  background: #050509;
-  color: #E4E4F0;
+  background: var(--color-bg);
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+html *,
+html *::before,
+html *::after {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
 }
 
 @keyframes fadeUp {
@@ -224,15 +286,16 @@ html, body {
 .glass-nav {
   background: linear-gradient(
     180deg,
-    rgba(10, 10, 18, 0.92) 0%,
-    rgba(10, 10, 18, 0.88) 100%
+    var(--color-nav-bg) 0%,
+    var(--color-nav-bg-end) 100%
   );
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-nav-border);
   backdrop-filter: blur(22px) saturate(180%);
   -webkit-backdrop-filter: blur(22px) saturate(180%);
   box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
-    0 12px 36px rgba(0, 0, 0, 0.6);
+    inset 0 1px 0 0 var(--color-nav-shine),
+    0 12px 36px var(--color-nav-shadow);
+  transition: background 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
 }
 
 /* ── Glass Button ── */
@@ -378,4 +441,53 @@ html, body {
 
 .btn-ghost-sweep:hover::after {
   transform: skewX(12deg) translateX(100%);
+}
+
+/* ── Light mode overrides ── */
+[data-theme="light"] .nav-links a {
+  color: var(--color-text);
+}
+
+[data-theme="light"] .select-field {
+  color-scheme: light;
+}
+
+[data-theme="light"] .select-field option {
+  background: #ffffff;
+  color: var(--color-text);
+}
+
+[data-theme="light"] .btn-ghost-sweep {
+  border-color: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--color-text);
+}
+
+[data-theme="light"] .btn-ghost-sweep:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="light"] .model-card {
+  border-color: rgba(0, 0, 0, 0.10) !important;
+}
+
+[data-theme="light"] .model-card .model-tag {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  opacity: 1 !important;
+}
+
+[data-theme="light"] .model-card .price-box {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] canvas {
+  opacity: 0.15;
+}
+
+[data-theme="light"] [data-glow] {
+  --backdrop: hsl(0 0% 100% / 1);
+  --backup-border: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1rem 2rem -1rem rgba(0, 0, 0, 0.1);
 }
