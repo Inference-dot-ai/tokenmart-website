@@ -4,7 +4,9 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Search, ChevronDown, ChevronUp, LayoutGrid, Tag, Check } from "lucide-react";
 import { Navbar } from "@/components/ui/navbar";
-import type { Model, Badge } from "@/lib/google-sheets";
+import { Footer } from "@/components/ui/footer";
+import type { Model, Badge, Category } from "@/lib/google-sheets";
+import { extractPriceUSD } from "@/lib/price";
 
 const BADGE_STYLES: Record<Badge, { bg: string; text: string; border: string }> = {
   PREMIUM: {
@@ -19,9 +21,14 @@ const BADGE_STYLES: Record<Badge, { bg: string; text: string; border: string }> 
   },
 };
 
-const MODEL_TYPES = ["All Models", "Text Generation", "Image Generation", "Video Generation", "Audio Generation"];
+const MODEL_TYPE_OPTIONS: { label: string; category: Category | null }[] = [
+  { label: "All Models", category: null },
+  { label: "Text Generation", category: "LLM" },
+  { label: "Image Generation", category: "Image" },
+  { label: "Video Generation", category: "Video" },
+  { label: "Audio Generation", category: "Audio" },
+];
 
-const PROVIDERS = ["All Providers", "OpenAI", "Anthropic", "Google", "Meta", "Mistral AI", "Black Forest Labs"];
 
 const SORT_OPTIONS = ["Trending", "Price: Low to High", "Price: High to Low", "Name A–Z"];
 
@@ -36,14 +43,19 @@ export default function ModelsPage() {
   const [typeOpen, setTypeOpen] = useState(true);
 
   const typeCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    counts["All Models"] = models.length;
-    MODEL_TYPES.slice(1).forEach((type) => {
-      counts[type] = models.filter((m) =>
-        m.tags.some((t) => t.toLowerCase().includes(type.replace(" Generation", "").toLowerCase()))
-      ).length;
+    const counts: Record<string, number> = { "All Models": models.length };
+    MODEL_TYPE_OPTIONS.slice(1).forEach(({ label, category }) => {
+      counts[label] = models.filter((m) => m.category === category).length;
     });
     return counts;
+  }, [models]);
+
+  const providers = useMemo(() => {
+    const set = new Set<string>();
+    models.forEach((m) => {
+      if (m.provider) set.add(m.provider);
+    });
+    return ["All Providers", ...Array.from(set).sort()];
   }, [models]);
 
   useEffect(() => {
@@ -55,6 +67,7 @@ export default function ModelsPage() {
 
   const filtered = useMemo(() => {
     let result = models;
+
     if (query) {
       const q = query.toLowerCase();
       result = result.filter(
@@ -64,11 +77,35 @@ export default function ModelsPage() {
           m.tags.some((t) => t.toLowerCase().includes(q))
       );
     }
+
+    const activeCategory = MODEL_TYPE_OPTIONS.find(
+      (o) => o.label === activeType
+    )?.category;
+    if (activeCategory) {
+      result = result.filter((m) => m.category === activeCategory);
+    }
+
     if (activeProvider !== "All Providers") {
       result = result.filter((m) => m.provider === activeProvider);
     }
+
+    if (sort === "Name A–Z") {
+      result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sort === "Price: Low to High" || sort === "Price: High to Low") {
+      const dir = sort === "Price: Low to High" ? 1 : -1;
+      result = [...result].sort((a, b) => {
+        const pa = extractPriceUSD(a.price);
+        const pb = extractPriceUSD(b.price);
+        if (pa === null && pb === null) return 0;
+        if (pa === null) return 1;
+        if (pb === null) return -1;
+        return (pa - pb) * dir;
+      });
+    }
+    // sort === "Trending" → preserve sheet order
+
     return result;
-  }, [models, query, activeProvider]);
+  }, [models, query, activeType, activeProvider, sort]);
 
   const resultCount = filtered.length;
 
@@ -82,7 +119,7 @@ export default function ModelsPage() {
         className="w-full py-2 text-center text-xs font-medium text-white tracking-wide"
         style={{ background: "var(--pink)" }}
       >
-        FLASH SALE: Up to 60% OFF Popular AI Models &bull; Limited Time Only &bull; Ends in 03:39:09
+        Top AI models &bull; Optimized pricing across providers &bull; Same APIs, smarter routing
       </div>
 
       <Navbar fixed={false} />
@@ -185,12 +222,12 @@ export default function ModelsPage() {
                 </button>
                 {typeOpen && (
                   <div className="px-4 pb-3 space-y-1">
-                    {MODEL_TYPES.map((type) => {
-                      const isActive = activeType === type;
+                    {MODEL_TYPE_OPTIONS.map(({ label }) => {
+                      const isActive = activeType === label;
                       return (
                         <button
-                          key={type}
-                          onClick={() => setActiveType(type)}
+                          key={label}
+                          onClick={() => setActiveType(label)}
                           className="w-full flex items-center justify-between px-2 py-2 rounded-lg text-sm transition-all duration-150 cursor-pointer"
                           style={{
                             background: isActive ? "var(--color-surface)" : "transparent",
@@ -213,7 +250,7 @@ export default function ModelsPage() {
                                 fontWeight: isActive ? 600 : 400,
                               }}
                             >
-                              {type}
+                              {label}
                             </span>
                           </div>
                           <span
@@ -223,7 +260,7 @@ export default function ModelsPage() {
                               color: "var(--color-text-dim)",
                             }}
                           >
-                            {typeCounts[type] ?? 0}
+                            {typeCounts[label] ?? 0}
                           </span>
                         </button>
                       );
@@ -259,7 +296,7 @@ export default function ModelsPage() {
                 </button>
                 {providerOpen && (
                   <div className="px-4 pb-3 space-y-1">
-                    {PROVIDERS.map((provider) => {
+                    {providers.map((provider) => {
                       const isActive = activeProvider === provider;
                       return (
                         <button
@@ -371,52 +408,7 @@ export default function ModelsPage() {
       </section>
 
       {/* ── BOTTOM CTA ── */}
-      <section
-        className="py-14 text-center"
-        style={{
-          background: "var(--color-surface)",
-          borderTop: "1px solid var(--color-border)",
-        }}
-      >
-        <h2
-          className="text-2xl md:text-3xl font-bold mb-3"
-          style={{ color: "var(--color-text)" }}
-        >
-          Ready to Save Up to 60% on AI Models?
-        </h2>
-        <p
-          className="text-sm mb-6 max-w-lg mx-auto"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          Join thousands of developers already saving with optimized GPU pooling.
-        </p>
-        <div className="flex justify-center gap-3">
-          <a
-            href="/"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200"
-            style={{
-              background: "var(--pink-lo)",
-              color: "var(--pink)",
-              border: "1px solid var(--border-pink)",
-            }}
-          >
-            View Flash Sales
-          </a>
-          <a
-            href="/signup"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium text-white transition-all duration-200"
-            style={{ background: "var(--pink)" }}
-          >
-            Get Deal Alerts
-          </a>
-        </div>
-        <p
-          className="text-xs mt-5"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          Same API • Better prices • Proven 30% average savings
-        </p>
-      </section>
+      <Footer />
     </div>
   );
 }
@@ -488,7 +480,7 @@ function ModelCard({ model, index }: { model: Model; index: number }) {
         </div>
 
         <div
-          className="price-box p-3 space-y-2"
+          className="price-box p-3"
           style={{ background: "var(--color-surface)", border: "1px solid rgba(255,255,255,0.06)" }}
         >
           <div className="flex items-center justify-between">
@@ -496,51 +488,15 @@ function ModelCard({ model, index }: { model: Model; index: number }) {
               className="text-xs font-medium"
               style={{ color: "var(--color-text-dim)" }}
             >
-              Input
+              Price
             </span>
-            <div className="flex items-center gap-2">
-              {model.input.original && (
-                <span
-                  className="text-xs line-through"
-                  style={{ color: "var(--color-text-dim)", opacity: 0.6 }}
-                >
-                  {model.input.original}
-                </span>
-              )}
-              <span
-                className="text-sm font-bold"
-                style={{ color: "var(--color-text)" }}
-              >
-                {model.input.price}
-              </span>
-            </div>
+            <span
+              className="text-sm font-bold"
+              style={{ color: "var(--color-text)" }}
+            >
+              {model.price || "—"}
+            </span>
           </div>
-          {(model.output.price || model.output.original) && (
-            <div className="flex items-center justify-between">
-              <span
-                className="text-xs font-medium"
-                style={{ color: "var(--color-text-dim)" }}
-              >
-                Output
-              </span>
-              <div className="flex items-center gap-2">
-                {model.output.original && (
-                  <span
-                    className="text-xs line-through"
-                    style={{ color: "var(--color-text-dim)", opacity: 0.6 }}
-                  >
-                    {model.output.original}
-                  </span>
-                )}
-                <span
-                  className="text-sm font-bold"
-                  style={{ color: "var(--color-text)" }}
-                >
-                  {model.output.price}
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </motion.div>
