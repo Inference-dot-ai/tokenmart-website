@@ -10,7 +10,7 @@
  *   ""                -> null
  */
 export function extractPriceUSD(price: string): number | null {
-  const match = price.match(/\$([\d.]+)/);
+  const match = price.match(/\$(\d+(?:\.\d+)?)(?!\.)/);
   if (!match) return null;
   const n = parseFloat(match[1]);
   return Number.isFinite(n) ? n : null;
