@@ -35,6 +35,7 @@ const SORT_OPTIONS = ["Trending", "Price: Low to High", "Price: High to Low", "N
 export default function ModelsPage() {
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [query, setQuery] = useState("");
   const [activeType, setActiveType] = useState("All Models");
   const [activeProvider, setActiveProvider] = useState("All Providers");
@@ -60,8 +61,15 @@ export default function ModelsPage() {
 
   useEffect(() => {
     fetch("/api/models")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((data) => setModels(data))
+      .catch((err) => {
+        console.error("Failed to fetch models", err);
+        setFetchError(true);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -388,6 +396,13 @@ export default function ModelsPage() {
                   />
                 ))}
               </div>
+            ) : fetchError ? (
+              <div className="py-20 text-center">
+                <p className="text-lg font-medium mb-2">Couldn&apos;t load models</p>
+                <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                  Please refresh the page or try again in a moment.
+                </p>
+              </div>
             ) : filtered.length === 0 ? (
               <div className="py-20 text-center">
                 <p className="text-lg font-medium mb-2">No models found</p>
@@ -464,22 +479,24 @@ function ModelCard({ model, index }: { model: Model; index: number }) {
           </p>
         )}
 
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {model.tags.map((tag) => (
-            <span
-              key={tag}
-              className="model-tag text-[11px] px-2.5 py-1 rounded-full"
-              style={{
-                background: "rgba(255,255,255,0.06)",
-                color: "var(--color-text)",
-                opacity: 0.7,
-                border: "1px solid rgba(255,255,255,0.10)",
-              }}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+        {model.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {model.tags.map((tag) => (
+              <span
+                key={tag}
+                className="model-tag text-[11px] px-2.5 py-1 rounded-full"
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  color: "var(--color-text)",
+                  opacity: 0.7,
+                  border: "1px solid rgba(255,255,255,0.10)",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div
           className="price-box p-3"
