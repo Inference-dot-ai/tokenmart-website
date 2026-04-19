@@ -398,7 +398,7 @@ export default function ModelsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {filtered.map((model, i) => (
-                  <ModelCard key={model.name} model={model} index={i} />
+                  <ModelCard key={`${model.category}|${model.provider}|${model.name}`} model={model} index={i} />
                 ))}
               </div>
             )}
@@ -455,12 +455,14 @@ function ModelCard({ model, index }: { model: Model; index: number }) {
           {model.provider}
         </p>
 
-        <p
-          className="text-sm mb-4 leading-relaxed"
-          style={{ color: "var(--color-text)", opacity: 0.75 }}
-        >
-          {model.description}
-        </p>
+        {model.description && (
+          <p
+            className="text-sm mb-4 leading-relaxed"
+            style={{ color: "var(--color-text)", opacity: 0.75 }}
+          >
+            {model.description}
+          </p>
+        )}
 
         <div className="flex flex-wrap gap-1.5 mb-4">
           {model.tags.map((tag) => (

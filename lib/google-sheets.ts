@@ -109,57 +109,42 @@ type RawRow = string[];
 type ParsedModel = Omit<Model, "badge">;
 
 function parseLLMRow(row: RawRow): ParsedModel | null {
-  const [name, provider, price, ctx, description] = row;
+  const name = row[0]?.trim() ?? "";
   if (!name) return null;
+  const provider = row[1]?.trim() ?? "";
+  const price = row[2]?.trim() ?? "";
+  const ctx = row[3]?.trim() ?? "";
+  const description = row[4]?.trim() ?? "";
   const tags = ctx && ctx !== "Not listed" ? [`${ctx} context`] : [];
-  return {
-    name,
-    provider: provider || "",
-    category: "LLM",
-    description: description || "",
-    price: price || "",
-    tags,
-  };
+  return { name, provider, category: "LLM", description, price, tags };
 }
 
 function parseImageRow(row: RawRow): ParsedModel | null {
-  const [name, provider, price, description] = row;
+  const name = row[0]?.trim() ?? "";
   if (!name) return null;
-  return {
-    name,
-    provider: provider || "",
-    category: "Image",
-    description: description || "",
-    price: price || "",
-    tags: [],
-  };
+  const provider = row[1]?.trim() ?? "";
+  const price = row[2]?.trim() ?? "";
+  const description = row[3]?.trim() ?? "";
+  return { name, provider, category: "Image", description, price, tags: [] };
 }
 
 function parseVideoRow(row: RawRow): ParsedModel | null {
-  const [name, provider, duration, price, description] = row;
+  const name = row[0]?.trim() ?? "";
   if (!name) return null;
+  const provider = row[1]?.trim() ?? "";
+  const duration = row[2]?.trim() ?? "";
+  const price = row[3]?.trim() ?? "";
+  const description = row[4]?.trim() ?? "";
   const tags = duration && duration !== "Not listed" ? [duration] : [];
-  return {
-    name,
-    provider: provider || "",
-    category: "Video",
-    description: description || "",
-    price: price || "",
-    tags,
-  };
+  return { name, provider, category: "Video", description, price, tags };
 }
 
 function parseAudioRow(row: RawRow): ParsedModel | null {
-  const [name, provider, price] = row;
+  const name = row[0]?.trim() ?? "";
   if (!name) return null;
-  return {
-    name,
-    provider: provider || "",
-    category: "Audio",
-    description: "",
-    price: price || "",
-    tags: [],
-  };
+  const provider = row[1]?.trim() ?? "";
+  const price = row[2]?.trim() ?? "";
+  return { name, provider, category: "Audio", description: "", price, tags: [] };
 }
 
 function applyBadgeRule(models: ParsedModel[]): Model[] {
