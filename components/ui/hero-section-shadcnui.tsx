@@ -35,23 +35,19 @@ export function HeroSection() {
         variants={itemVariants}
         className="mb-6 text-4xl font-bold tracking-tight md:text-6xl max-w-4xl"
       >
-        Access Popular AI Models at{" "}
-        <span className="bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
-          up to 60% Lower Cost
-        </span>
+        Ready to Save Up to 60% on AI Models?
       </motion.h1>
 
       <motion.p
         variants={itemVariants}
         className="mb-8 max-w-2xl text-lg text-[var(--foreground)]/70"
       >
-        Get the same models you&apos;re using now, but cheaper. Powered by
-        optimized GPU pooling and intelligent workload orchestration.
+        Join thousands of developers already saving with optimized GPU pooling.
       </motion.p>
 
       <motion.div variants={itemVariants} className="flex justify-center gap-4">
         <a
-          href="#"
+          href="/signup"
           className="inline-flex items-center gap-2 text-white text-lg font-normal px-6 py-3 rounded-full transition-all duration-200"
           style={{ background: "var(--pink)" }}
           onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 24px var(--pink-glow)")}
@@ -61,7 +57,12 @@ export function HeroSection() {
           <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
         </a>
         <button
-          className="group relative overflow-hidden inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 backdrop-blur-xl px-6 py-3 text-lg font-normal text-white transition-all hover:bg-white/10 hover:border-white/30"
+          className="group relative overflow-hidden inline-flex items-center justify-center rounded-full backdrop-blur-xl px-6 py-3 text-lg font-normal transition-all"
+          style={{
+            border: "1px solid var(--color-border)",
+            background: "var(--color-surface)",
+            color: "var(--color-text)",
+          }}
         >
           <span className="relative z-10">View Demo</span>
           <div className="absolute inset-0 -top-2 -bottom-2 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />

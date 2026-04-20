@@ -1,0 +1,6 @@
+1. Landing page A single marketing landing page including a discount display section. Content provided by client. 
+2. Models page A dynamic models listing page connected to a Client-provided Google Sheets or Excel spreadsheet as the data source. Updates made to the spreadsheet by the Client will be reflected on the website without requiring code changes.
+Contractor will work with staff on client side to provide prompts to generate image and/or GIFs. Client staff will generate and share model images and/or animated GIFs assets for each listing. Contractor will review and implement accordingly.
+3. Terms of Service page A static Terms of Service page. Client to supply the final Terms of Service document prior to development. Contractor will implement the content as provided without legal review.
+4. API documentation page A static API documentation page. Client to supply the final API documentation content prior to development. Contractor will implement the content as provided.
+5. Sign-up page A sign-up page connected to a Client-provided Google Form. Form questions and fields to be determined and provided by Client. Responses will be collected into the Client's Google Sheets database.

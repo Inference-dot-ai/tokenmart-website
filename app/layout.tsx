@@ -33,8 +33,19 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${chakra.variable} ${jetbrains.variable} ${outfit.variable}`}
+      suppressHydrationWarning
     >
-      <body className="font-[family-name:var(--font-outfit)] antialiased">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("theme");if(t){document.documentElement.setAttribute("data-theme",t)}else{document.documentElement.setAttribute("data-theme","light")}}catch(e){document.documentElement.setAttribute("data-theme","light")}})();`,
+          }}
+        />
+      </head>
+      <body
+        className="font-[family-name:var(--font-outfit)] antialiased"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>
