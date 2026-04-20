@@ -9,6 +9,7 @@ import { HeroSection } from "@/components/ui/hero-section-shadcnui";
 import { GlowCard } from "@/components/ui/spotlight-card";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { Navbar } from "@/components/ui/navbar";
+import { Footer } from "@/components/ui/footer";
 
 // ── Search card constants (commented out with search card) ──
 // const TABS = ["Tokens / AI Models", "GPUs / Hardware"];
@@ -508,6 +509,8 @@ export default function Home() {
           background: "linear-gradient(to top, var(--color-bg) 0%, transparent 100%)",
         }}
       />
+
+      <Footer />
     </div>
   );
 }

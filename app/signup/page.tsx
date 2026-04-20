@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight, ExternalLink } from "lucide-react";
-import { InferenceLogo } from "@/components/ui/inference-logo";
+import { Navbar } from "@/components/ui/navbar";
 import Link from "next/link";
 
 const FORM_URL = process.env.NEXT_PUBLIC_GOOGLE_FORM_URL || "";
@@ -15,118 +15,96 @@ export default function SignupPage() {
       className="min-h-screen flex flex-col"
       style={{ background: "var(--color-bg)", color: "var(--color-text)" }}
     >
+      {/* Navbar */}
+      <header className="flex justify-center pt-4">
+        <Navbar fixed={false} />
+      </header>
+
       {/* Main content */}
       <div className="flex-1 flex flex-col lg:flex-row">
-        {/* ── LEFT PANEL ── */}
-        <div className="w-full lg:w-[45%] flex flex-col px-8 md:px-14 py-10">
-          {/* Logo — pinned top */}
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-8">
-              <InferenceLogo className="w-9 h-9" />
-              <span
-                className="text-lg font-semibold tracking-tight"
-                style={{ color: "var(--color-text)" }}
-              >
-                inference.ai
-              </span>
-            </Link>
+        {/* ── LEFT PANEL — signup form, vertically centered ── */}
+        <div className="order-2 lg:order-1 w-full lg:w-[35%] flex flex-col justify-center items-center text-center px-6 pt-10 pb-32">
+          <h1 className="text-3xl md:text-4xl font-bold mb-10 leading-tight">
+            Create your account to
+            <br />
+            <span style={{ color: "var(--pink)" }}>Inference.AI</span>
+          </h1>
 
-          {/* Center content */}
-          <div className="flex-1 flex flex-col justify-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-3 leading-tight">
-              Create your account to{" "}
-              <span style={{ color: "var(--pink)" }}>Inference.AI</span>
-            </h1>
-            <p
-              className="text-sm mb-10"
+          {/* Sign up button */}
+          <a
+            href={formHref}
+            target={isConfigured ? "_blank" : undefined}
+            rel={isConfigured ? "noopener noreferrer" : undefined}
+            className="flex items-center justify-center gap-2.5 w-full max-w-sm px-5 py-3 rounded-full text-sm font-medium transition-all duration-200"
+            style={{
+              background: "var(--pink)",
+              color: "white",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = "0 0 24px var(--pink-glow)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            Sign Up
+            {isConfigured ? (
+              <ExternalLink className="w-4 h-4" />
+            ) : (
+              <ArrowRight className="w-4 h-4" />
+            )}
+          </a>
+
+          {/* Terms — directly under Sign Up button */}
+          <p
+            className="text-xs mt-4 max-w-sm"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            By clicking continue, you agree to our{" "}
+            <Link
+              href="/terms-and-services"
+              className="underline"
               style={{ color: "var(--color-text-dim)" }}
             >
-              Start building with Inference today
-            </p>
-
-            {/* Sign up button */}
-            <a
-              href={formHref}
-              target={isConfigured ? "_blank" : undefined}
-              rel={isConfigured ? "noopener noreferrer" : undefined}
-              className="flex items-center justify-center gap-2.5 w-full max-w-sm px-5 py-3 rounded-full text-sm font-medium transition-all duration-200"
-              style={{
-                background: "var(--pink)",
-                color: "white",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 0 24px var(--pink-glow)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            >
-              Sign Up
-              {isConfigured ? (
-                <ExternalLink className="w-4 h-4" />
-              ) : (
-                <ArrowRight className="w-4 h-4" />
-              )}
-            </a>
-          </div>
-
-          {/* Bottom: Terms */}
-          <div className="mt-12">
-            <p
-              className="text-xs"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              I agree to the{" "}
-              <Link
-                href="/terms"
-                className="underline"
-                style={{ color: "var(--color-text-dim)" }}
-              >
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link
-                href="/terms"
-                className="underline"
-                style={{ color: "var(--color-text-dim)" }}
-              >
-                Privacy Policy
-              </Link>
-            </p>
-          </div>
+              Terms of Service.
+            </Link>
+          </p>
         </div>
 
-        {/* ── RIGHT PANEL — media placeholder ── */}
-        <div className="hidden lg:flex w-[55%] p-6">
+        {/* ── RIGHT PANEL — video ── */}
+        <div className="order-1 lg:order-2 flex w-full lg:w-[65%] p-4 lg:p-6">
           <div
-            className="w-full rounded-2xl overflow-hidden flex flex-col items-center justify-end relative"
+            className="w-full aspect-video lg:aspect-auto rounded-2xl overflow-hidden relative"
             style={{
               background: "var(--color-surface-hi)",
               border: "1px solid var(--color-border)",
             }}
           >
-            {/* Placeholder visual */}
-            <div
-              className="absolute inset-0 flex items-center justify-center"
-              style={{ opacity: 0.15 }}
-            >
-              <InferenceLogo className="w-48 h-48" color="var(--color-text)" />
-            </div>
-
-            {/* Bottom overlay text */}
-            <div className="relative z-10 text-center px-8 pb-10 pt-20"
-              style={{
-                background: "linear-gradient(to top, var(--color-surface-hi) 60%, transparent)",
-              }}
-            >
-              <h2
-                className="text-2xl font-bold mb-2"
-                style={{ color: "var(--color-text)" }}
-              >
-                Start Building Today
-              </h2>
+            <video
+              src="/signup%20vid.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            {/* Overlay text */}
+            <div className="absolute inset-x-0 top-6 lg:top-24 z-10 text-center px-6 lg:px-8">
               <p
-                className="text-sm max-w-xs mx-auto"
-                style={{ color: "var(--color-text-dim)" }}
+                className="text-xl md:text-4xl font-bold mb-2 lg:mb-3"
+                style={{
+                  color: "#ffffff",
+                  textShadow: "0 2px 12px rgba(0,0,0,0.6)",
+                }}
+              >
+                Start building today
+              </p>
+              <p
+                className="text-sm md:text-lg max-w-md mx-auto"
+                style={{
+                  color: "rgba(255,255,255,0.9)",
+                  textShadow: "0 2px 10px rgba(0,0,0,0.5)",
+                }}
               >
                 Get started with Inference in minutes. No credit card required.
               </p>
@@ -134,25 +112,6 @@ export default function SignupPage() {
           </div>
         </div>
       </div>
-
-      {/* ── FOOTER ── */}
-      <footer className="flex">
-        <div
-          className="w-full lg:w-[45%] px-8 md:px-14 py-4 flex items-center gap-4 text-xs"
-          style={{
-            color: "var(--color-text-muted)",
-            borderTop: "1px solid var(--color-border)",
-          }}
-        >
-          <Link href="/terms" className="hover:underline">
-            Terms of Service
-          </Link>
-          <span style={{ color: "var(--color-border)" }}>|</span>
-          <Link href="/terms" className="hover:underline">
-            Privacy Policy
-          </Link>
-        </div>
-      </footer>
     </div>
   );
 }

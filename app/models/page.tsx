@@ -5,21 +5,8 @@ import { motion } from "framer-motion";
 import { Search, ChevronDown, ChevronUp, LayoutGrid, Tag, Check } from "lucide-react";
 import { Navbar } from "@/components/ui/navbar";
 import { Footer } from "@/components/ui/footer";
-import type { Model, Badge, Category } from "@/lib/google-sheets";
+import type { Model, Category } from "@/lib/google-sheets";
 import { extractPriceUSD } from "@/lib/price";
-
-const BADGE_STYLES: Record<Badge, { bg: string; text: string; border: string }> = {
-  PREMIUM: {
-    bg: "var(--pink-lo)",
-    text: "var(--pink)",
-    border: "var(--border-pink)",
-  },
-  "BEST VALUE": {
-    bg: "rgba(16, 185, 129, 0.10)",
-    text: "#10b981",
-    border: "rgba(16, 185, 129, 0.25)",
-  },
-};
 
 const MODEL_TYPE_OPTIONS: { label: string; category: Category | null }[] = [
   { label: "All Models", category: null },
@@ -122,15 +109,17 @@ export default function ModelsPage() {
       className="min-h-screen relative"
       style={{ background: "var(--color-bg)", color: "var(--color-text)" }}
     >
-      {/* ── FLASH BANNER ── */}
-      <div
-        className="w-full py-2 text-center text-xs font-medium text-white tracking-wide"
-        style={{ background: "var(--pink)" }}
-      >
-        Top AI models &bull; Optimized pricing across providers &bull; Same APIs, smarter routing
-      </div>
+      {/* ── FLASH BANNER + NAV ── */}
+      <div className="sticky top-0 z-50">
+        <div
+          className="w-full py-2 text-center text-xs font-medium text-white tracking-wide"
+          style={{ background: "var(--pink)" }}
+        >
+          Top AI models &bull; Optimized pricing across providers &bull; Same APIs, smarter routing
+        </div>
 
-      <Navbar fixed={false} />
+        <Navbar fixed={false} />
+      </div>
 
       {/* ── HEADER ── */}
       <section className="pt-8 pb-6 text-center max-w-3xl mx-auto px-6">
@@ -147,8 +136,7 @@ export default function ModelsPage() {
             style={{ color: "var(--color-text-dim)" }}
           >
             Explore today&apos;s top AI models across providers in one place.
-            Each call is intelligently routed to the lowest-cost stable option,
-            so you get better prices without extra work.
+            Get better prices without extra work.
           </p>
 
           {/* Search bar */}
@@ -196,13 +184,8 @@ export default function ModelsPage() {
       <section className="max-w-7xl mx-auto px-6 pb-16">
         <div className="flex gap-8">
           {/* ── LEFT SIDEBAR ── */}
-          <motion.aside
-            className="hidden lg:block w-56 shrink-0"
-            initial={{ opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-          >
-            <div className="sticky top-24 space-y-4">
+          <aside className="hidden lg:block w-56 shrink-0 self-start sticky top-24">
+            <div className="space-y-4">
               {/* Model Type */}
               <div
                 className="rounded-xl overflow-hidden"
@@ -340,7 +323,7 @@ export default function ModelsPage() {
                 )}
               </div>
             </div>
-          </motion.aside>
+          </aside>
 
           {/* ── RIGHT CONTENT ── */}
           <div className="flex-1 min-w-0">
@@ -429,93 +412,86 @@ export default function ModelsPage() {
 }
 
 function ModelCard({ model, index }: { model: Model; index: number }) {
-  const badge = BADGE_STYLES[model.badge] || BADGE_STYLES["PREMIUM"];
+  const priceMatch = (model.price || "—").match(/^(\$)(\d+(?:\.\d+)?)(.*)$/);
+  const priceSymbol = priceMatch ? priceMatch[1] : "";
+  const priceDigits = priceMatch ? priceMatch[2] : model.price || "—";
+  let priceUnit = priceMatch ? priceMatch[3] : "";
+  if (priceMatch && !priceUnit && model.category === "LLM") {
+    priceUnit = "/1M";
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4, transition: { duration: 0.12, ease: "easeOut" } }}
       transition={{ duration: 0.4, delay: 0.05 + index * 0.04 }}
-      className="model-card overflow-hidden transition-shadow duration-200"
+      className="model-card overflow-hidden"
       style={{
         background: "var(--color-surface-hi)",
         border: "1px solid rgba(255,255,255,0.10)",
-        boxShadow: "0 2px 16px var(--color-card-shadow)",
       }}
     >
-      <div className="p-5">
-        <div className="flex items-start justify-between mb-1">
-          <h3
-            className="text-lg font-semibold"
-            style={{ color: "var(--color-text)" }}
-          >
-            {model.name}
-          </h3>
-          <span
-            className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0"
-            style={{
-              background: badge.bg,
-              color: badge.text,
-              border: `1px solid ${badge.border}`,
-            }}
-          >
-            {model.badge}
-          </span>
-        </div>
-
+      <div className="p-5 flex flex-col h-full">
         <p
-          className="text-xs mb-3"
-          style={{ color: "var(--color-text-dim)" }}
+          className="text-xs font-semibold uppercase tracking-wider mb-2"
+          style={{ color: "var(--color-text-muted)" }}
         >
           {model.provider}
         </p>
 
+        <h3
+          className="text-lg font-bold mb-3 leading-tight"
+          style={{ color: "var(--color-text)" }}
+        >
+          {model.name}
+        </h3>
+
         {model.description && (
           <p
-            className="text-sm mb-4 leading-relaxed"
-            style={{ color: "var(--color-text)", opacity: 0.75 }}
+            className="text-sm leading-relaxed mb-4 line-clamp-2"
+            style={{ color: "var(--color-text-dim)" }}
           >
             {model.description}
           </p>
         )}
 
-        {model.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {model.tags.map((tag) => (
-              <span
-                key={tag}
-                className="model-tag text-[11px] px-2.5 py-1 rounded-full"
-                style={{
-                  background: "rgba(255,255,255,0.06)",
-                  color: "var(--color-text)",
-                  opacity: 0.7,
-                  border: "1px solid rgba(255,255,255,0.10)",
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
         <div
-          className="price-box p-3"
-          style={{ background: "var(--color-surface)", border: "1px solid rgba(255,255,255,0.06)" }}
-        >
-          <div className="flex items-center justify-between">
+          className="h-px w-full mb-4 mt-auto opacity-40"
+          style={{ background: "var(--color-border)" }}
+        />
+
+        <div className="flex items-baseline gap-1.5 min-w-0">
+          <span
+            className="text-xs shrink-0"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            from
+          </span>
+          <div className="flex items-baseline min-w-0">
+            {priceSymbol && (
+              <span
+                className="text-base font-bold"
+                style={{ color: "var(--color-text)" }}
+              >
+                {priceSymbol}
+              </span>
+            )}
             <span
-              className="text-xs font-medium"
-              style={{ color: "var(--color-text-dim)" }}
-            >
-              Price
-            </span>
-            <span
-              className="text-sm font-bold"
+              className="text-2xl font-bold truncate"
               style={{ color: "var(--color-text)" }}
             >
-              {model.price || "—"}
+              {priceDigits}
             </span>
           </div>
+          {priceUnit && (
+            <span
+              className="text-sm shrink-0"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              {priceUnit}
+            </span>
+          )}
         </div>
       </div>
     </motion.div>

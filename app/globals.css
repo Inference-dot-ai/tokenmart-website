@@ -45,7 +45,7 @@
   --primary: #D10076;
   --primary-foreground: #ffffff;
 
-  --color-bg:          #F8F8FC;
+  --color-bg:          #FAFAFA;
   --color-surface:     #FFFFFF;
   --color-surface-hi:  #FFFFFF;
   --color-search-bg:   #FFFFFF;
@@ -85,6 +85,12 @@
 /* ── Model card ── */
 .model-card {
   border-radius: 0.625rem; /* 10px — less rounded than default 2xl */
+  box-shadow: none;
+  transition: box-shadow 120ms ease-out;
+}
+
+.model-card:hover {
+  box-shadow: 0 10px 24px var(--color-card-shadow);
 }
 
 .model-card .price-box {
@@ -99,7 +105,7 @@ html, body {
   background: var(--color-bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 html *,
@@ -483,7 +489,7 @@ html *::after {
 }
 
 [data-theme="light"] canvas {
-  opacity: 0.15;
+  opacity: 0.5;
 }
 
 [data-theme="light"] [data-glow] {
