@@ -1,6 +1,53 @@
 @import "tailwindcss";
 
-:root {
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  --pink: #D10076;
+  --pink-lo: rgba(209, 0, 118, 0.10);
+  --pink-mid: rgba(209, 0, 118, 0.20);
+  --pink-glow: rgba(209, 0, 118, 0.30);
+  --border-pink: rgba(209, 0, 118, 0.25);
+
+  --background: #F8F8FC;
+  --foreground: #1A1A2E;
+  --muted-foreground: #6B6B8A;
+  --border: rgba(0, 0, 0, 0.08);
+  --primary: #D10076;
+  --primary-foreground: #ffffff;
+
+  --color-bg:          #FAFAFA;
+  --color-surface:     #FFFFFF;
+  --color-surface-hi:  #FFFFFF;
+  --color-search-bg:   #FFFFFF;
+  --color-text:        #1A1A2E;
+  --color-text-dim:    #4A4A6A;
+  --color-text-muted:  #8888A8;
+  --color-border:      rgba(0, 0, 0, 0.08);
+  --color-nav-bg:      rgba(255, 255, 255, 0.92);
+  --color-nav-bg-end:  rgba(255, 255, 255, 0.88);
+  --color-nav-border:  rgba(0, 0, 0, 0.08);
+  --color-nav-shadow:  rgba(0, 0, 0, 0.08);
+  --color-nav-shine:   rgba(255, 255, 255, 0.5);
+  --color-card-shadow: rgba(0, 0, 0, 0.08);
+
+  --cta-bg:            #000000;
+  --cta-fg:            #FFFFFF;
+
+  --terminal-bg:         #F5F5F9;
+  --terminal-border:     rgba(0, 0, 0, 0.08);
+  --terminal-label:      rgba(26, 26, 46, 0.60);
+  --terminal-punct:      rgba(26, 26, 46, 0.45);
+  --terminal-value:      #1A1A2E;
+  --terminal-pink:       #D10076;
+  --terminal-green:      #16A34A;
+  --terminal-red:        #DC2626;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
   --pink: #E10082;
   --pink-lo: rgba(225, 0, 130, 0.12);
   --pink-mid: rgba(225, 0, 130, 0.25);
@@ -29,36 +76,18 @@
   --color-nav-shadow:  rgba(0, 0, 0, 0.6);
   --color-nav-shine:   rgba(255, 255, 255, 0.06);
   --color-card-shadow: rgba(0, 0, 0, 0.45);
-}
 
-[data-theme="light"] {
-  --pink: #D10076;
-  --pink-lo: rgba(209, 0, 118, 0.10);
-  --pink-mid: rgba(209, 0, 118, 0.20);
-  --pink-glow: rgba(209, 0, 118, 0.30);
-  --border-pink: rgba(209, 0, 118, 0.25);
+  --cta-bg:            #FFFFFF;
+  --cta-fg:            #0A0A12;
 
-  --background: #F8F8FC;
-  --foreground: #1A1A2E;
-  --muted-foreground: #6B6B8A;
-  --border: rgba(0, 0, 0, 0.08);
-  --primary: #D10076;
-  --primary-foreground: #ffffff;
-
-  --color-bg:          #FAFAFA;
-  --color-surface:     #FFFFFF;
-  --color-surface-hi:  #FFFFFF;
-  --color-search-bg:   #FFFFFF;
-  --color-text:        #1A1A2E;
-  --color-text-dim:    #4A4A6A;
-  --color-text-muted:  #8888A8;
-  --color-border:      rgba(0, 0, 0, 0.08);
-  --color-nav-bg:      rgba(255, 255, 255, 0.92);
-  --color-nav-bg-end:  rgba(255, 255, 255, 0.88);
-  --color-nav-border:  rgba(0, 0, 0, 0.08);
-  --color-nav-shadow:  rgba(0, 0, 0, 0.08);
-  --color-nav-shine:   rgba(255, 255, 255, 0.5);
-  --color-card-shadow: rgba(0, 0, 0, 0.08);
+  --terminal-bg:         #0A0A12;
+  --terminal-border:     rgba(255, 255, 255, 0.06);
+  --terminal-label:      rgba(228, 228, 240, 0.55);
+  --terminal-punct:      rgba(228, 228, 240, 0.45);
+  --terminal-value:      #E4E4F0;
+  --terminal-pink:       #F5B0D5;
+  --terminal-green:      #4ADE80;
+  --terminal-red:        #F87171;
 }
 
 @theme inline {
@@ -82,6 +111,65 @@
   --color-primary-foreground: var(--primary-foreground);
 }
 
+/* ── Featured Deals stripe — theme-adaptive ── */
+:root,
+[data-theme="light"] {
+  --deals-stripe-bg:
+    linear-gradient(115deg, #FFB8D9 0%, #FF9AC6 22%, #E0A8FF 48%, #A8C0FF 72%, #FFE0A8 100%);
+  --deals-stripe-glow-1: radial-gradient(circle, rgba(255, 94, 176, 0.55), transparent 70%);
+  --deals-stripe-glow-2: radial-gradient(circle, rgba(209, 0, 118, 0.35), transparent 70%);
+  --deals-stripe-glow-1-blur: 10px;
+  --deals-stripe-glow-2-blur: 14px;
+  --deals-stripe-grain-opacity: 0.04;
+}
+
+[data-theme="dark"] {
+  --deals-stripe-bg:
+    linear-gradient(115deg, #070710 0%, #1A0614 28%, #3D0824 55%, #8B0C4E 82%, #1A0614 100%);
+  --deals-stripe-glow-1: radial-gradient(circle, rgba(225, 0, 130, 0.45), transparent 70%);
+  --deals-stripe-glow-2: radial-gradient(circle, rgba(225, 0, 130, 0.35), transparent 70%);
+  --deals-stripe-glow-1-blur: 14px;
+  --deals-stripe-glow-2-blur: 18px;
+  --deals-stripe-grain-opacity: 0.08;
+}
+
+.deals-stripe {
+  background: var(--deals-stripe-bg);
+}
+
+.deals-stripe-glow {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 9999px;
+}
+
+.deals-stripe-glow-1 {
+  top: -4rem;
+  left: -4rem;
+  width: 18rem;
+  height: 18rem;
+  background: var(--deals-stripe-glow-1);
+  filter: blur(var(--deals-stripe-glow-1-blur));
+}
+
+.deals-stripe-glow-2 {
+  bottom: -5rem;
+  right: -5rem;
+  width: 20rem;
+  height: 20rem;
+  background: var(--deals-stripe-glow-2);
+  filter: blur(var(--deals-stripe-glow-2-blur));
+}
+
+.deals-stripe-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--deals-stripe-grain-opacity);
+  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
 /* ── Model card ── */
 .model-card {
   border-radius: 0.625rem; /* 10px — less rounded than default 2xl */
@@ -91,6 +179,59 @@
 
 .model-card:hover {
   box-shadow: 0 10px 24px var(--color-card-shadow);
+}
+
+/* ── Urgency hover (discounted model cards) ── */
+.model-card-urgent {
+  transition: box-shadow 180ms ease-out, transform 180ms ease-out;
+}
+.model-card-urgent:hover {
+  box-shadow: 0 10px 28px var(--pink-mid), 0 0 0 1px var(--border-pink);
+  transform: translateY(-2px);
+}
+.model-card-urgent .ribbon {
+  position: absolute;
+  overflow: hidden;
+  transition: transform 200ms ease-out;
+}
+.model-card-urgent:hover .ribbon {
+  transform: scale(1.06);
+}
+.model-card-urgent .ribbon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 25%, rgba(255,255,255,0.55) 50%, transparent 75%);
+  transform: translateX(-120%);
+  transition: transform 700ms ease-out;
+}
+.model-card-urgent:hover .ribbon::after {
+  transform: translateX(120%);
+}
+
+/* Shaking clock icon (plays only while card is hovered) */
+@keyframes clock-shake {
+  0%, 100%   { transform: rotate(0deg); }
+  15%        { transform: rotate(-12deg); }
+  30%        { transform: rotate(10deg); }
+  45%        { transform: rotate(-8deg); }
+  60%        { transform: rotate(6deg); }
+  75%        { transform: rotate(-3deg); }
+}
+.model-card-urgent:hover .shake {
+  animation: clock-shake 0.55s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+
+/* Discounted price: turn pink on card hover (value counts down via JS) */
+.deal-price {
+  display: inline-block;
+  color: var(--color-text);
+  transition: color 180ms ease-out;
+}
+.model-card-urgent:hover .deal-price,
+.model-card-urgent:hover .deal-price * {
+  color: #D10076 !important;
 }
 
 .model-card .price-box {
@@ -277,7 +418,7 @@ html *::after {
 
 /* ── Glass Nav ── */
 .nav-links a {
-  color: #ffffff;
+  color: var(--color-text);
   transition: opacity 220ms ease, color 220ms ease;
 }
 
@@ -417,15 +558,26 @@ html *::after {
   position: relative;
   overflow: hidden;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.04);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  color: #fff;
+  color: var(--color-text);
   transition: background 200ms ease, border-color 200ms ease;
 }
 
 .btn-ghost-sweep:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="dark"] .btn-ghost-sweep {
+  border-color: rgba(255, 255, 255, 0.20);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+[data-theme="dark"] .btn-ghost-sweep:hover {
   background: rgba(255, 255, 255, 0.10);
   border-color: rgba(255, 255, 255, 0.30);
 }
@@ -439,60 +591,40 @@ html *::after {
   content: "";
   position: absolute;
   inset: -0.5rem 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.20), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.12), transparent);
   transform: skewX(12deg) translateX(-100%);
   transition: transform 1s ease-out;
   pointer-events: none;
+}
+
+[data-theme="dark"] .btn-ghost-sweep::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.20), transparent);
 }
 
 .btn-ghost-sweep:hover::after {
   transform: skewX(12deg) translateX(100%);
 }
 
-/* ── Light mode overrides ── */
-[data-theme="light"] .nav-links a {
-  color: var(--color-text);
-}
-
-[data-theme="light"] .select-field {
-  color-scheme: light;
-}
-
-[data-theme="light"] .select-field option {
+/* ── Theme-scoped tweaks ── */
+.select-field option {
   background: #ffffff;
   color: var(--color-text);
 }
 
-[data-theme="light"] .btn-ghost-sweep {
-  border-color: rgba(0, 0, 0, 0.12);
-  background: rgba(0, 0, 0, 0.04);
+[data-theme="dark"] .select-field option {
+  background: var(--color-search-bg);
   color: var(--color-text);
 }
 
-[data-theme="light"] .btn-ghost-sweep:hover {
-  background: rgba(0, 0, 0, 0.08);
-  border-color: rgba(0, 0, 0, 0.18);
-}
-
-[data-theme="light"] .model-card {
-  border-color: rgba(0, 0, 0, 0.10) !important;
-}
-
-[data-theme="light"] .model-card .model-tag {
-  background: rgba(0, 0, 0, 0.04) !important;
-  border-color: rgba(0, 0, 0, 0.08) !important;
-  opacity: 1 !important;
-}
-
-[data-theme="light"] .model-card .price-box {
-  border-color: rgba(0, 0, 0, 0.06) !important;
-}
-
-[data-theme="light"] canvas {
+canvas {
   opacity: 0.5;
 }
 
-[data-theme="light"] [data-glow] {
+[data-theme="dark"] canvas {
+  opacity: 1;
+}
+
+[data-glow] {
   --backdrop: hsl(0 0% 100% / 1);
   --backup-border: rgba(0, 0, 0, 0.08);
   box-shadow: 0 1rem 2rem -1rem rgba(0, 0, 0, 0.1);
