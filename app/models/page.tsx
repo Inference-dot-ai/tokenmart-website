@@ -2,9 +2,12 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Search, ChevronDown, ChevronUp, LayoutGrid, Tag, Check } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, LayoutGrid, Tag, Check, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { Navbar } from "@/components/ui/navbar";
 import { Footer } from "@/components/ui/footer";
+import { ModelCard } from "@/components/ui/model-card";
+import { SaleCountdown } from "@/components/ui/sale-countdown";
 import type { Model, Category } from "@/lib/google-sheets";
 import { extractPriceUSD } from "@/lib/price";
 
@@ -15,7 +18,6 @@ const MODEL_TYPE_OPTIONS: { label: string; category: Category | null }[] = [
   { label: "Video Generation", category: "Video" },
   { label: "Audio Generation", category: "Audio" },
 ];
-
 
 const SORT_OPTIONS = ["Trending", "Price: Low to High", "Price: High to Low", "Name A–Z"];
 
@@ -68,8 +70,7 @@ export default function ModelsPage() {
       result = result.filter(
         (m) =>
           m.name.toLowerCase().includes(q) ||
-          m.provider.toLowerCase().includes(q) ||
-          m.tags.some((t) => t.toLowerCase().includes(q))
+          m.provider.toLowerCase().includes(q)
       );
     }
 
@@ -111,15 +112,12 @@ export default function ModelsPage() {
     >
       {/* ── FLASH BANNER + NAV ── */}
       <div className="sticky top-0 z-50">
-        <div
-          className="w-full py-2 text-center text-xs font-medium text-white tracking-wide"
-          style={{ background: "var(--pink)" }}
-        >
-          Top AI models &bull; Optimized pricing across providers &bull; Same APIs, smarter routing
-        </div>
+        <FlashBanner />
 
         <Navbar fixed={false} />
       </div>
+
+      <SaleCountdown compact />
 
       {/* ── HEADER ── */}
       <section className="pt-8 pb-6 text-center max-w-3xl mx-auto px-6">
@@ -396,7 +394,11 @@ export default function ModelsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {filtered.map((model, i) => (
-                  <ModelCard key={`${model.category}|${model.provider}|${model.name}`} model={model} index={i} />
+                  <ModelCard
+                    key={`${model.category}|${model.provider}|${model.name}`}
+                    model={model}
+                    index={i}
+                  />
                 ))}
               </div>
             )}
@@ -411,89 +413,39 @@ export default function ModelsPage() {
   );
 }
 
-function ModelCard({ model, index }: { model: Model; index: number }) {
-  const priceMatch = (model.price || "—").match(/^(\$)(\d+(?:\.\d+)?)(.*)$/);
-  const priceSymbol = priceMatch ? priceMatch[1] : "";
-  const priceDigits = priceMatch ? priceMatch[2] : model.price || "—";
-  let priceUnit = priceMatch ? priceMatch[3] : "";
-  if (priceMatch && !priceUnit && model.category === "LLM") {
-    priceUnit = "/1M";
-  }
 
+function FlashBanner() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, transition: { duration: 0.12, ease: "easeOut" } }}
-      transition={{ duration: 0.4, delay: 0.05 + index * 0.04 }}
-      className="model-card overflow-hidden"
-      style={{
-        background: "var(--color-surface-hi)",
-        border: "1px solid rgba(255,255,255,0.10)",
-      }}
+    <div
+      className="w-full py-2.5 px-4 flex items-center justify-center gap-3 text-sm"
+      style={{ background: "var(--pink)", color: "#ffffff" }}
     >
-      <div className="p-5 flex flex-col h-full">
-        <p
-          className="text-xs font-semibold uppercase tracking-wider mb-2"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          {model.provider}
-        </p>
-
-        <h3
-          className="text-lg font-bold mb-3 leading-tight"
-          style={{ color: "var(--color-text)" }}
-        >
-          {model.name}
-        </h3>
-
-        {model.description && (
-          <p
-            className="text-sm leading-relaxed mb-4 line-clamp-2"
-            style={{ color: "var(--color-text-dim)" }}
-          >
-            {model.description}
-          </p>
-        )}
-
-        <div
-          className="h-px w-full mb-4 mt-auto opacity-40"
-          style={{ background: "var(--color-border)" }}
+      <span
+        className="w-2 h-2 rounded-full shrink-0"
+        style={{
+          background: "#ffffff",
+          boxShadow: "0 0 10px rgba(255,255,255,0.6)",
+        }}
+      />
+      <span className="font-semibold tracking-wide" style={{ color: "#ffffff" }}>
+        FLASH DEAL —{" "}
+        <span className="underline" style={{ color: "#ffffff" }}>20% off most models</span>{" "}
+        <span style={{ color: "rgba(255,255,255,0.55)" }}>·</span>
+      </span>
+      <Link
+        href="/signup"
+        className="group inline-flex items-center gap-1.5 font-semibold tracking-wide transition-colors duration-200"
+        style={{ color: "#ffffff" }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.8)")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#ffffff")}
+      >
+        <span style={{ color: "inherit" }}>Sign up now</span>
+        <ArrowRight
+          className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+          strokeWidth={2.5}
+          style={{ color: "#ffffff" }}
         />
-
-        <div className="flex items-baseline gap-1.5 min-w-0">
-          <span
-            className="text-xs shrink-0"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            from
-          </span>
-          <div className="flex items-baseline min-w-0">
-            {priceSymbol && (
-              <span
-                className="text-base font-bold"
-                style={{ color: "var(--color-text)" }}
-              >
-                {priceSymbol}
-              </span>
-            )}
-            <span
-              className="text-2xl font-bold truncate"
-              style={{ color: "var(--color-text)" }}
-            >
-              {priceDigits}
-            </span>
-          </div>
-          {priceUnit && (
-            <span
-              className="text-sm shrink-0"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              {priceUnit}
-            </span>
-          )}
-        </div>
-      </div>
-    </motion.div>
+      </Link>
+    </div>
   );
 }

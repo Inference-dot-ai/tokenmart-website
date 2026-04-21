@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { InferenceLogo } from "@/components/ui/inference-logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -44,7 +44,7 @@ export function Navbar({ fixed = true }: NavbarProps) {
       <a href="/" className="flex items-center gap-2 shrink-0">
         <InferenceLogo className="h-7 w-7 md:h-8 md:w-8" />
         <span className="text-xl md:text-2xl font-bold" style={{ color: "var(--color-text)" }}>
-          Inference<span style={{ color: "var(--pink)" }}>.ai</span>
+          token <span style={{ color: "var(--pink)" }}>mart</span>
         </span>
       </a>
 
@@ -64,14 +64,13 @@ export function Navbar({ fixed = true }: NavbarProps) {
         <ThemeToggle />
         <a
           href="/signup"
-          className="hidden sm:inline-flex items-center gap-1.5 md:gap-2 whitespace-nowrap text-sm md:text-lg font-normal px-3 md:px-5 py-1.5 md:py-2 rounded-full transition-all duration-200"
+          className="hidden sm:inline-flex items-center justify-center whitespace-nowrap text-sm md:text-base font-medium px-4 md:px-5 py-2 md:py-2.5 rounded-xl transition-all duration-200"
           style={{
-            background: "var(--color-text)",
-            color: "var(--color-bg)",
+            background: "var(--cta-bg)",
+            color: "var(--cta-fg)",
           }}
         >
-          Get Started
-          <ArrowRight className="h-3.5 w-3.5 md:h-4 md:w-4" strokeWidth={2.5} />
+          Sign Up
         </a>
         <button
           type="button"
@@ -155,14 +154,13 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
         <a
           href="/signup"
           onClick={onClose}
-          className="mt-4 inline-flex items-center justify-center gap-2 w-full whitespace-nowrap text-base font-medium px-4 py-3 rounded-full transition-all duration-200"
+          className="mt-4 inline-flex items-center justify-center w-full whitespace-nowrap text-base font-medium px-4 py-3 rounded-xl transition-all duration-200"
           style={{
-            background: "var(--color-text)",
-            color: "var(--color-bg)",
+            background: "var(--cta-bg)",
+            color: "var(--cta-fg)",
           }}
         >
-          Get Started
-          <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+          Sign Up
         </a>
       </div>
     </div>

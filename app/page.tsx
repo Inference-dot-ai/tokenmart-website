@@ -1,15 +1,34 @@
 "use client";
 
-// import { useState } from "react"; // commented out with search card
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-// import { Search, ChevronDown } from "lucide-react"; // commented out with search card
-import { ArrowRight, Zap, DollarSign, Shield, TrendingDown } from "lucide-react";
+import {
+  ArrowRight,
+  Zap,
+  DollarSign,
+  Shield,
+  TrendingDown,
+  Check,
+  CreditCard,
+  KeyRound,
+  Mail,
+  Apple,
+  Globe,
+  GitBranch,
+  ChevronDown,
+  Layers,
+  Gauge,
+} from "lucide-react";
+import Link from "next/link";
 // import { ButtonCta } from "@/components/ui/button-shiny"; // commented out with search card
 import { HeroSection } from "@/components/ui/hero-section-shadcnui";
-import { GlowCard } from "@/components/ui/spotlight-card";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { Navbar } from "@/components/ui/navbar";
 import { Footer } from "@/components/ui/footer";
+import { DiscountPopup } from "@/components/ui/discount-popup";
+import { SaleCountdown } from "@/components/ui/sale-countdown";
+import { ModelCard } from "@/components/ui/model-card";
+import type { Model } from "@/lib/google-sheets";
 
 // ── Search card constants (commented out with search card) ──
 // const TABS = ["Tokens / AI Models", "GPUs / Hardware"];
@@ -17,82 +36,71 @@ import { Footer } from "@/components/ui/footer";
 // const USAGE_LEVELS = ["Expected usage","< 1M tokens/day","1M–10M tokens/day","10M–100M tokens/day","> 100M tokens/day"];
 // const SUGGESTION_PILLS = ["GPT-4o mini","Claude 3.5 Sonnet","Llama 3.3 70B","Gemini 1.5 Flash","Mistral Large","DeepSeek V3"];
 
-const TOP_DEALS = [
+
+const FAQS: { q: string; a: string }[] = [
   {
-    model: "GPT-4o",
-    provider: "OpenAI",
-    inputPrice: "$1.25",
-    outputPrice: "$5.00",
-    originalInput: "$2.50",
-    originalOutput: "$10.00",
-    context: "128K",
-    uptime: "99.9%",
-    savings: "50%",
-    badge: "Most Popular",
+    q: "How much can I save using TokenMart instead of direct API access?",
+    a: "TokenMart users typically save 20-70% on their AI API costs. Our intelligent routing system continuously monitors real-time prices across providers like OpenAI, Anthropic, Google, and more. For example, GPT-4 requests can cost $0.03 directly from OpenAI, but through our routing, you might pay as low as $0.014 when alternate providers offer better rates. The exact savings depend on your usage patterns and model selection.",
   },
   {
-    model: "Claude Sonnet 4",
-    provider: "Anthropic",
-    inputPrice: "$1.50",
-    outputPrice: "$7.50",
-    originalInput: "$3.00",
-    originalOutput: "$15.00",
-    context: "200K",
-    uptime: "99.8%",
-    savings: "50%",
-    badge: "Best for Code",
+    q: "How does TokenMart pricing work? Are there hidden fees?",
+    a: "TokenMart uses transparent pay-as-you-go pricing with no hidden fees. You only pay for what you use, calculated per token or request depending on the model. We don't charge platform fees - you pay the best available market rate plus a small routing fee (typically 5-10%). No monthly minimums, no setup costs, and new users get free credits to test our service.",
   },
   {
-    model: "Gemini 2.5 Flash",
-    provider: "Google",
-    inputPrice: "$0.08",
-    outputPrice: "$0.30",
-    originalInput: "$0.15",
-    originalOutput: "$0.60",
-    context: "1M",
-    uptime: "99.9%",
-    savings: "50%",
-    badge: "Best Value",
+    q: "How long does it take to integrate TokenMart into my existing application?",
+    a: "Integration typically takes less than 10 minutes. If you're already using OpenAI or similar APIs, you just need to change your base URL and API key. Our API is compatible with OpenAI's format, so most existing code works without modification. We provide SDKs for Python, JavaScript, Go, and more, plus comprehensive documentation and migration guides.",
   },
   {
-    model: "Llama 3.3 70B",
-    provider: "Meta",
-    inputPrice: "$0.18",
-    outputPrice: "$0.18",
-    originalInput: "$0.40",
-    originalOutput: "$0.40",
-    context: "128K",
-    uptime: "99.7%",
-    savings: "55%",
-    badge: "Open Source",
+    q: "Which AI models and providers does TokenMart support?",
+    a: "TokenMart supports 40+ models from leading providers including OpenAI (GPT-4, GPT-3.5), Anthropic (Claude 3 Opus, Sonnet), Google (Gemini Pro, PaLM), Meta (Llama 2), Mistral, Cohere, and more. We continuously add new models and providers. All models are accessible through our unified API endpoint, so you can switch models with a single parameter change.",
   },
   {
-    model: "DeepSeek V3",
-    provider: "DeepSeek",
-    inputPrice: "$0.07",
-    outputPrice: "$0.14",
-    originalInput: "$0.14",
-    originalOutput: "$0.28",
-    context: "64K",
-    uptime: "99.5%",
-    savings: "50%",
-    badge: "Budget Pick",
+    q: "What happens if a provider goes down? Will my application fail?",
+    a: "No, your application stays online. TokenMart provides automatic failover across multiple providers. If OpenAI experiences an outage, we instantly route your requests to alternate providers like Anthropic or Google. Our system maintains 99.9% uptime by monitoring provider health in real-time and pre-emptively routing away from degraded services. You get reliability that's impossible with a single provider.",
   },
   {
-    model: "Mistral Large",
-    provider: "Mistral AI",
-    inputPrice: "$1.00",
-    outputPrice: "$3.00",
-    originalInput: "$2.00",
-    originalOutput: "$6.00",
-    context: "128K",
-    uptime: "99.8%",
-    savings: "50%",
-    badge: "Enterprise",
+    q: "Does routing through TokenMart add latency to my API calls?",
+    a: "TokenMart adds minimal latency (typically <50ms) while often improving overall response time. Our intelligent routing selects the fastest available provider based on real-time performance metrics. Many users actually experience faster responses because we route around congested providers and use geographic optimization. Our infrastructure is deployed globally across AWS, ensuring low latency worldwide.",
+  },
+  {
+    q: "Is my data secure when using TokenMart? Do you store my prompts?",
+    a: "Your data security is our top priority. TokenMart acts as a secure proxy and does NOT store your prompts or responses. All data is encrypted in transit using TLS 1.3, and we're SOC 2 Type II certified. We maintain detailed audit logs for compliance but never log sensitive content. Our infrastructure is GDPR compliant and we offer data processing agreements (DPAs) for enterprise customers.",
+  },
+  {
+    q: "Do I need API keys from each provider, or just TokenMart?",
+    a: "You only need one TokenMart key - we handle all provider relationships for you. This means less security risk (fewer keys to manage), simplified billing (one invoice), and instant access to new providers without additional setup. Your TokenMart key works across all supported models and providers.",
+  },
+  {
+    q: "Why use TokenMart instead of going directly to OpenAI or Anthropic?",
+    a: "TokenMart offers five key advantages: 1) Cost savings of 20-70% through intelligent routing, 2) 99.9% uptime with automatic failover, 3) Single API for all providers - no code changes needed, 4) Unified billing and usage analytics, 5) Future-proof integration - new models automatically available. Direct provider access can't match our reliability, cost optimization, or convenience.",
+  },
+  {
+    q: "How does TokenMart handle rate limits across different providers?",
+    a: "TokenMart intelligently manages rate limits by distributing your requests across multiple providers. If you hit OpenAI's rate limit, we automatically route to Anthropic or another provider with available capacity. This gives you effectively unlimited throughput - far beyond what any single provider offers. We also provide rate limit monitoring in your dashboard.",
+  },
+  {
+    q: "Can I try TokenMart for free before committing?",
+    a: "Yes! Sign up to get free credits - no credit card required. This gives you enough usage to test multiple models, evaluate performance, and see real cost savings. Our dashboard shows detailed analytics so you can compare costs versus direct provider access. Most developers see 30-50% savings in their trial period alone.",
+  },
+  {
+    q: "Do you offer enterprise plans with SLAs and dedicated support?",
+    a: "Yes, TokenMart offers enterprise plans with 99.99% SLA guarantees, dedicated support, custom contracts, and volume discounts. Enterprise features include: dedicated infrastructure, custom model routing rules, advanced security controls, priority support, and detailed compliance documentation. Contact our sales team for pricing based on your usage volume.",
   },
 ];
 
 export default function Home() {
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [featuredModels, setFeaturedModels] = useState<Model[]>([]);
+
+  useEffect(() => {
+    fetch("/api/models")
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((models: Model[]) =>
+        setFeaturedModels(models.filter((m) => m.featured))
+      )
+      .catch((err) => console.error("Failed to load featured models", err));
+  }, []);
+
   // ── Search card state (commented out with search card) ──
   // const [activeTab, setActiveTab] = useState(0);
   // const [query, setQuery] = useState("");
@@ -102,189 +110,494 @@ export default function Home() {
   // const [autoBest, setAutoBest] = useState(true);
 
   return (
-    <div className="min-h-screen bg-bg text-text relative overflow-hidden">
+    <div className="min-h-screen bg-bg text-text relative overflow-x-clip">
       <DottedSurface />
 
+      <DiscountPopup />
+
       <Navbar />
+
+      <SaleCountdown />
 
       {/* ── HERO ── */}
       <main className="relative z-20 max-w-5xl mx-auto px-6 pt-24 pb-8 flex flex-col items-center text-center">
         <HeroSection />
 
-        {/* ── TOP DEALS ── */}
+        {/* ── FEATURED MODELS ── */}
+        {featuredModels.length > 0 && (
+          <motion.div
+            className="w-full max-w-6xl mt-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.75 }}
+          >
+            {/* ── Featured Deals stripe (theme-adaptive via CSS vars) ── */}
+            <div className="deals-stripe relative rounded-lg p-5 md:p-7 overflow-hidden">
+              <div aria-hidden className="deals-stripe-glow deals-stripe-glow-1" />
+              <div aria-hidden className="deals-stripe-glow deals-stripe-glow-2" />
+              <div aria-hidden className="deals-stripe-grain" />
+
+              <div className="relative mb-8 text-center">
+                <div className="inline-flex items-center gap-3">
+                  <div className="inline-flex items-center gap-2">
+                    <Zap className="w-7 h-7 md:w-8 md:h-8" style={{ color: "var(--pink)" }} fill="currentColor" strokeWidth={0} />
+                    <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
+                      Featured This Week
+                    </h2>
+                  </div>
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-[0.12em] uppercase"
+                    style={{
+                      background: "#111",
+                      color: "#ffffff",
+                    }}
+                  >
+                    <span
+                      className="w-1.5 h-1.5 rounded-full animate-blink"
+                      style={{ background: "var(--pink)" }}
+                    />
+                    Limited Deal
+                  </span>
+                </div>
+              </div>
+
+              <div className="relative grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                {featuredModels.map((m, i) => (
+                  <ModelCard
+                    key={`${m.category}|${m.provider}|${m.name}`}
+                    model={m}
+                    index={i}
+                  />
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── WHY CHOOSE TOKENMART ── */}
         <motion.div
-          className="w-full max-w-6xl mt-2"
+          className="w-full max-w-6xl mt-16 text-left"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.75 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.85 }}
         >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5" style={{ color: "var(--pink)" }} />
-              <h2 className="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
-                Top Deals Right Now
-              </h2>
-            </div>
-            <a
-              href="#"
-              className="text-sm flex items-center gap-1 transition-colors duration-200"
-              style={{ color: "var(--color-text-muted)" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--pink)")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text-muted)")}
-            >
-              View all deals
-              <ArrowRight className="w-3.5 h-3.5" />
-            </a>
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
+              Why Choose tokenmart?
+            </h2>
+            <p className="text-base mt-3 max-w-2xl mx-auto" style={{ color: "var(--color-text-muted)" }}>
+              The unified API platform that makes AI integration simple, reliable, and cost-effective.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {TOP_DEALS.map((deal, i) => (
-              <motion.div
-                key={deal.model}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.85 + i * 0.08 }}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Card 1 — Never Fail a Request */}
+            <WhyCard
+              icon={<Shield className="w-5 h-5" strokeWidth={2} style={{ color: "var(--pink)" }} />}
+              tag="Reliability"
+              title="Never Fail a Request"
+              body={
+                <>
+                  <Strong>99.9%</Strong> uptime with <Strong>automatic failover</Strong> across every provider.
+                </>
+              }
+              readout={
+                <>
+                  <ReadoutLine label="uptime" value="99.9%" />
+                  <ReadoutLine label="failover" value="auto" />
+                  <ReadoutLine label="latency" value="<50ms" />
+                </>
+              }
+              statValue="99.9%"
+              statLabel="uptime"
+            />
+
+            {/* Card 2 — Access Top AI Models */}
+            <WhyCard
+              icon={<Layers className="w-5 h-5" strokeWidth={2} style={{ color: "var(--pink)" }} />}
+              tag="Models"
+              title="Access Top AI Models"
+              body={
+                <>
+                  Connect to <Strong>Veo 3</Strong>, <Strong>Sora-2</Strong>, <Strong>Nano Banana Pro</Strong> and 40+ leading models through one <Strong>unified gateway</Strong>.
+                </>
+              }
+              readout={
+                <>
+                  <ReadoutJson model="veo-3" />
+                  <ReadoutJson model="sora-2" />
+                  <ReadoutJson model="nano-banana-pro" />
+                </>
+              }
+              statValue="40+"
+              statLabel="AI models"
+            />
+
+            {/* Card 3 — One Dashboard, Total Control */}
+            <WhyCard
+              icon={<Gauge className="w-5 h-5" strokeWidth={2} style={{ color: "var(--pink)" }} />}
+              tag="Control"
+              title="One Dashboard, Total Control"
+              body={
+                <>
+                  <Strong>Track usage</Strong> and <Strong>costs</Strong> across every model in <Strong>real-time</Strong>.
+                </>
+              }
+              readout={
+                <>
+                  <ReadoutLine label="calls (24h)" value="45,218" />
+                  <ReadoutLine label="spend" value="$412.80" />
+                  <ReadoutLine label="saved" value="$89.14" accent="green" />
+                </>
+              }
+              statValue="1"
+              statLabel="dashboard"
+              rightStat={
+                <div className="text-right leading-tight font-[family-name:var(--font-mono)] text-xs">
+                  <div style={{ color: "var(--color-text-muted)" }}>45K calls</div>
+                  <div style={{ color: "var(--pink)" }} className="font-semibold">$89 saved</div>
+                </div>
+              }
+            />
+
+            {/* Card 4 — Always Pay the Lowest Price */}
+            <WhyCard
+              icon={<TrendingDown className="w-5 h-5" strokeWidth={2} style={{ color: "var(--pink)" }} />}
+              tag="Savings"
+              title="Always Pay the Lowest Price"
+              body={
+                <>
+                  <Strong>Smart routing</Strong> saves up to <Strong>70%</Strong> on AI costs, automatically.
+                </>
+              }
+              readout={
+                <>
+                  <ReadoutCompare label="GPT-4" value="$0.030" status="bad" />
+                  <ReadoutCompare label="Best" value="$0.014" status="good" />
+                  <ReadoutLine label="saved" value="53%" accent="green" />
+                </>
+              }
+              statValue="70%"
+              statLabel="savings"
+            />
+          </div>
+        </motion.div>
+
+        {/* ── GET STARTED ── */}
+        <motion.div
+          className="w-full max-w-6xl mt-16 text-left"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.9 }}
+        >
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold" style={{ color: "var(--color-text)" }}>
+              Get started in 60 seconds
+            </h2>
+            <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
+              Claim your bonus first — it stacks on everything else.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Card 0 — Lock in Discount (highlighted) */}
+            <div
+              className="relative rounded-2xl p-5 flex flex-col sm:col-span-2 lg:col-span-2"
+              style={{
+                background:
+                  "linear-gradient(180deg, var(--pink-lo) 0%, var(--color-surface) 100%)",
+                border: "1px solid var(--border-pink)",
+                boxShadow:
+                  "0 0 0 3px var(--pink-lo), 0 0 40px var(--pink-glow)",
+              }}
+            >
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white mb-4"
+                style={{ background: "var(--pink)" }}
               >
-                <GlowCard
-                  glowColor="pink"
-                  customSize
-                  className="!p-0 !grid-rows-none !gap-0 group"
+                0
+              </div>
+
+              <div className="flex items-center gap-2 mb-3">
+                <h3
+                  className="text-lg font-bold"
+                  style={{ color: "var(--color-text)" }}
                 >
-                  <div className="p-5 flex flex-col h-full">
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-base font-semibold leading-tight" style={{ color: "var(--color-text)" }}>
-                          {deal.model}
-                        </h3>
-                        <p
-                          className="text-xs mt-0.5"
-                          style={{ color: "var(--color-text-muted)" }}
-                        >
-                          {deal.provider}
-                        </p>
-                      </div>
-                      <span
-                        className="text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0"
-                        style={{
-                          background: "var(--pink-lo)",
-                          color: "var(--pink)",
-                          border: "1px solid var(--border-pink)",
-                        }}
-                      >
-                        {deal.badge}
-                      </span>
-                    </div>
+                  Lock in Discount
+                </h3>
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wider text-white"
+                  style={{ background: "#111" }}
+                >
+                  <Zap className="w-3 h-3" fill="currentColor" strokeWidth={0} />
+                  LIMITED
+                </span>
+              </div>
 
-                    {/* Pricing */}
-                    <div
-                      className="rounded-xl p-3 mb-4"
-                      style={{ background: "var(--color-bg)" }}
-                    >
-                      <div className="flex items-baseline justify-between mb-1.5">
-                        <span
-                          className="text-[10px] uppercase tracking-wider"
-                          style={{ color: "var(--color-text-muted)" }}
-                        >
-                          Input / 1M tokens
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="text-xs line-through"
-                            style={{ color: "var(--color-text-muted)" }}
-                          >
-                            {deal.originalInput}
-                          </span>
-                          <span
-                            className="text-sm font-semibold"
-                            style={{ color: "var(--color-text)" }}
-                          >
-                            {deal.inputPrice}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-baseline justify-between">
-                        <span
-                          className="text-[10px] uppercase tracking-wider"
-                          style={{ color: "var(--color-text-muted)" }}
-                        >
-                          Output / 1M tokens
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="text-xs line-through"
-                            style={{ color: "var(--color-text-muted)" }}
-                          >
-                            {deal.originalOutput}
-                          </span>
-                          <span
-                            className="text-sm font-semibold"
-                            style={{ color: "var(--color-text)" }}
-                          >
-                            {deal.outputPrice}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+              <p
+                className="text-sm leading-relaxed mb-4"
+                style={{ color: "var(--color-text-dim)" }}
+              >
+                Claim your{" "}
+                <span
+                  className="font-semibold"
+                  style={{ color: "var(--color-text)" }}
+                >
+                  20% bonus credits + 300M free tokens
+                </span>{" "}
+                before the deal ends. Stackable with every model discount.
+              </p>
 
-                    {/* Stats row */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div
-                        className="flex items-center gap-1.5 text-xs"
-                        style={{ color: "var(--color-text-dim)" }}
-                      >
-                        <Shield className="w-3 h-3" style={{ color: "var(--color-text-muted)" }} />
-                        {deal.uptime}
-                      </div>
-                      <div
-                        className="w-px h-3"
-                        style={{ background: "var(--color-border)" }}
-                      />
-                      <div
-                        className="flex items-center gap-1.5 text-xs"
-                        style={{ color: "var(--color-text-dim)" }}
-                      >
-                        <DollarSign className="w-3 h-3" style={{ color: "var(--color-text-muted)" }} />
-                        {deal.context} ctx
-                      </div>
-                      <div
-                        className="w-px h-3"
-                        style={{ background: "var(--color-border)" }}
-                      />
-                      <div
-                        className="flex items-center gap-1.5 text-xs font-medium"
-                        style={{ color: "#34d399" }}
-                      >
-                        <TrendingDown className="w-3 h-3" />
-                        {deal.savings} off
-                      </div>
-                    </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-2 mb-5 text-sm">
+                <span
+                  className="inline-flex items-center gap-1.5"
+                  style={{ color: "var(--color-text-dim)" }}
+                >
+                  <Check className="w-3.5 h-3.5" style={{ color: "var(--pink)" }} strokeWidth={3} />
+                  <span className="font-semibold" style={{ color: "var(--pink)" }}>
+                    +20%
+                  </span>{" "}
+                  credits
+                </span>
+                <span
+                  className="inline-flex items-center gap-1.5"
+                  style={{ color: "var(--color-text-dim)" }}
+                >
+                  <Check className="w-3.5 h-3.5" style={{ color: "var(--pink)" }} strokeWidth={3} />
+                  <span className="font-semibold" style={{ color: "var(--pink)" }}>
+                    300M
+                  </span>{" "}
+                  free tokens
+                </span>
+                <span
+                  className="inline-flex items-center gap-1.5"
+                  style={{ color: "var(--color-text-dim)" }}
+                >
+                  <Check className="w-3.5 h-3.5" style={{ color: "var(--pink)" }} strokeWidth={3} />
+                  No card
+                </span>
+              </div>
 
-                    {/* CTA */}
-                    <button
-                      className="w-full py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all duration-200"
-                      style={{
-                        background: "var(--pink-lo)",
-                        color: "var(--pink)",
-                        border: "1px solid var(--border-pink)",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "var(--pink)";
-                        e.currentTarget.style.color = "#ffffff";
-                        e.currentTarget.style.boxShadow = "0 0 20px var(--pink-mid)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "var(--pink-lo)";
-                        e.currentTarget.style.color = "var(--pink)";
-                        e.currentTarget.style.boxShadow = "none";
-                      }}
-                    >
-                      Get Deal
-                    </button>
+              <Link
+                href="/signup"
+                className="mt-auto w-full py-3 rounded-full text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200"
+                style={{ background: "var(--pink)" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = "0 0 24px var(--pink-glow)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                Get Bonus Credits
+                <ArrowRight className="w-4 h-4" strokeWidth={2} />
+              </Link>
+            </div>
+
+            {/* Card 1 — Signup */}
+            <div
+              className="rounded-2xl p-5 flex flex-col"
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold mb-4"
+                style={{ background: "var(--pink-lo)", color: "var(--pink)" }}
+              >
+                1
+              </div>
+              <h3
+                className="text-lg font-bold mb-3"
+                style={{ color: "var(--color-text)" }}
+              >
+                Signup
+              </h3>
+              <p
+                className="text-sm leading-relaxed mb-5"
+                style={{ color: "var(--color-text-dim)" }}
+              >
+                Create an account to get started. Set up an org for your team later.
+              </p>
+              <div className="mt-auto flex items-center gap-2">
+                {[Globe, Apple, GitBranch, Mail].map((Icon, i) => (
+                  <div
+                    key={i}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    style={{
+                      background: "var(--color-bg)",
+                      border: "1px solid var(--color-border)",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    <Icon className="w-4 h-4" strokeWidth={2} />
                   </div>
-                </GlowCard>
-              </motion.div>
-            ))}
+                ))}
+              </div>
+            </div>
+
+            {/* Card 2 — Buy credits */}
+            <div
+              className="rounded-2xl p-5 flex flex-col"
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold mb-4"
+                style={{ background: "var(--pink-lo)", color: "var(--pink)" }}
+              >
+                2
+              </div>
+              <h3
+                className="text-lg font-bold mb-3"
+                style={{ color: "var(--color-text)" }}
+              >
+                Buy credits
+              </h3>
+              <p
+                className="text-sm leading-relaxed mb-5"
+                style={{ color: "var(--color-text-dim)" }}
+              >
+                Credits can be used with any model or provider. $80 → 100 credits.
+              </p>
+              <div className="mt-auto flex items-center gap-2">
+                {[CreditCard, DollarSign].map((Icon, i) => (
+                  <div
+                    key={i}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    style={{
+                      background: "var(--color-bg)",
+                      border: "1px solid var(--color-border)",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    <Icon className="w-4 h-4" strokeWidth={2} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Card 3 — API key */}
+            <div
+              className="rounded-2xl p-5 flex flex-col"
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold mb-4"
+                style={{ background: "var(--pink-lo)", color: "var(--pink)" }}
+              >
+                3
+              </div>
+              <h3
+                className="text-lg font-bold mb-3"
+                style={{ color: "var(--color-text)" }}
+              >
+                Get your API key
+              </h3>
+              <p
+                className="text-sm leading-relaxed mb-5"
+                style={{ color: "var(--color-text-dim)" }}
+              >
+                Create an API key and start making requests.{" "}
+                <span style={{ color: "var(--pink)" }}>Fully OpenAI compatible.</span>
+              </p>
+              <div className="mt-auto flex items-center gap-2">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{
+                    background: "var(--color-bg)",
+                    border: "1px solid var(--color-border)",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
+                  <KeyRound className="w-4 h-4" strokeWidth={2} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── FAQ ── */}
+        <motion.div
+          className="w-full max-w-6xl mt-24 text-left"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 1.0 }}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+            {/* Left column — title & subtitle */}
+            <div className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start">
+              <h2
+                className="text-4xl font-bold leading-tight"
+                style={{ color: "var(--color-text)" }}
+              >
+                Frequently Asked Questions
+              </h2>
+              <p
+                className="mt-4 text-base leading-relaxed"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Everything you need to know about saving money and improving
+                reliability with TokenMart
+              </p>
+            </div>
+
+            {/* Right column — questions */}
+            <div className="lg:col-span-2">
+              {FAQS.map((item, i) => {
+                if (!item.q) return null;
+                const isOpen = openFaq === i;
+                const num = String(i + 1).padStart(2, "0");
+                return (
+                  <div
+                    key={i}
+                    className="border-t"
+                    style={{ borderColor: "var(--color-border)" }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setOpenFaq(isOpen ? null : i)}
+                      className="w-full flex items-start gap-6 py-6 text-left cursor-pointer"
+                    >
+                      <span
+                        className="text-2xl font-serif italic shrink-0 pt-0.5"
+                        style={{ color: "var(--color-text-dim)" }}
+                      >
+                        {num}
+                      </span>
+                      <span
+                        className="flex-1 text-xl font-medium leading-snug"
+                        style={{ color: "var(--color-text)" }}
+                      >
+                        {item.q}
+                      </span>
+                      <ChevronDown
+                        className="w-5 h-5 shrink-0 mt-0.5 transition-transform duration-200"
+                        style={{
+                          color: "var(--color-text-muted)",
+                          transform: isOpen ? "rotate(180deg)" : "none",
+                        }}
+                        strokeWidth={2}
+                      />
+                    </button>
+                    {isOpen && item.a && (
+                      <div
+                        className="pb-6 pl-[3.5rem] pr-10 text-base leading-relaxed"
+                        style={{ color: "var(--color-text-dim)" }}
+                      >
+                        {item.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </motion.div>
 
@@ -511,6 +824,196 @@ export default function Home() {
       />
 
       <Footer />
+    </div>
+  );
+}
+
+function Strong({ children }: { children: React.ReactNode }) {
+  return (
+    <strong className="font-semibold" style={{ color: "var(--color-text)" }}>
+      {children}
+    </strong>
+  );
+}
+
+function ReadoutLine({
+  label,
+  value,
+  accent = "pink",
+}: {
+  label: string;
+  value: string;
+  accent?: "pink" | "green";
+}) {
+  const valueColor = accent === "green" ? "var(--terminal-green)" : "var(--terminal-pink)";
+  return (
+    <div className="flex items-center gap-2">
+      <span style={{ color: "var(--pink)" }}>›</span>
+      <span style={{ color: "var(--terminal-label)" }} className="tracking-wide">
+        {label}
+      </span>
+      <span className="ml-auto font-medium" style={{ color: valueColor }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function ReadoutJson({ model }: { model: string }) {
+  return (
+    <div>
+      <span style={{ color: "var(--terminal-punct)" }}>{"{ "}</span>
+      <span style={{ color: "var(--terminal-pink)" }}>&quot;model&quot;</span>
+      <span style={{ color: "var(--terminal-punct)" }}>: </span>
+      <span style={{ color: "var(--terminal-green)" }}>&quot;{model}&quot;</span>
+      <span style={{ color: "var(--terminal-punct)" }}>{" }"}</span>
+    </div>
+  );
+}
+
+function ReadoutCompare({
+  label,
+  value,
+  status,
+}: {
+  label: string;
+  value: string;
+  status: "good" | "bad";
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span style={{ color: "var(--pink)" }}>›</span>
+      <span style={{ color: "var(--terminal-label)" }}>{label}</span>
+      <span className="ml-auto font-medium" style={{ color: "var(--terminal-value)" }}>
+        {value}
+      </span>
+      <span style={{ color: status === "good" ? "var(--terminal-green)" : "var(--terminal-red)" }}>
+        {status === "good" ? "✓" : "✗"}
+      </span>
+    </div>
+  );
+}
+
+function WhyCard({
+  icon,
+  tag,
+  title,
+  body,
+  readout,
+  statValue,
+  statLabel,
+  rightStat,
+}: {
+  icon: React.ReactNode;
+  tag: string;
+  title: string;
+  body: React.ReactNode;
+  readout: React.ReactNode;
+  statValue: string;
+  statLabel: string;
+  rightStat?: React.ReactNode;
+}) {
+  return (
+    <div
+      className="group relative rounded-2xl p-7 flex flex-col overflow-hidden transition-all duration-300"
+      style={{
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = "var(--border-pink)";
+        e.currentTarget.style.boxShadow =
+          "0 18px 48px -12px var(--pink-mid), 0 0 0 1px var(--border-pink)";
+        e.currentTarget.style.transform = "translateY(-2px)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "var(--color-border)";
+        e.currentTarget.style.boxShadow = "none";
+        e.currentTarget.style.transform = "translateY(0)";
+      }}
+    >
+      {/* Soft top gradient — reveals on hover */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-24 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background:
+            "linear-gradient(180deg, var(--pink-lo) 0%, transparent 100%)",
+        }}
+      />
+
+      <div className="relative flex items-center justify-between mb-6">
+        <div
+          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+          style={{
+            background: "var(--pink-lo)",
+            border: "1px solid var(--border-pink)",
+          }}
+        >
+          {icon}
+        </div>
+        <span
+          className="text-[10px] font-semibold tracking-[0.18em] uppercase px-2.5 py-1 rounded-full font-[family-name:var(--font-mono)]"
+          style={{
+            background: "var(--color-bg)",
+            color: "var(--color-text-muted)",
+            border: "1px solid var(--color-border)",
+          }}
+        >
+          {tag}
+        </span>
+      </div>
+
+      <h3
+        className="relative text-[1.55rem] leading-tight font-semibold tracking-tight mb-3 font-[family-name:var(--font-chakra)]"
+        style={{ color: "var(--color-text)" }}
+      >
+        {title}
+      </h3>
+      <p
+        className="relative text-[15px] leading-relaxed mb-6"
+        style={{ color: "var(--color-text-dim)" }}
+      >
+        {body}
+      </p>
+
+      {/* Terminal readout — theme-adaptive (dark in dark mode, light in light mode) */}
+      <div
+        className="relative rounded-xl mb-6 overflow-hidden"
+        style={{
+          background: "var(--terminal-bg)",
+          border: "1px solid var(--terminal-border)",
+        }}
+      >
+        <div
+          className="flex items-center gap-1.5 px-3 py-2 border-b"
+          style={{ borderColor: "var(--terminal-border)" }}
+        >
+          <span className="w-2 h-2 rounded-full" style={{ background: "rgba(248,113,113,0.5)" }} />
+          <span className="w-2 h-2 rounded-full" style={{ background: "rgba(251,191,36,0.5)" }} />
+          <span className="w-2 h-2 rounded-full" style={{ background: "rgba(74,222,128,0.5)" }} />
+        </div>
+        <div className="px-4 py-3 text-[12.5px] leading-relaxed font-[family-name:var(--font-mono)] space-y-0.5">
+          {readout}
+        </div>
+      </div>
+
+      <div className="relative mt-auto flex items-end justify-between">
+        <div className="flex items-baseline gap-2">
+          <span
+            className="text-4xl font-bold tracking-tight font-[family-name:var(--font-chakra)]"
+            style={{ color: "var(--pink)" }}
+          >
+            {statValue}
+          </span>
+          <span
+            className="text-sm"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            {statLabel}
+          </span>
+        </div>
+        {rightStat}
+      </div>
     </div>
   );
 }

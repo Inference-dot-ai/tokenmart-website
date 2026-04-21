@@ -1,98 +1,72 @@
 import { google } from "googleapis";
-import { extractPriceUSD } from "./price";
 
 export type Category = "LLM" | "Image" | "Video" | "Audio";
-export type Badge = "PREMIUM" | "BEST VALUE";
 
 export interface Model {
   name: string;
   provider: string;
   category: Category;
   description: string;
-  price: string;
-  tags: string[];
-  badge: Badge;
+  price: string;                 // discounted price, e.g. "$12.75"
+  unit: string;                  // e.g. "/1M tokens", "/img", "/s"
+  originalPrice: string | null;  // "from" price when discount > 0
+  discountPct: number | null;    // 0-100; null when no discount
+  featured: boolean;
 }
 
-const SHEET_RANGES = [
-  "Text Generation!A2:E",
-  "Image Generation!A2:D",
-  "Video Generation!A2:E",
-  "Audio Generation!A2:C",
-] as const;
+const SHEET_RANGE = "All Model!A2:L" as const;
+
+const TYPE_TO_CATEGORY: Record<string, Category> = {
+  "Text Generation": "LLM",
+  "Image Generation": "Image",
+  "Video Generation": "Video",
+  "Audio Generation": "Audio",
+};
 
 const FALLBACK_MODELS: Model[] = [
-  {
-    name: "GPT-5.2",
-    provider: "OpenAI",
-    category: "LLM",
-    description: "Flagship with prompt caching",
-    price: "$1.483",
-    tags: ["400K context"],
-    badge: "PREMIUM",
-  },
   {
     name: "Claude Sonnet 4.6",
     provider: "Anthropic",
     category: "LLM",
-    description: "Speed/intelligence/cost balance",
-    price: "$2.700",
-    tags: ["200K context"],
-    badge: "PREMIUM",
+    description: "Premium balanced Claude for fast, capable answers across production workloads.",
+    price: "$12.75",
+    unit: "/1M tokens",
+    originalPrice: "$15.00",
+    discountPct: 15,
+    featured: true,
   },
   {
-    name: "Gemini 2.5 Flash Lite",
+    name: "GPT 5.4",
+    provider: "OpenAI",
+    category: "LLM",
+    description: "Most capable GPT-5 line for professional use and reasoning-forward tasks.",
+    price: "$12.75",
+    unit: "/1M tokens",
+    originalPrice: "$15.00",
+    discountPct: 15,
+    featured: true,
+  },
+  {
+    name: "Gemini 3.1 Pro Preview",
     provider: "Google",
     category: "LLM",
-    description: "Cost-efficient data processing",
-    price: "$0.095",
-    tags: [],
-    badge: "BEST VALUE",
+    description: "Preview flagship Gemini for stronger reasoning.",
+    price: "$9.60",
+    unit: "/1M tokens",
+    originalPrice: "$12.00",
+    discountPct: 20,
+    featured: true,
   },
   {
-    name: "Nano Banana",
+    name: "Nano Banana 2",
     provider: "Google",
     category: "Image",
-    description: "Natural language-driven image generation",
-    price: "$0.024/img",
-    tags: [],
-    badge: "PREMIUM",
-  },
-  {
-    name: "GPT Image 1.5",
-    provider: "OpenAI",
-    category: "Image",
-    description: "True-color precision, structured tasks",
-    price: "$0.014/img",
-    tags: [],
-    badge: "BEST VALUE",
-  },
-  {
-    name: "Sora 2",
-    provider: "OpenAI",
-    category: "Video",
-    description: "Audio support, watermark removal",
-    price: "$0.085/s",
-    tags: ["10-15s"],
-    badge: "PREMIUM",
-  },
-  {
-    name: "Seedance 1.0 Pro Fast",
-    provider: "BytePlus",
-    category: "Video",
-    description: "720p/1080p quality",
-    price: "$0.014/s",
-    tags: ["2-12s"],
-    badge: "BEST VALUE",
-  },
-  {
-    name: "Suno",
-    provider: "Suno",
-    category: "Audio",
-    description: "",
-    price: "$0.118/2 tracks",
-    tags: [],
-    badge: "BEST VALUE",
+    description: "Upgraded Gemini image model with sharper natural-language control.",
+    price: "$0.04",
+    unit: "/img",
+    originalPrice: "$0.05",
+    discountPct: 20,
+    featured: true,
   },
 ];
 
@@ -105,66 +79,42 @@ function isConfigured(): boolean {
   );
 }
 
-type RawRow = string[];
-type ParsedModel = Omit<Model, "badge">;
-
-function parseLLMRow(row: RawRow): ParsedModel | null {
-  const name = row[0]?.trim() ?? "";
-  if (!name) return null;
-  const provider = row[1]?.trim() ?? "";
-  const price = row[2]?.trim() ?? "";
-  const ctx = row[3]?.trim() ?? "";
-  const description = row[4]?.trim() ?? "";
-  const tags = ctx && ctx !== "Not listed" ? [`${ctx} context`] : [];
-  return { name, provider, category: "LLM", description, price, tags };
+function parsePercent(s: string): number | null {
+  const m = s.match(/^([\d.]+)/);
+  if (!m) return null;
+  const n = parseFloat(m[1]);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-function parseImageRow(row: RawRow): ParsedModel | null {
-  const name = row[0]?.trim() ?? "";
-  if (!name) return null;
-  const provider = row[1]?.trim() ?? "";
-  const price = row[2]?.trim() ?? "";
-  const description = row[3]?.trim() ?? "";
-  return { name, provider, category: "Image", description, price, tags: [] };
-}
+function parseRow(row: string[]): Model | null {
+  const onHomePage = row[1]?.trim() ?? "";
+  const name = row[2]?.trim() ?? "";
+  const typeLabel = row[3]?.trim() ?? "";
+  const fromPrice = row[4]?.trim() ?? "";
+  const unit = row[5]?.trim() ?? "";
+  const discountStr = row[7]?.trim() ?? "";
+  const discountedPrice = row[8]?.trim() ?? "";
+  const provider = row[10]?.trim() ?? "";
+  const description = row[11]?.trim() ?? "";
 
-function parseVideoRow(row: RawRow): ParsedModel | null {
-  const name = row[0]?.trim() ?? "";
   if (!name) return null;
-  const provider = row[1]?.trim() ?? "";
-  const duration = row[2]?.trim() ?? "";
-  const price = row[3]?.trim() ?? "";
-  const description = row[4]?.trim() ?? "";
-  const tags = duration && duration !== "Not listed" ? [duration] : [];
-  return { name, provider, category: "Video", description, price, tags };
-}
+  const category = TYPE_TO_CATEGORY[typeLabel];
+  if (!category) return null;
 
-function parseAudioRow(row: RawRow): ParsedModel | null {
-  const name = row[0]?.trim() ?? "";
-  if (!name) return null;
-  const provider = row[1]?.trim() ?? "";
-  const price = row[2]?.trim() ?? "";
-  return { name, provider, category: "Audio", description: "", price, tags: [] };
-}
+  const discountPct = parsePercent(discountStr);
+  const hasDiscount = discountPct !== null && !!discountedPrice && !!fromPrice;
 
-function applyBadgeRule(models: ParsedModel[]): Model[] {
-  // Cheapest model per category gets BEST VALUE; ties = first in sheet order wins.
-  const cheapestIdxByCategory = new Map<Category, { idx: number; price: number }>();
-  models.forEach((m, idx) => {
-    const n = extractPriceUSD(m.price);
-    if (n === null) return;
-    const cur = cheapestIdxByCategory.get(m.category);
-    if (!cur || n < cur.price) {
-      cheapestIdxByCategory.set(m.category, { idx, price: n });
-    }
-  });
-  return models.map((m, idx) => ({
-    ...m,
-    badge:
-      cheapestIdxByCategory.get(m.category)?.idx === idx
-        ? "BEST VALUE"
-        : "PREMIUM",
-  }));
+  return {
+    name,
+    provider,
+    category,
+    description,
+    price: hasDiscount ? discountedPrice : fromPrice,
+    unit,
+    originalPrice: hasDiscount ? fromPrice : null,
+    discountPct: hasDiscount ? discountPct : null,
+    featured: onHomePage.toLowerCase() === "featured",
+  };
 }
 
 export async function fetchModels(): Promise<Model[]> {
@@ -184,31 +134,22 @@ export async function fetchModels(): Promise<Model[]> {
 
     const sheets = google.sheets({ version: "v4", auth });
 
-    const res = await sheets.spreadsheets.values.batchGet({
+    const res = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      ranges: [...SHEET_RANGES],
+      range: SHEET_RANGE,
     });
 
-    const valueRanges = res.data.valueRanges || [];
-    const llmRows = (valueRanges[0]?.values || []) as RawRow[];
-    const imageRows = (valueRanges[1]?.values || []) as RawRow[];
-    const videoRows = (valueRanges[2]?.values || []) as RawRow[];
-    const audioRows = (valueRanges[3]?.values || []) as RawRow[];
-
-    const parsed: (ParsedModel | null)[] = [
-      ...llmRows.map(parseLLMRow),
-      ...imageRows.map(parseImageRow),
-      ...videoRows.map(parseVideoRow),
-      ...audioRows.map(parseAudioRow),
-    ];
-    const models = parsed.filter((m): m is ParsedModel => m !== null);
+    const rows = (res.data.values || []) as string[][];
+    const models = rows
+      .map(parseRow)
+      .filter((m): m is Model => m !== null);
 
     if (models.length === 0) {
-      console.log("[google-sheets] All tabs empty — using fallback data");
+      console.log("[google-sheets] Sheet empty — using fallback data");
       return FALLBACK_MODELS;
     }
 
-    return applyBadgeRule(models);
+    return models;
   } catch (err) {
     console.error("[google-sheets] Fetch failed — using fallback data", err);
     return FALLBACK_MODELS;
