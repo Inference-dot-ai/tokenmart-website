@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { Chakra_Petch, JetBrains_Mono, Outfit } from "next/font/google";
+import { Archivo_Black, Chakra_Petch, JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
+
+const archivoBlack = Archivo_Black({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-display",
+});
 
 const chakra = Chakra_Petch({
   subsets: ["latin"],
@@ -32,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${chakra.variable} ${jetbrains.variable} ${outfit.variable}`}
+      className={`${archivoBlack.variable} ${chakra.variable} ${jetbrains.variable} ${outfit.variable}`}
       suppressHydrationWarning
     >
       <head>

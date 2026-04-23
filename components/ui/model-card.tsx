@@ -29,10 +29,19 @@ function parsePrice(s: string | null): ParsedPrice | null {
 export function ModelCard({
   model,
   index = 0,
+  hideAsset = false,
+  hideProvider = false,
+  hideDescription = false,
+  featured = false,
 }: {
   model: Model;
   index?: number;
+  hideAsset?: boolean;
+  hideProvider?: boolean;
+  hideDescription?: boolean;
+  featured?: boolean;
 }) {
+  const assetUrl = hideAsset ? null : model.assetUrl;
   const hasDiscount = model.discountPct !== null && model.originalPrice !== null;
 
   const original = hasDiscount ? parsePrice(model.originalPrice) : null;
@@ -41,6 +50,7 @@ export function ModelCard({
 
   const [animValue, setAnimValue] = useState<number | null>(null);
   const rafRef = useRef<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(
     () => () => {
@@ -74,6 +84,24 @@ export function ModelCard({
     setAnimValue(null);
   };
 
+  const handleMouseEnter = () => {
+    startCountdown();
+    const v = videoRef.current;
+    if (v) {
+      v.currentTime = 0;
+      v.play().catch(() => {});
+    }
+  };
+
+  const handleMouseLeave = () => {
+    stopCountdown();
+    const v = videoRef.current;
+    if (v) {
+      v.pause();
+      v.currentTime = 0;
+    }
+  };
+
   const displayPrice =
     animValue !== null && discounted
       ? `${discounted.prefix}${animValue.toFixed(discounted.decimals)}`
@@ -84,42 +112,78 @@ export function ModelCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.05 + index * 0.04 }}
-      onMouseEnter={startCountdown}
-      onMouseLeave={stopCountdown}
-      className={`model-card ${hasDiscount ? "model-card-urgent group" : ""} overflow-hidden relative text-left`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`model-card ${hasDiscount ? "model-card-urgent group" : ""} overflow-hidden relative text-left flex flex-col`}
       style={{
         background: "var(--color-surface-hi)",
         border: "1px solid var(--color-border)",
       }}
     >
-      {hasDiscount && (
+      {hasDiscount && !featured && (
         <div
-          className="ribbon absolute top-0 left-0 z-10 px-3 py-1 text-[11px] font-bold tracking-wide rounded-br-lg"
+          className="ribbon absolute top-0 left-0 z-10 rounded-br-xl px-3 py-1 text-[11px] font-bold tracking-wide"
           style={{ background: SAVINGS_GREEN, color: "white" }}
         >
           -{model.discountPct}% OFF
         </div>
       )}
-
-      <div className={`p-5 ${hasDiscount ? "pt-12" : ""} flex flex-col h-full`}>
-        <div className="flex items-center justify-between mb-2">
-          <p
-            className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            {model.provider}
-          </p>
-          <span
-            className="text-[11px] font-medium px-2.5 py-1 rounded-full"
-            style={{
-              background: "var(--color-surface)",
-              color: "var(--color-text-dim)",
-              border: "1px solid var(--color-border)",
-            }}
-          >
-            {CATEGORY_LABEL[model.category]}
-          </span>
+      {hasDiscount && featured && (
+        <div
+          className="absolute top-4 right-5 z-10 px-2.5 py-1 rounded-lg text-lg font-extrabold tracking-tight tabular-nums leading-none"
+          style={{ background: "var(--pink)", color: "white" }}
+        >
+          -{model.discountPct}%
         </div>
+      )}
+
+      {assetUrl && (
+        <div
+          className="aspect-[4/3] w-full overflow-hidden"
+          style={{ background: "var(--color-surface)" }}
+        >
+          {model.assetType === "video" ? (
+            <video
+              ref={videoRef}
+              src={assetUrl}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={assetUrl}
+              alt={model.name}
+              className="w-full h-full object-cover"
+            />
+          )}
+        </div>
+      )}
+
+      <div className={`p-5 ${hasDiscount && !assetUrl && !featured ? "pt-12" : ""} flex flex-col flex-1 min-h-0`}>
+        {!hideProvider && (
+          <div className="flex items-center justify-between mb-2">
+            <p
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              {model.provider}
+            </p>
+            <span
+              className="text-[11px] font-medium px-2.5 py-1 rounded-full"
+              style={{
+                background: "var(--color-surface)",
+                color: "var(--color-text-dim)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              {CATEGORY_LABEL[model.category]}
+            </span>
+          </div>
+        )}
 
         <h3
           className="text-lg font-bold mb-3 leading-tight"
@@ -128,7 +192,7 @@ export function ModelCard({
           {model.name}
         </h3>
 
-        {model.description && (
+        {!hideDescription && model.description && (
           <p
             className="text-sm leading-relaxed mb-4 line-clamp-2"
             style={{ color: "var(--color-text-dim)" }}
@@ -143,54 +207,93 @@ export function ModelCard({
         />
 
         {hasDiscount ? (
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col gap-0.5">
-              <span
-                className="text-sm line-through"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                {model.originalPrice}
-                {model.unit}
-              </span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="deal-price text-2xl font-bold tabular-nums">
-                  {displayPrice}
-                </span>
+          featured ? (
+            <div className="flex items-end justify-between gap-2">
+              <div className="flex flex-col gap-1 min-w-0">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span
+                    className="text-lg font-extrabold tracking-tight"
+                    style={{ color: SAVINGS_GREEN }}
+                  >
+                    Now
+                  </span>
+                  <span className="deal-price text-4xl font-extrabold tabular-nums leading-none">
+                    {displayPrice}
+                  </span>
+                  <span
+                    className="strike-anim text-base font-semibold inline-block w-fit"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
+                    {model.originalPrice}
+                  </span>
+                </div>
                 {model.unit && (
                   <span
-                    className="text-sm"
+                    className="text-xs"
                     style={{ color: "var(--color-text-muted)" }}
                   >
                     {model.unit}
                   </span>
                 )}
               </div>
+              <span
+                className="urgency flex items-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 shrink-0"
+                style={{ color: "var(--pink)" }}
+                aria-label="Limited time"
+              >
+                <Clock className="w-5 h-5 shake" strokeWidth={2.25} />
+              </span>
             </div>
-            <span
-              className="urgency flex items-center opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-              style={{ color: "var(--pink)" }}
-              aria-label="Limited time"
-            >
-              <Clock className="w-4 h-4 shake" strokeWidth={2.25} />
-            </span>
-          </div>
+          ) : (
+            <div className="flex items-end justify-between">
+              <div className="flex flex-col gap-0.5">
+                <span
+                  className="strike-anim text-sm inline-block w-fit"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {model.originalPrice}
+                  {model.unit}
+                </span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="deal-price text-2xl font-bold tabular-nums">
+                    {displayPrice}
+                  </span>
+                  {model.unit && (
+                    <span
+                      className="text-sm"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      {model.unit}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <span
+                className="urgency flex items-center opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                style={{ color: "var(--pink)" }}
+                aria-label="Limited time"
+              >
+                <Clock className="w-4 h-4 shake" strokeWidth={2.25} />
+              </span>
+            </div>
+          )
         ) : (
           <div className="flex items-baseline gap-1.5 min-w-0">
             <span
-              className="text-xs shrink-0"
+              className={`shrink-0 ${featured ? "text-sm font-semibold" : "text-xs"}`}
               style={{ color: "var(--color-text-muted)" }}
             >
               from
             </span>
             <span
-              className="text-2xl font-bold truncate"
+              className={`${featured ? "text-4xl font-extrabold leading-none" : "text-2xl font-bold"} truncate`}
               style={{ color: "var(--color-text)" }}
             >
               {model.price}
             </span>
             {model.unit && (
               <span
-                className="text-sm shrink-0"
+                className={`shrink-0 ${featured ? "text-sm" : "text-sm"}`}
                 style={{ color: "var(--color-text-muted)" }}
               >
                 {model.unit}

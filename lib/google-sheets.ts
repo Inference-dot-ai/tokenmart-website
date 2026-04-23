@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { google } from "googleapis";
 
 export type Category = "LLM" | "Image" | "Video" | "Audio";
@@ -12,6 +14,39 @@ export interface Model {
   originalPrice: string | null;  // "from" price when discount > 0
   discountPct: number | null;    // 0-100; null when no discount
   featured: boolean;
+  assetUrl: string | null;
+  assetType: "image" | "video" | null;
+}
+
+type ModelCore = Omit<Model, "assetUrl" | "assetType">;
+
+const ASSETS_DIR = path.join(process.cwd(), "public", "model-assets");
+
+const ASSET_INDEX: Map<string, { url: string; type: "image" | "video" }> = (() => {
+  const m = new Map<string, { url: string; type: "image" | "video" }>();
+  try {
+    for (const f of fs.readdirSync(ASSETS_DIR)) {
+      const ext = path.extname(f).toLowerCase();
+      const slug = path.basename(f, ext);
+      if (ext === ".png" || ext === ".jpg" || ext === ".jpeg" || ext === ".webp") {
+        m.set(slug, { url: `/model-assets/${f}`, type: "image" });
+      } else if (ext === ".mp4" || ext === ".webm") {
+        m.set(slug, { url: `/model-assets/${f}`, type: "video" });
+      }
+    }
+  } catch {
+    // No assets folder; models render without media.
+  }
+  return m;
+})();
+
+function slugifyName(name: string): string {
+  return name.toLowerCase().replace(/[\s._]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+}
+
+function attachAsset(m: ModelCore): Model {
+  const a = ASSET_INDEX.get(slugifyName(m.name));
+  return { ...m, assetUrl: a?.url ?? null, assetType: a?.type ?? null };
 }
 
 const SHEET_RANGE = "All Model!A2:L" as const;
@@ -23,7 +58,7 @@ const TYPE_TO_CATEGORY: Record<string, Category> = {
   "Audio Generation": "Audio",
 };
 
-const FALLBACK_MODELS: Model[] = [
+const FALLBACK_MODELS: ModelCore[] = [
   {
     name: "Claude Sonnet 4.6",
     provider: "Anthropic",
@@ -86,7 +121,7 @@ function parsePercent(s: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-function parseRow(row: string[]): Model | null {
+function parseRow(row: string[]): ModelCore | null {
   const onHomePage = row[1]?.trim() ?? "";
   const name = row[2]?.trim() ?? "";
   const typeLabel = row[3]?.trim() ?? "";
@@ -117,10 +152,48 @@ function parseRow(row: string[]): Model | null {
   };
 }
 
+const SUBSCRIBE_RANGE_DEFAULT = "Sheet1!A:B";
+
+function isSubscribeConfigured(): boolean {
+  return !!(
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
+    process.env.GOOGLE_PRIVATE_KEY &&
+    (process.env.GOOGLE_SUBSCRIBE_SHEET_ID || process.env.GOOGLE_SHEET_ID) &&
+    !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL.startsWith("your-")
+  );
+}
+
+export async function appendSubscriberEmail(email: string): Promise<void> {
+  if (!isSubscribeConfigured()) {
+    throw new Error("subscribe_not_configured");
+  }
+
+  const auth = new google.auth.GoogleAuth({
+    credentials: {
+      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    },
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
+
+  const sheets = google.sheets({ version: "v4", auth });
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId:
+      process.env.GOOGLE_SUBSCRIBE_SHEET_ID || process.env.GOOGLE_SHEET_ID,
+    range: process.env.GOOGLE_SUBSCRIBE_RANGE || SUBSCRIBE_RANGE_DEFAULT,
+    valueInputOption: "USER_ENTERED",
+    insertDataOption: "INSERT_ROWS",
+    requestBody: {
+      values: [[new Date().toISOString(), email]],
+    },
+  });
+}
+
 export async function fetchModels(): Promise<Model[]> {
   if (!isConfigured()) {
     console.log("[google-sheets] Not configured — using fallback data");
-    return FALLBACK_MODELS;
+    return FALLBACK_MODELS.map(attachAsset);
   }
 
   try {
@@ -142,16 +215,16 @@ export async function fetchModels(): Promise<Model[]> {
     const rows = (res.data.values || []) as string[][];
     const models = rows
       .map(parseRow)
-      .filter((m): m is Model => m !== null);
+      .filter((m): m is ModelCore => m !== null);
 
     if (models.length === 0) {
       console.log("[google-sheets] Sheet empty — using fallback data");
-      return FALLBACK_MODELS;
+      return FALLBACK_MODELS.map(attachAsset);
     }
 
-    return models;
+    return models.map(attachAsset);
   } catch (err) {
     console.error("[google-sheets] Fetch failed — using fallback data", err);
-    return FALLBACK_MODELS;
+    return FALLBACK_MODELS.map(attachAsset);
   }
 }
