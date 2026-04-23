@@ -90,11 +90,12 @@ export function ProvidersConstellation() {
       ref={containerRef}
       className="relative w-full min-h-[600px] h-[640px]"
     >
-      {/* Curved lines: strip → tokenmart */}
+      {/* Curved lines + flowing dots, all inside one SVG so the dots can
+          ride the exact paths via <animateMotion><mpath/>. */}
       {size.w > 0 && size.h > 0 && (
         <svg
           aria-hidden
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none z-10"
           width={size.w}
           height={size.h}
           viewBox={`0 0 ${size.w} ${size.h}`}
@@ -102,43 +103,42 @@ export function ProvidersConstellation() {
           {visible.map((_, i) => {
             const y = ((i + 0.5) / visible.length) * size.h;
             const d = buildWavyPath(stripX, y, tmX, tmY, i);
+            const pathId = `constellation-path-${i}`;
+            const dur = 3.6 + (i % 3) * 0.7;
+            const delay = (i * 0.32) % 2.4;
             return (
-              <path
-                key={i}
-                d={d}
-                fill="none"
-                stroke="var(--color-border)"
-                strokeWidth={1}
-                opacity={0.75}
-              />
+              <g key={i}>
+                <path
+                  id={pathId}
+                  d={d}
+                  fill="none"
+                  stroke="var(--color-border)"
+                  strokeWidth={1}
+                  opacity={0.75}
+                />
+                <circle r={3.5} fill="var(--pink)" opacity={0}>
+                  <animateMotion
+                    dur={`${dur}s`}
+                    begin={`${delay}s`}
+                    repeatCount="indefinite"
+                    rotate="auto"
+                  >
+                    <mpath href={`#${pathId}`} />
+                  </animateMotion>
+                  <animate
+                    attributeName="opacity"
+                    values="0;1;1;0"
+                    keyTimes="0;0.08;0.92;1"
+                    dur={`${dur}s`}
+                    begin={`${delay}s`}
+                    repeatCount="indefinite"
+                  />
+                </circle>
+              </g>
             );
           })}
         </svg>
       )}
-
-      {/* Flowing dots along each path */}
-      {size.w > 0 &&
-        size.h > 0 &&
-        visible.map((_, i) => {
-          const y = ((i + 0.5) / visible.length) * size.h;
-          const d = buildWavyPath(stripX, y, tmX, tmY, i);
-          const dur = 3.6 + (i % 3) * 0.7;
-          const delay = (i * 0.32) % 2.4;
-          return (
-            <div
-              key={`dot-${i}`}
-              aria-hidden
-              className="absolute top-0 left-0 h-1.5 w-1.5 rounded-full pointer-events-none z-10"
-              style={{
-                background: "var(--pink)",
-                boxShadow: "0 0 10px var(--pink-glow)",
-                offsetPath: `path("${d}")`,
-                offsetDistance: "0%",
-                animation: `flow-dot ${dur}s linear ${delay}s infinite`,
-              }}
-            />
-          );
-        })}
 
       {/* Vertical strip of logos */}
       {visible.map((p, i) => {
