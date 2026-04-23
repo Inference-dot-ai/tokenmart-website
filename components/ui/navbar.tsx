@@ -64,10 +64,10 @@ export function Navbar({ fixed = true }: NavbarProps) {
         <ThemeToggle />
         <a
           href="/signup"
-          className="hidden sm:inline-flex items-center justify-center whitespace-nowrap text-sm md:text-base font-medium px-4 md:px-5 py-2 md:py-2.5 rounded-xl transition-all duration-200"
+          className="hidden sm:inline-flex items-center justify-center whitespace-nowrap text-sm md:text-base font-medium px-5 md:px-6 py-2 md:py-2.5 rounded-full transition-all duration-200"
           style={{
-            background: "var(--cta-bg)",
-            color: "var(--cta-fg)",
+            background: "#000000",
+            color: "#FFFFFF",
           }}
         >
           Sign Up
@@ -154,10 +154,10 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
         <a
           href="/signup"
           onClick={onClose}
-          className="mt-4 inline-flex items-center justify-center w-full whitespace-nowrap text-base font-medium px-4 py-3 rounded-xl transition-all duration-200"
+          className="mt-4 inline-flex items-center justify-center w-full whitespace-nowrap text-base font-medium px-4 py-3 rounded-full transition-all duration-200"
           style={{
-            background: "var(--cta-bg)",
-            color: "var(--cta-fg)",
+            background: "#000000",
+            color: "#FFFFFF",
           }}
         >
           Sign Up

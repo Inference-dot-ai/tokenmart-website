@@ -232,7 +232,7 @@
 }
 .model-card-urgent:hover .deal-price,
 .model-card-urgent:hover .deal-price * {
-  color: #D10076 !important;
+  color: var(--pink) !important;
 }
 
 /* Animated strikethrough on hover — draws left-to-right across the old price.
