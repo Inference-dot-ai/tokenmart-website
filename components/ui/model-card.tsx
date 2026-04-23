@@ -217,7 +217,10 @@ export function ModelCard({
                   >
                     Now
                   </span>
-                  <span className="deal-price text-4xl font-extrabold tabular-nums leading-none">
+                  <span
+                    className="deal-price text-4xl font-extrabold tabular-nums leading-none"
+                    style={animValue !== null ? { color: "var(--pink)" } : undefined}
+                  >
                     {displayPrice}
                   </span>
                   <span
@@ -255,7 +258,10 @@ export function ModelCard({
                   {model.unit}
                 </span>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="deal-price text-2xl font-bold tabular-nums">
+                  <span
+                    className="deal-price text-2xl font-bold tabular-nums"
+                    style={animValue !== null ? { color: "var(--pink)" } : undefined}
+                  >
                     {displayPrice}
                   </span>
                   {model.unit && (
