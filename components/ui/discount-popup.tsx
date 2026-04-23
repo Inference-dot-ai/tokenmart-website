@@ -6,21 +6,15 @@ import { X, Zap, ArrowRight } from "lucide-react";
 
 const STORAGE_KEY = "inference_discount_popup_dismissed";
 const SHOW_DELAY_MS = 3000;
+const SUCCESS_HOLD_MS = 1400;
 
-const FORM_URL = process.env.NEXT_PUBLIC_GOOGLE_FORM_URL || "";
-const FORM_EMAIL_ENTRY_ID = process.env.NEXT_PUBLIC_GOOGLE_FORM_EMAIL_ENTRY_ID || "";
-const isFormConfigured = FORM_URL && !FORM_URL.includes("your-form-url");
-
-function buildFormUrl(email: string): string {
-  if (!isFormConfigured) return "#";
-  if (!FORM_EMAIL_ENTRY_ID || !email) return FORM_URL;
-  const sep = FORM_URL.includes("?") ? "&" : "?";
-  return `${FORM_URL}${sep}${encodeURIComponent(FORM_EMAIL_ENTRY_ID)}=${encodeURIComponent(email)}`;
-}
+type Status = "idle" | "submitting" | "success" | "error";
 
 export function DiscountPopup() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<Status>("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function dismiss() {
@@ -55,13 +49,38 @@ export function DiscountPopup() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const href = buildFormUrl(email.trim());
-    if (isFormConfigured) {
-      window.open(href, "_blank", "noopener,noreferrer");
+    if (status === "submitting") return;
+
+    setStatus("submitting");
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null;
+        const code = data?.error ?? "unknown";
+        setErrorMsg(
+          code === "invalid_email"
+            ? "That email doesn't look right."
+            : "Something went wrong. Please try again.",
+        );
+        setStatus("error");
+        return;
+      }
+
+      setStatus("success");
+      window.setTimeout(dismiss, SUCCESS_HOLD_MS);
+    } catch {
+      setErrorMsg("Network error. Please try again.");
+      setStatus("error");
     }
-    dismiss();
   }
 
   return (
@@ -155,7 +174,8 @@ export function DiscountPopup() {
                 placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-full text-sm outline-none transition-all duration-200"
+                disabled={status === "submitting" || status === "success"}
+                className="w-full px-5 py-3.5 rounded-full text-sm outline-none transition-all duration-200 disabled:opacity-60"
                 style={{
                   background: "var(--color-bg)",
                   border: "1px solid var(--color-border)",
@@ -172,24 +192,39 @@ export function DiscountPopup() {
               />
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-full text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
+                disabled={status === "submitting" || status === "success"}
+                className="w-full py-3.5 rounded-full text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer disabled:opacity-80 disabled:cursor-default"
                 style={{ background: "var(--pink)" }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = "0 0 24px var(--pink-glow)";
+                  if (status === "idle" || status === "error") {
+                    e.currentTarget.style.boxShadow = "0 0 24px var(--pink-glow)";
+                  }
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                Claim 300M Tokens
-                <ArrowRight className="w-4 h-4" strokeWidth={2} />
+                {status === "submitting" && "Claiming…"}
+                {status === "success" && "You're in! Check your inbox"}
+                {(status === "idle" || status === "error") && (
+                  <>
+                    Claim 300M Tokens
+                    <ArrowRight className="w-4 h-4" strokeWidth={2} />
+                  </>
+                )}
               </button>
             </form>
 
-            {/* Fine print */}
-            <p className="text-xs mt-5" style={{ color: "var(--color-text-muted)" }}>
-              No credit card. Unsubscribe anytime.
-            </p>
+            {/* Error / Fine print */}
+            {status === "error" && errorMsg ? (
+              <p className="text-xs mt-5" style={{ color: "var(--pink)" }}>
+                {errorMsg}
+              </p>
+            ) : (
+              <p className="text-xs mt-5" style={{ color: "var(--color-text-muted)" }}>
+                No credit card. Unsubscribe anytime.
+              </p>
+            )}
           </motion.div>
         </motion.div>
       )}

@@ -5,29 +5,42 @@ import { motion } from "framer-motion";
 
 const PINK = "209, 0, 118";
 
+// Sale ends every Friday at 23:59:59 local time. After that, reset to next Friday.
+// (Kept in sync with flash-deals-countdown.tsx.)
+function getNextFridayEnd(now: Date): Date {
+  const target = new Date(now);
+  const daysUntilFriday = (5 - now.getDay() + 7) % 7;
+  target.setDate(now.getDate() + daysUntilFriday);
+  target.setHours(23, 59, 59, 999);
+  if (target.getTime() <= now.getTime()) {
+    target.setDate(target.getDate() + 7);
+  }
+  return target;
+}
+
 export function SaleCountdown({ compact = false }: { compact?: boolean }) {
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
 
   useEffect(() => {
-    const randomDuration = () =>
-      Math.floor(Math.random() * (23 * 3600 - 6 * 3600 + 1)) + 6 * 3600;
-    setSecondsLeft(randomDuration());
-    const id = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s == null) return s;
-        return s > 1 ? s - 1 : randomDuration();
-      });
-    }, 1000);
+    const tick = () => {
+      const now = new Date();
+      const end = getNextFridayEnd(now);
+      setSecondsLeft(Math.max(0, Math.floor((end.getTime() - now.getTime()) / 1000)));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
 
   const pad = (n: number) => String(n).padStart(2, "0");
-  const hours = secondsLeft == null ? "--" : pad(Math.floor(secondsLeft / 3600));
+  const days    = secondsLeft == null ? "--" : pad(Math.floor(secondsLeft / 86400));
+  const hours   = secondsLeft == null ? "--" : pad(Math.floor((secondsLeft % 86400) / 3600));
   const minutes = secondsLeft == null ? "--" : pad(Math.floor((secondsLeft % 3600) / 60));
   const seconds = secondsLeft == null ? "--" : pad(secondsLeft % 60);
 
   const units: { label: string; value: string }[] = [
-    { label: "Hours", value: hours },
+    { label: "Days",    value: days },
+    { label: "Hours",   value: hours },
     { label: "Minutes", value: minutes },
     { label: "Seconds", value: seconds },
   ];
@@ -37,7 +50,7 @@ export function SaleCountdown({ compact = false }: { compact?: boolean }) {
       initial={{ opacity: 0, y: 16, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      className="hidden md:block fixed bottom-6 right-6 z-40 pointer-events-none"
+      className="hidden md:block fixed top-1/2 -translate-y-1/2 right-6 z-40 pointer-events-none"
     >
           <div className="relative pointer-events-auto">
             {/* Soft pink atmospheric glow — replaces the dark panel */}
@@ -69,7 +82,7 @@ export function SaleCountdown({ compact = false }: { compact?: boolean }) {
               />
             </div>
 
-            <div className={compact ? "grid grid-cols-3 gap-1.5" : "grid grid-cols-3 gap-2.5"}>
+            <div className={compact ? "grid grid-cols-4 gap-1.5" : "grid grid-cols-4 gap-2.5"}>
               {units.map(({ label, value }) => (
                 <div
                   key={label}

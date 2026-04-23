@@ -6,7 +6,6 @@ import {
   ArrowRight,
   Zap,
   DollarSign,
-  Shield,
   TrendingDown,
   Check,
   CreditCard,
@@ -22,12 +21,15 @@ import {
 import Link from "next/link";
 // import { ButtonCta } from "@/components/ui/button-shiny"; // commented out with search card
 import { HeroSection } from "@/components/ui/hero-section-shadcnui";
+// import { FlashDealsBanner } from "@/components/ui/flash-deals-banner";
+import { FlashDealsCountdown } from "@/components/ui/flash-deals-countdown";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { Navbar } from "@/components/ui/navbar";
 import { Footer } from "@/components/ui/footer";
 import { DiscountPopup } from "@/components/ui/discount-popup";
-import { SaleCountdown } from "@/components/ui/sale-countdown";
-import { ModelCard } from "@/components/ui/model-card";
+import { PriceTagFab } from "@/components/ui/price-tag-fab";
+// import { SaleCountdown } from "@/components/ui/sale-countdown";
+import { FeaturedMarquee } from "@/components/ui/featured-marquee";
 import type { Model } from "@/lib/google-sheets";
 
 // ── Search card constants (commented out with search card) ──
@@ -44,7 +46,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "How does TokenMart pricing work? Are there hidden fees?",
-    a: "TokenMart uses transparent pay-as-you-go pricing with no hidden fees. You only pay for what you use, calculated per token or request depending on the model. We don't charge platform fees - you pay the best available market rate plus a small routing fee (typically 5-10%). No monthly minimums, no setup costs, and new users get free credits to test our service.",
+    a: "TokenMart uses transparent pay-as-you-go pricing with no hidden fees. You only pay for what you use, calculated per token or request depending on the model. We don't charge platform fees - you pay the best available market rate plus a small routing fee (typically 5-10%). No monthly minimums, no setup costs, and new users get free bonus credits to test our service.",
   },
   {
     q: "How long does it take to integrate TokenMart into my existing application?",
@@ -60,19 +62,15 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Does routing through TokenMart add latency to my API calls?",
-    a: "TokenMart adds minimal latency (typically <50ms) while often improving overall response time. Our intelligent routing selects the fastest available provider based on real-time performance metrics. Many users actually experience faster responses because we route around congested providers and use geographic optimization. Our infrastructure is deployed globally across AWS, ensuring low latency worldwide.",
+    a: "TokenMart adds very little overhead, and in many cases smart routing helps maintain reliable performance across providers.",
   },
   {
     q: "Is my data secure when using TokenMart? Do you store my prompts?",
-    a: "Your data security is our top priority. TokenMart acts as a secure proxy and does NOT store your prompts or responses. All data is encrypted in transit using TLS 1.3, and we're SOC 2 Type II certified. We maintain detailed audit logs for compliance but never log sensitive content. Our infrastructure is GDPR compliant and we offer data processing agreements (DPAs) for enterprise customers.",
+    a: "Your requests go through TokenMart's secure proxy. We do not store prompts by default, and all traffic is handled with security best practices.",
   },
   {
     q: "Do I need API keys from each provider, or just TokenMart?",
     a: "You only need one TokenMart key - we handle all provider relationships for you. This means less security risk (fewer keys to manage), simplified billing (one invoice), and instant access to new providers without additional setup. Your TokenMart key works across all supported models and providers.",
-  },
-  {
-    q: "Why use TokenMart instead of going directly to OpenAI or Anthropic?",
-    a: "TokenMart offers five key advantages: 1) Cost savings of 20-70% through intelligent routing, 2) 99.9% uptime with automatic failover, 3) Single API for all providers - no code changes needed, 4) Unified billing and usage analytics, 5) Future-proof integration - new models automatically available. Direct provider access can't match our reliability, cost optimization, or convenience.",
   },
   {
     q: "How does TokenMart handle rate limits across different providers?",
@@ -80,11 +78,11 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Can I try TokenMart for free before committing?",
-    a: "Yes! Sign up to get free credits - no credit card required. This gives you enough usage to test multiple models, evaluate performance, and see real cost savings. Our dashboard shows detailed analytics so you can compare costs versus direct provider access. Most developers see 30-50% savings in their trial period alone.",
+    a: "Yes! Sign up to get free bonus credits - no credit card required. This gives you enough usage to test multiple models, evaluate performance, and see real cost savings. Our dashboard shows detailed analytics so you can compare costs versus direct provider access. Most developers see 30-50% savings with their free bonus credits alone.",
   },
   {
-    q: "Do you offer enterprise plans with SLAs and dedicated support?",
-    a: "Yes, TokenMart offers enterprise plans with 99.99% SLA guarantees, dedicated support, custom contracts, and volume discounts. Enterprise features include: dedicated infrastructure, custom model routing rules, advanced security controls, priority support, and detailed compliance documentation. Contact our sales team for pricing based on your usage volume.",
+    q: "Do you offer enterprise plans with dedicated support?",
+    a: "Yes, TokenMart offers enterprise plans with dedicated support, custom contracts, and volume discounts. Enterprise features include: dedicated infrastructure, custom model routing rules, advanced security controls, priority support, and detailed compliance documentation. Contact our sales team for pricing based on your usage volume.",
   },
 ];
 
@@ -115,13 +113,19 @@ export default function Home() {
 
       <DiscountPopup />
 
+      <PriceTagFab />
+
       <Navbar />
 
-      <SaleCountdown />
+      {/* <SaleCountdown /> */}
 
-      {/* ── HERO ── */}
-      <main className="relative z-20 max-w-5xl mx-auto px-6 pt-24 pb-8 flex flex-col items-center text-center">
+      {/* ── HERO (full-width so floating cards can spread to edges) ── */}
+      <section className="relative z-20 w-full pt-28 flex flex-col items-center text-center">
         <HeroSection />
+      </section>
+
+      <main className="relative z-20 max-w-5xl mx-auto px-6 pt-4 pb-8 flex flex-col items-center text-center">
+        {/* <FlashDealsBanner /> */}
 
         {/* ── FEATURED MODELS ── */}
         {featuredModels.length > 0 && (
@@ -131,157 +135,24 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.75 }}
           >
-            {/* ── Featured Deals stripe (theme-adaptive via CSS vars) ── */}
-            <div className="deals-stripe relative rounded-lg p-5 md:p-7 overflow-hidden">
-              <div aria-hidden className="deals-stripe-glow deals-stripe-glow-1" />
-              <div aria-hidden className="deals-stripe-glow deals-stripe-glow-2" />
-              <div aria-hidden className="deals-stripe-grain" />
-
+            <div className="relative">
               <div className="relative mb-8 text-center">
-                <div className="inline-flex items-center gap-3">
-                  <div className="inline-flex items-center gap-2">
-                    <Zap className="w-7 h-7 md:w-8 md:h-8" style={{ color: "var(--pink)" }} fill="currentColor" strokeWidth={0} />
-                    <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
-                      Featured This Week
-                    </h2>
-                  </div>
-                  <span
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-[0.12em] uppercase"
-                    style={{
-                      background: "#111",
-                      color: "#ffffff",
-                    }}
-                  >
-                    <span
-                      className="w-1.5 h-1.5 rounded-full animate-blink"
-                      style={{ background: "var(--pink)" }}
-                    />
-                    Limited Deal
-                  </span>
+                <div className="inline-flex items-center gap-2">
+                  <Zap className="w-7 h-7 md:w-8 md:h-8" style={{ color: "var(--pink)" }} fill="currentColor" strokeWidth={0} />
+                  <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
+                    Featured This Week
+                  </h2>
                 </div>
               </div>
 
-              <div className="relative grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                {featuredModels.map((m, i) => (
-                  <ModelCard
-                    key={`${m.category}|${m.provider}|${m.name}`}
-                    model={m}
-                    index={i}
-                  />
-                ))}
+              <FlashDealsCountdown />
+
+              <div className="relative mt-10">
+                <FeaturedMarquee models={featuredModels} />
               </div>
             </div>
           </motion.div>
         )}
-
-        {/* ── WHY CHOOSE TOKENMART ── */}
-        <motion.div
-          className="w-full max-w-6xl mt-16 text-left"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.85 }}
-        >
-          <div className="mb-8 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
-              Why Choose tokenmart?
-            </h2>
-            <p className="text-base mt-3 max-w-2xl mx-auto" style={{ color: "var(--color-text-muted)" }}>
-              The unified API platform that makes AI integration simple, reliable, and cost-effective.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Card 1 — Never Fail a Request */}
-            <WhyCard
-              icon={<Shield className="w-5 h-5" strokeWidth={2} style={{ color: "var(--pink)" }} />}
-              tag="Reliability"
-              title="Never Fail a Request"
-              body={
-                <>
-                  <Strong>99.9%</Strong> uptime with <Strong>automatic failover</Strong> across every provider.
-                </>
-              }
-              readout={
-                <>
-                  <ReadoutLine label="uptime" value="99.9%" />
-                  <ReadoutLine label="failover" value="auto" />
-                  <ReadoutLine label="latency" value="<50ms" />
-                </>
-              }
-              statValue="99.9%"
-              statLabel="uptime"
-            />
-
-            {/* Card 2 — Access Top AI Models */}
-            <WhyCard
-              icon={<Layers className="w-5 h-5" strokeWidth={2} style={{ color: "var(--pink)" }} />}
-              tag="Models"
-              title="Access Top AI Models"
-              body={
-                <>
-                  Connect to <Strong>Veo 3</Strong>, <Strong>Sora-2</Strong>, <Strong>Nano Banana Pro</Strong> and 40+ leading models through one <Strong>unified gateway</Strong>.
-                </>
-              }
-              readout={
-                <>
-                  <ReadoutJson model="veo-3" />
-                  <ReadoutJson model="sora-2" />
-                  <ReadoutJson model="nano-banana-pro" />
-                </>
-              }
-              statValue="40+"
-              statLabel="AI models"
-            />
-
-            {/* Card 3 — One Dashboard, Total Control */}
-            <WhyCard
-              icon={<Gauge className="w-5 h-5" strokeWidth={2} style={{ color: "var(--pink)" }} />}
-              tag="Control"
-              title="One Dashboard, Total Control"
-              body={
-                <>
-                  <Strong>Track usage</Strong> and <Strong>costs</Strong> across every model in <Strong>real-time</Strong>.
-                </>
-              }
-              readout={
-                <>
-                  <ReadoutLine label="calls (24h)" value="45,218" />
-                  <ReadoutLine label="spend" value="$412.80" />
-                  <ReadoutLine label="saved" value="$89.14" accent="green" />
-                </>
-              }
-              statValue="1"
-              statLabel="dashboard"
-              rightStat={
-                <div className="text-right leading-tight font-[family-name:var(--font-mono)] text-xs">
-                  <div style={{ color: "var(--color-text-muted)" }}>45K calls</div>
-                  <div style={{ color: "var(--pink)" }} className="font-semibold">$89 saved</div>
-                </div>
-              }
-            />
-
-            {/* Card 4 — Always Pay the Lowest Price */}
-            <WhyCard
-              icon={<TrendingDown className="w-5 h-5" strokeWidth={2} style={{ color: "var(--pink)" }} />}
-              tag="Savings"
-              title="Always Pay the Lowest Price"
-              body={
-                <>
-                  <Strong>Smart routing</Strong> saves up to <Strong>70%</Strong> on AI costs, automatically.
-                </>
-              }
-              readout={
-                <>
-                  <ReadoutCompare label="GPT-4" value="$0.030" status="bad" />
-                  <ReadoutCompare label="Best" value="$0.014" status="good" />
-                  <ReadoutLine label="saved" value="53%" accent="green" />
-                </>
-              }
-              statValue="70%"
-              statLabel="savings"
-            />
-          </div>
-        </motion.div>
 
         {/* ── GET STARTED ── */}
         <motion.div
@@ -295,7 +166,7 @@ export default function Home() {
               Get started in 60 seconds
             </h2>
             <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
-              Claim your bonus first — it stacks on everything else.
+              Claim your free bonus credits first — they stack on everything else.
             </p>
           </div>
 
@@ -389,7 +260,7 @@ export default function Home() {
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                Get Bonus Credits
+                Get Free Bonus Credits
                 <ArrowRight className="w-4 h-4" strokeWidth={2} />
               </Link>
             </div>
@@ -520,6 +391,95 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </motion.div>
+
+        {/* ── WHY CHOOSE TOKENMART ── */}
+        <motion.div
+          className="w-full max-w-6xl mt-16 text-left"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.95 }}
+        >
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
+              Why Choose tokenmart?
+            </h2>
+            <p className="text-base mt-3 max-w-2xl mx-auto" style={{ color: "var(--color-text-muted)" }}>
+              The unified API platform that makes AI integration simple, reliable, and cost-effective.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Card 1 — Access Top AI Models */}
+            <WhyCard
+              icon={<Layers className="w-5 h-5" strokeWidth={2} style={{ color: "var(--pink)" }} />}
+              tag="Models"
+              title="Access Top AI Models"
+              body={
+                <>
+                  Connect to <Strong>Veo 3</Strong>, <Strong>Sora-2</Strong>, <Strong>Nano Banana Pro</Strong> and 40+ leading models through one <Strong>unified gateway</Strong>.
+                </>
+              }
+              readout={
+                <>
+                  <ReadoutJson model="veo-3" />
+                  <ReadoutJson model="sora-2" />
+                  <ReadoutJson model="nano-banana-pro" />
+                </>
+              }
+              statValue="40+"
+              statLabel="AI models"
+            />
+
+            {/* Card 2 — Always Pay the Lowest Price (highlighted, middle) */}
+            <WhyCard
+              highlighted
+              icon={<TrendingDown className="w-5 h-5" strokeWidth={2} style={{ color: "var(--pink)" }} />}
+              tag="Savings"
+              title="Always Pay the Lowest Price"
+              body={
+                <>
+                  <Strong>Smart routing</Strong> saves up to <Strong>70%</Strong> on AI costs, automatically.
+                </>
+              }
+              readout={
+                <>
+                  <ReadoutCompare label="GPT-4" value="$0.030" status="bad" />
+                  <ReadoutCompare label="Best" value="$0.014" status="good" />
+                  <ReadoutLine label="saved" value="53%" accent="green" />
+                </>
+              }
+              statValue="70%"
+              statLabel="savings"
+            />
+
+            {/* Card 3 — One Dashboard, Total Control */}
+            <WhyCard
+              icon={<Gauge className="w-5 h-5" strokeWidth={2} style={{ color: "var(--pink)" }} />}
+              tag="Control"
+              title="One Dashboard, Total Control"
+              body={
+                <>
+                  <Strong>Track usage</Strong> and <Strong>costs</Strong> across every model in <Strong>real-time</Strong>.
+                </>
+              }
+              readout={
+                <>
+                  <ReadoutLine label="calls (24h)" value="45,218" />
+                  <ReadoutLine label="spend" value="$412.80" />
+                  <ReadoutLine label="saved" value="$89.14" accent="green" />
+                </>
+              }
+              statValue="1"
+              statLabel="dashboard"
+              rightStat={
+                <div className="text-right leading-tight font-[family-name:var(--font-mono)] text-xs">
+                  <div style={{ color: "var(--color-text-muted)" }}>45K calls</div>
+                  <div style={{ color: "var(--pink)" }} className="font-semibold">$89 saved</div>
+                </div>
+              }
+            />
           </div>
         </motion.div>
 
@@ -903,6 +863,7 @@ function WhyCard({
   statValue,
   statLabel,
   rightStat,
+  highlighted = false,
 }: {
   icon: React.ReactNode;
   tag: string;
@@ -912,23 +873,39 @@ function WhyCard({
   statValue: string;
   statLabel: string;
   rightStat?: React.ReactNode;
+  highlighted?: boolean;
 }) {
+  const baseStyle = highlighted
+    ? {
+        background:
+          "linear-gradient(180deg, var(--pink-lo) 0%, var(--color-surface) 100%)",
+        border: "1px solid var(--border-pink)",
+        boxShadow:
+          "0 0 0 3px var(--pink-lo), 0 0 40px var(--pink-glow)",
+      }
+    : {
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+      };
+
   return (
     <div
       className="group relative rounded-2xl p-7 flex flex-col overflow-hidden transition-all duration-300"
-      style={{
-        background: "var(--color-surface)",
-        border: "1px solid var(--color-border)",
-      }}
+      style={baseStyle}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = "var(--border-pink)";
-        e.currentTarget.style.boxShadow =
-          "0 18px 48px -12px var(--pink-mid), 0 0 0 1px var(--border-pink)";
+        e.currentTarget.style.boxShadow = highlighted
+          ? "0 0 0 3px var(--pink-lo), 0 18px 48px -12px var(--pink-mid), 0 0 40px var(--pink-glow)"
+          : "0 18px 48px -12px var(--pink-mid), 0 0 0 1px var(--border-pink)";
         e.currentTarget.style.transform = "translateY(-2px)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "var(--color-border)";
-        e.currentTarget.style.boxShadow = "none";
+        e.currentTarget.style.borderColor = highlighted
+          ? "var(--border-pink)"
+          : "var(--color-border)";
+        e.currentTarget.style.boxShadow = highlighted
+          ? "0 0 0 3px var(--pink-lo), 0 0 40px var(--pink-glow)"
+          : "none";
         e.currentTarget.style.transform = "translateY(0)";
       }}
     >

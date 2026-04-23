@@ -103,6 +103,7 @@
   --font-chakra:   var(--font-chakra);
   --font-mono:     var(--font-mono);
   --font-outfit:   var(--font-outfit);
+  --font-display:  var(--font-display);
 
   --color-background:        var(--background);
   --color-foreground:        var(--foreground);
@@ -234,6 +235,19 @@
   color: #D10076 !important;
 }
 
+/* Animated strikethrough on hover — draws left-to-right across the old price.
+   `w-fit` on the element is required so the line only spans the text width. */
+.strike-anim {
+  background-image: linear-gradient(to right, currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 55%;
+  background-size: 0% 1.5px;
+  transition: background-size 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.model-card-urgent:hover .strike-anim {
+  background-size: 100% 1.5px;
+}
+
 .model-card .price-box {
   border-radius: 0.5rem;
 }
@@ -280,6 +294,48 @@ html *::after {
   100% { left: 200%; }
 }
 
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes flash-shimmer {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+/* Constellation flowing dots: travel along an SVG-shaped offset-path */
+@keyframes flow-dot {
+  from { offset-distance: 0%; opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  to   { offset-distance: 100%; opacity: 0; }
+}
+
+/* Monochrome black provider logos: invert to white when in dark theme. */
+[data-theme="dark"] .logo-dark-invert {
+  filter: brightness(0) invert(1);
+}
+
+/* Price-tag FAB: periodic shake burst to grab attention, pauses on hover */
+@keyframes price-tag-shake {
+  0%, 22%, 100% { transform: rotate(0deg); }
+  3%  { transform: rotate(-16deg); }
+  6%  { transform: rotate(14deg); }
+  9%  { transform: rotate(-12deg); }
+  12% { transform: rotate(10deg); }
+  15% { transform: rotate(-6deg); }
+  18% { transform: rotate(3deg); }
+}
+.price-tag-shake {
+  animation: price-tag-shake 4s ease-in-out infinite;
+  transform-origin: 50% 18%;
+}
+.price-tag-shake:hover,
+.price-tag-shake.paused {
+  animation-play-state: paused;
+}
+
 .animate-fade-up-0 { animation: fadeUp 0.5s ease 0s both; }
 .animate-fade-up-1 { animation: fadeUp 0.5s ease 0.1s both; }
 .animate-fade-up-2 { animation: fadeUp 0.5s ease 0.2s both; }
@@ -289,6 +345,8 @@ html *::after {
 .animate-scanline { animation: scanline 8s linear infinite; }
 .animate-blink    { animation: blink 2s ease-in-out infinite; }
 .animate-blink-slow { animation: blink 3s ease-in-out infinite; }
+.animate-marquee  { animation: marquee 40s linear infinite; }
+.animate-flash-shimmer { animation: flash-shimmer 3.5s ease-in-out infinite; }
 
 /* ── Select field ── */
 .select-field {

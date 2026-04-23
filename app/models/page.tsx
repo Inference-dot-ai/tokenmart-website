@@ -7,9 +7,10 @@ import Link from "next/link";
 import { Navbar } from "@/components/ui/navbar";
 import { Footer } from "@/components/ui/footer";
 import { ModelCard } from "@/components/ui/model-card";
-import { SaleCountdown } from "@/components/ui/sale-countdown";
+// import { SaleCountdown } from "@/components/ui/sale-countdown";
 import type { Model, Category } from "@/lib/google-sheets";
 import { extractPriceUSD } from "@/lib/price";
+import { getNextFridayEnd } from "@/lib/utils";
 
 const MODEL_TYPE_OPTIONS: { label: string; category: Category | null }[] = [
   { label: "All Models", category: null },
@@ -117,7 +118,7 @@ export default function ModelsPage() {
         <Navbar fixed={false} />
       </div>
 
-      <SaleCountdown compact />
+      {/* <SaleCountdown compact /> */}
 
       {/* ── HEADER ── */}
       <section className="pt-8 pb-6 text-center max-w-3xl mx-auto px-6">
@@ -415,6 +416,29 @@ export default function ModelsPage() {
 
 
 function FlashBanner() {
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      const end = getNextFridayEnd(now);
+      setSecondsLeft(
+        Math.max(0, Math.floor((end.getTime() - now.getTime()) / 1000)),
+      );
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const days = secondsLeft == null ? "--" : pad(Math.floor(secondsLeft / 86400));
+  const hours =
+    secondsLeft == null ? "--" : pad(Math.floor((secondsLeft % 86400) / 3600));
+  const minutes =
+    secondsLeft == null ? "--" : pad(Math.floor((secondsLeft % 3600) / 60));
+  const seconds = secondsLeft == null ? "--" : pad(secondsLeft % 60);
+
   return (
     <div
       className="w-full py-2.5 px-4 flex items-center justify-center gap-3 text-sm"
@@ -427,19 +451,42 @@ function FlashBanner() {
           boxShadow: "0 0 10px rgba(255,255,255,0.6)",
         }}
       />
-      <span className="font-semibold tracking-wide" style={{ color: "#ffffff" }}>
-        FLASH DEAL —{" "}
-        <span className="underline" style={{ color: "#ffffff" }}>20% off most models</span>{" "}
-        <span style={{ color: "rgba(255,255,255,0.55)" }}>·</span>
+      <span
+        className="font-semibold tracking-wide whitespace-nowrap"
+        style={{ color: "#ffffff" }}
+      >
+        FLASH DEAL — ENDS IN
+      </span>
+      <span
+        suppressHydrationWarning
+        className="font-[family-name:var(--font-mono)] font-bold tabular-nums tracking-wide flex items-center gap-1.5 whitespace-nowrap"
+      >
+        <Unit value={days} label="d" />
+        <Sep />
+        <Unit value={hours} label="h" />
+        <Sep />
+        <Unit value={minutes} label="m" />
+        <Sep />
+        <Unit value={seconds} label="s" highlight />
+      </span>
+      <span
+        className="hidden sm:inline"
+        style={{ color: "rgba(255,255,255,0.55)" }}
+      >
+        ·
       </span>
       <Link
         href="/signup"
-        className="group inline-flex items-center gap-1.5 font-semibold tracking-wide transition-colors duration-200"
+        className="group hidden sm:inline-flex items-center gap-1.5 font-semibold tracking-wide transition-colors duration-200"
         style={{ color: "#ffffff" }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.8)")}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.color = "rgba(255,255,255,0.8)")
+        }
         onMouseLeave={(e) => (e.currentTarget.style.color = "#ffffff")}
       >
-        <span style={{ color: "inherit" }}>Sign up now</span>
+        <span className="underline" style={{ color: "inherit" }}>
+          Sign up now
+        </span>
         <ArrowRight
           className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
           strokeWidth={2.5}
@@ -447,5 +494,38 @@ function FlashBanner() {
         />
       </Link>
     </div>
+  );
+}
+
+function Unit({
+  value,
+  label,
+  highlight,
+}: {
+  value: string;
+  label: string;
+  highlight?: boolean;
+}) {
+  return (
+    <span
+      className="inline-flex items-baseline gap-0.5"
+      style={highlight ? { textShadow: "0 0 12px rgba(255,255,255,0.45)" } : undefined}
+    >
+      <span>{value}</span>
+      <span
+        className="text-[10px] font-semibold"
+        style={{ color: "rgba(255,255,255,0.75)" }}
+      >
+        {label}
+      </span>
+    </span>
+  );
+}
+
+function Sep() {
+  return (
+    <span style={{ color: "rgba(255,255,255,0.55)" }} aria-hidden>
+      :
+    </span>
   );
 }
