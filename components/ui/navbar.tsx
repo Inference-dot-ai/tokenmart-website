@@ -7,9 +7,15 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const NAV_LINKS = [
   { label: "Models", href: "/models" },
+  { label: "Pricing", href: "/#pricing" },
   { label: "Docs", href: "#" },
   { label: "API", href: "#" },
 ];
+
+const FORM_URL = process.env.NEXT_PUBLIC_GOOGLE_FORM_URL || "";
+const FORM_HREF =
+  FORM_URL && !FORM_URL.includes("your-form-url") ? FORM_URL : "/signup";
+const FORM_IS_EXTERNAL = FORM_HREF !== "/signup";
 
 interface NavbarProps {
   fixed?: boolean;
@@ -44,7 +50,7 @@ export function Navbar({ fixed = true }: NavbarProps) {
       <a href="/" className="flex items-center gap-2 shrink-0">
         <InferenceLogo className="h-7 w-7 md:h-8 md:w-8" />
         <span className="text-xl md:text-2xl font-bold" style={{ color: "var(--color-text)" }}>
-          token <span style={{ color: "var(--pink)" }}>mart</span>
+          Token<span style={{ color: "var(--pink)" }}>Mart</span>
         </span>
       </a>
 
@@ -63,11 +69,29 @@ export function Navbar({ fixed = true }: NavbarProps) {
       <div className="flex items-center gap-2 md:gap-3 shrink-0">
         <ThemeToggle />
         <a
+          href={FORM_HREF}
+          target={FORM_IS_EXTERNAL ? "_blank" : undefined}
+          rel={FORM_IS_EXTERNAL ? "noopener noreferrer" : undefined}
+          className="hidden sm:inline-flex items-center justify-center whitespace-nowrap text-sm md:text-base font-medium px-5 md:px-6 py-2 md:py-2.5 rounded-full transition-all duration-200"
+          style={{
+            background: "var(--pink)",
+            color: "#FFFFFF",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = "0 8px 24px var(--pink-glow)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          Contact Sales
+        </a>
+        <a
           href="/signup"
           className="hidden sm:inline-flex items-center justify-center whitespace-nowrap text-sm md:text-base font-medium px-5 md:px-6 py-2 md:py-2.5 rounded-full transition-all duration-200"
           style={{
-            background: "#000000",
-            color: "#FFFFFF",
+            background: "var(--cta-bg)",
+            color: "var(--cta-fg)",
           }}
         >
           Sign Up
@@ -152,12 +176,25 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
         </nav>
 
         <a
-          href="/signup"
+          href={FORM_HREF}
+          target={FORM_IS_EXTERNAL ? "_blank" : undefined}
+          rel={FORM_IS_EXTERNAL ? "noopener noreferrer" : undefined}
           onClick={onClose}
           className="mt-4 inline-flex items-center justify-center w-full whitespace-nowrap text-base font-medium px-4 py-3 rounded-full transition-all duration-200"
           style={{
-            background: "#000000",
+            background: "var(--pink)",
             color: "#FFFFFF",
+          }}
+        >
+          Contact Sales
+        </a>
+        <a
+          href="/signup"
+          onClick={onClose}
+          className="mt-3 inline-flex items-center justify-center w-full whitespace-nowrap text-base font-medium px-4 py-3 rounded-full transition-all duration-200"
+          style={{
+            background: "var(--cta-bg)",
+            color: "var(--cta-fg)",
           }}
         >
           Sign Up

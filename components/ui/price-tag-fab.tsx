@@ -1,29 +1,31 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Tags, ArrowRight, X } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
 export function PriceTagFab() {
-  const [open, setOpen] = useState(false);
+  const [scrolledPast, setScrolledPast] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const closeTimer = useRef<number | null>(null);
 
-  function cancelClose() {
-    if (closeTimer.current !== null) {
-      window.clearTimeout(closeTimer.current);
-      closeTimer.current = null;
-    }
-  }
+  useEffect(() => {
+    const getThreshold = () => window.innerHeight * 0.8;
+    const update = () => setScrolledPast(window.scrollY > getThreshold());
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
 
-  function scheduleClose() {
-    cancelClose();
-    closeTimer.current = window.setTimeout(() => setOpen(false), 140);
-  }
+  const open = scrolledPast && !dismissed;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,11 +61,7 @@ export function PriceTagFab() {
   }
 
   return (
-    <div
-      className="fixed right-6 top-1/2 -translate-y-1/2 z-[90]"
-      onMouseEnter={cancelClose}
-      onMouseLeave={scheduleClose}
-    >
+    <div className="fixed right-6 top-1/2 -translate-y-1/2 z-[90]">
       <AnimatePresence>
         {open && (
           <motion.div
@@ -72,7 +70,7 @@ export function PriceTagFab() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.98 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="absolute bottom-full right-0 mb-3 w-[21rem] rounded-2xl p-5"
+            className="w-[21rem] rounded-2xl p-5"
             style={{
               background: "var(--color-surface)",
               border: "1px solid var(--color-border)",
@@ -80,11 +78,11 @@ export function PriceTagFab() {
                 "0 0 0 3px var(--pink-lo), 0 20px 48px rgba(0, 0, 0, 0.18)",
             }}
             role="dialog"
-            aria-label="Claim this week's deal"
+            aria-label="Special offer"
           >
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => setDismissed(true)}
               aria-label="Close"
               className="absolute top-3 right-3 p-1 rounded-full cursor-pointer"
               style={{ color: "var(--color-text-muted)" }}
@@ -99,21 +97,40 @@ export function PriceTagFab() {
             </button>
 
             <h3
-              className="text-base font-bold leading-snug pr-6"
+              className="text-base font-bold leading-snug pr-6 flex items-center gap-1.5"
               style={{ color: "var(--color-text)" }}
             >
-              Claim{" "}
-              <span style={{ color: "var(--pink)" }}>this week&apos;s deal</span>{" "}
-              <span aria-hidden>🏷️</span>
+              <span aria-hidden>🎁</span>
+              <span style={{ color: "var(--pink)" }}>Special Offer</span>
             </h3>
 
-            <p
-              className="text-sm mt-2 mb-4 leading-relaxed"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              Drop your email and we&apos;ll send this week&apos;s flash deals
-              straight to your inbox.
-            </p>
+            <div className="mt-3 mb-4 flex items-center justify-center gap-3">
+              <div className="flex items-baseline gap-2 leading-none">
+                <span
+                  className="text-2xl font-extrabold tracking-tight font-[family-name:var(--font-chakra)]"
+                  style={{ color: "var(--color-text)" }}
+                >
+                  $100
+                </span>
+                <ArrowRight
+                  className="w-4 h-4"
+                  strokeWidth={2.5}
+                  style={{ color: "var(--color-text-muted)" }}
+                />
+                <span
+                  className="text-2xl font-extrabold tracking-tight font-[family-name:var(--font-chakra)]"
+                  style={{ color: "var(--pink)" }}
+                >
+                  $125
+                </span>
+              </div>
+              <span
+                className="px-3 py-1.5 rounded-lg text-xs font-extrabold text-white shrink-0 tracking-tight uppercase"
+                style={{ background: "rgba(209, 0, 118, 0.85)" }}
+              >
+                25% Bonus
+              </span>
+            </div>
 
             {status === "success" ? (
               <p
@@ -189,25 +206,6 @@ export function PriceTagFab() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <button
-        type="button"
-        onMouseEnter={() => {
-          cancelClose();
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-        onClick={() => setOpen((o) => !o)}
-        aria-label="Claim this week's deal"
-        aria-expanded={open}
-        className={`price-tag-shake${open ? " paused" : ""} w-14 h-14 rounded-full flex items-center justify-center cursor-pointer`}
-        style={{
-          background: "var(--pink)",
-          boxShadow: "0 10px 28px var(--pink-glow), 0 4px 10px rgba(0,0,0,0.12)",
-        }}
-      >
-        <Tags className="w-7 h-7 text-white" strokeWidth={2.2} />
-      </button>
     </div>
   );
 }

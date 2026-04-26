@@ -2,11 +2,10 @@
 
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { Model, Category } from "@/lib/google-sheets";
 
 const SAVINGS_GREEN = "#10b981";
-const COUNTDOWN_MS = 650;
 
 const CATEGORY_LABEL: Record<Category, string> = {
   LLM: "Text Generation",
@@ -14,17 +13,6 @@ const CATEGORY_LABEL: Record<Category, string> = {
   Video: "Video Generation",
   Audio: "Audio Generation",
 };
-
-type ParsedPrice = { value: number; prefix: string; decimals: number };
-
-function parsePrice(s: string | null): ParsedPrice | null {
-  if (!s) return null;
-  const m = s.match(/^(\$?)(\d+(?:\.\d+)?)/);
-  if (!m) return null;
-  const digits = m[2];
-  const decimals = digits.includes(".") ? digits.split(".")[1].length : 0;
-  return { value: parseFloat(digits), prefix: m[1], decimals };
-}
 
 export function ModelCard({
   model,
@@ -44,48 +32,11 @@ export function ModelCard({
   const assetUrl = hideAsset ? null : model.assetUrl;
   const hasDiscount = model.discountPct !== null && model.originalPrice !== null;
 
-  const original = hasDiscount ? parsePrice(model.originalPrice) : null;
-  const discounted = hasDiscount ? parsePrice(model.price) : null;
-  const canAnimate = !!original && !!discounted;
-
-  const [animValue, setAnimValue] = useState<number | null>(null);
-  const rafRef = useRef<number | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(
-    () => () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    },
-    []
-  );
-
-  const startCountdown = () => {
-    if (!canAnimate) return;
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    const start = performance.now();
-    const from = original!.value;
-    const to = discounted!.value;
-    const step = (t: number) => {
-      const progress = Math.min((t - start) / COUNTDOWN_MS, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setAnimValue(from + (to - from) * eased);
-      if (progress < 1) {
-        rafRef.current = requestAnimationFrame(step);
-      } else {
-        rafRef.current = null;
-      }
-    };
-    rafRef.current = requestAnimationFrame(step);
-  };
-
-  const stopCountdown = () => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = null;
-    setAnimValue(null);
-  };
-
   const handleMouseEnter = () => {
-    startCountdown();
+    setIsHovered(true);
     const v = videoRef.current;
     if (v) {
       v.currentTime = 0;
@@ -94,18 +45,13 @@ export function ModelCard({
   };
 
   const handleMouseLeave = () => {
-    stopCountdown();
+    setIsHovered(false);
     const v = videoRef.current;
     if (v) {
       v.pause();
       v.currentTime = 0;
     }
   };
-
-  const displayPrice =
-    animValue !== null && discounted
-      ? `${discounted.prefix}${animValue.toFixed(discounted.decimals)}`
-      : model.price;
 
   return (
     <motion.div
@@ -130,7 +76,7 @@ export function ModelCard({
       )}
       {hasDiscount && featured && (
         <div
-          className="absolute top-4 right-5 z-10 px-2.5 py-1 rounded-lg text-lg font-extrabold tracking-tight tabular-nums leading-none"
+          className="absolute top-3 right-3 z-10 px-3 py-1.5 rounded-lg text-2xl font-extrabold tracking-tight tabular-nums leading-none origin-top-right transition-transform duration-300 ease-out group-hover:scale-110 group-hover:-rotate-6"
           style={{ background: "var(--pink)", color: "white" }}
         >
           -{model.discountPct}%
@@ -186,8 +132,8 @@ export function ModelCard({
         )}
 
         <h3
-          className="text-lg font-bold mb-3 leading-tight"
-          style={{ color: "var(--color-text)" }}
+          className={`${featured ? "text-2xl" : "text-lg"} font-bold mb-3 leading-tight transition-colors duration-200`}
+          style={{ color: isHovered ? "var(--pink)" : "var(--color-text)" }}
         >
           {model.name}
         </h3>
@@ -217,11 +163,8 @@ export function ModelCard({
                   >
                     Now
                   </span>
-                  <span
-                    className="deal-price text-4xl font-extrabold tabular-nums leading-none"
-                    style={animValue !== null ? { color: "var(--pink)" } : undefined}
-                  >
-                    {displayPrice}
+                  <span className="deal-price text-3xl font-extrabold tabular-nums leading-none">
+                    {model.price}
                   </span>
                   <span
                     className="strike-anim text-base font-semibold inline-block w-fit"
@@ -258,11 +201,8 @@ export function ModelCard({
                   {model.unit}
                 </span>
                 <div className="flex items-baseline gap-1.5">
-                  <span
-                    className="deal-price text-2xl font-bold tabular-nums"
-                    style={animValue !== null ? { color: "var(--pink)" } : undefined}
-                  >
-                    {displayPrice}
+                  <span className="deal-price text-2xl font-bold tabular-nums">
+                    {model.price}
                   </span>
                   {model.unit && (
                     <span
@@ -292,7 +232,7 @@ export function ModelCard({
               from
             </span>
             <span
-              className={`${featured ? "text-4xl font-extrabold leading-none" : "text-2xl font-bold"} truncate`}
+              className={`${featured ? "text-3xl font-extrabold leading-none" : "text-2xl font-bold"} truncate`}
               style={{ color: "var(--color-text)" }}
             >
               {model.price}

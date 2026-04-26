@@ -26,3 +26,18 @@ export function getNextFridayEnd(now: Date): Date {
   }
   return target;
 }
+
+const OFFER_DEADLINE_KEY = "tm-offer-deadline";
+const OFFER_DURATION_MS = 50 * 60 * 1000;
+
+// Per-visitor 50-minute offer window. Seeds on first visit, persists across
+// page navigations, and starts fresh if the previous window has expired.
+// Client-only — call from useEffect, not during SSR.
+export function getSessionOfferDeadline(): Date {
+  const now = Date.now();
+  const stored = Number(localStorage.getItem(OFFER_DEADLINE_KEY));
+  if (stored && stored > now) return new Date(stored);
+  const deadline = now + OFFER_DURATION_MS;
+  localStorage.setItem(OFFER_DEADLINE_KEY, String(deadline));
+  return new Date(deadline);
+}

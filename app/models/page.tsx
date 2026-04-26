@@ -2,15 +2,15 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Search, ChevronDown, ChevronUp, LayoutGrid, Tag, Check, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { Search, ChevronDown, ChevronUp, LayoutGrid, Tag, Check } from "lucide-react";
 import { Navbar } from "@/components/ui/navbar";
 import { Footer } from "@/components/ui/footer";
 import { ModelCard } from "@/components/ui/model-card";
 // import { SaleCountdown } from "@/components/ui/sale-countdown";
 import type { Model, Category } from "@/lib/google-sheets";
 import { extractPriceUSD } from "@/lib/price";
-import { getNextFridayEnd } from "@/lib/utils";
+import { getSessionOfferDeadline } from "@/lib/utils";
+import { getPlaceholderImage } from "@/lib/placeholder-assets";
 
 const MODEL_TYPE_OPTIONS: { label: string; category: Category | null }[] = [
   { label: "All Models", category: null },
@@ -55,7 +55,15 @@ export default function ModelsPage() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((data) => setModels(data))
+      .then((data: Model[]) =>
+        setModels(
+          data.map((m) =>
+            m.assetUrl
+              ? m
+              : { ...m, assetUrl: getPlaceholderImage(`${m.provider}|${m.name}`), assetType: "image" }
+          )
+        )
+      )
       .catch((err) => {
         console.error("Failed to fetch models", err);
         setFetchError(true);
@@ -420,10 +428,9 @@ function FlashBanner() {
 
   useEffect(() => {
     const tick = () => {
-      const now = new Date();
-      const end = getNextFridayEnd(now);
+      const end = getSessionOfferDeadline();
       setSecondsLeft(
-        Math.max(0, Math.floor((end.getTime() - now.getTime()) / 1000)),
+        Math.max(0, Math.floor((end.getTime() - Date.now()) / 1000)),
       );
     };
     tick();
@@ -455,7 +462,7 @@ function FlashBanner() {
         className="font-semibold tracking-wide whitespace-nowrap"
         style={{ color: "#ffffff" }}
       >
-        FLASH DEAL — ENDS IN
+        Offer ends in
       </span>
       <span
         suppressHydrationWarning
@@ -475,24 +482,24 @@ function FlashBanner() {
       >
         ·
       </span>
-      <Link
-        href="/signup"
-        className="group hidden sm:inline-flex items-center gap-1.5 font-semibold tracking-wide transition-colors duration-200"
+      <span
+        className="hidden sm:inline font-semibold tracking-wide whitespace-nowrap"
         style={{ color: "#ffffff" }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.color = "rgba(255,255,255,0.8)")
-        }
-        onMouseLeave={(e) => (e.currentTarget.style.color = "#ffffff")}
       >
-        <span className="underline" style={{ color: "inherit" }}>
-          Sign up now
-        </span>
-        <ArrowRight
-          className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
-          strokeWidth={2.5}
-          style={{ color: "#ffffff" }}
-        />
-      </Link>
+        Top up $100 → Get $125 Credits
+      </span>
+      <span
+        className="hidden sm:inline"
+        style={{ color: "rgba(255,255,255,0.55)" }}
+      >
+        ·
+      </span>
+      <span
+        className="hidden sm:inline font-semibold tracking-wide whitespace-nowrap"
+        style={{ color: "#ffffff" }}
+      >
+        Save up to 65%
+      </span>
     </div>
   );
 }

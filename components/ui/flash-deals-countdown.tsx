@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getNextFridayEnd } from "@/lib/utils";
+import { getSessionOfferDeadline } from "@/lib/utils";
 
 // Pink gradient stroke — same treatment as the hero's "65%" underline
 const STROKE = "linear-gradient(90deg, transparent, rgba(209, 0, 118, 0.9), transparent)";
@@ -11,9 +11,8 @@ export function FlashDealsCountdown() {
 
   useEffect(() => {
     const tick = () => {
-      const now = new Date();
-      const end = getNextFridayEnd(now);
-      setSecondsLeft(Math.max(0, Math.floor((end.getTime() - now.getTime()) / 1000)));
+      const end = getSessionOfferDeadline();
+      setSecondsLeft(Math.max(0, Math.floor((end.getTime() - Date.now()) / 1000)));
     };
     tick();
     const id = setInterval(tick, 1000);

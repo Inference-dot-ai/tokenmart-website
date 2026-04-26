@@ -17,7 +17,7 @@ export function InferenceLogo({
       strokeLinecap="round"
       strokeLinejoin="round"
       xmlns="http://www.w3.org/2000/svg"
-      aria-label="token mart logo"
+      aria-label="TokenMart logo"
     >
       <circle cx="24" cy="24" r="19" />
       <ellipse cx="24" cy="24" rx="19" ry="8" />
