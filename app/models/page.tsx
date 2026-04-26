@@ -451,13 +451,9 @@ function FlashBanner() {
       className="w-full py-2.5 px-4 flex items-center justify-center gap-3 text-sm"
       style={{ background: "var(--pink)", color: "#ffffff" }}
     >
-      <span
-        className="w-2 h-2 rounded-full shrink-0"
-        style={{
-          background: "#ffffff",
-          boxShadow: "0 0 10px rgba(255,255,255,0.6)",
-        }}
-      />
+      <span className="text-base shrink-0" aria-hidden>
+        🎁
+      </span>
       <span
         className="font-semibold tracking-wide whitespace-nowrap"
         style={{ color: "#ffffff" }}
