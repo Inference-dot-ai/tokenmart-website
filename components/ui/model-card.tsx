@@ -68,7 +68,7 @@ export function ModelCard({
     >
       {hasDiscount && !featured && (
         <div
-          className="ribbon absolute top-0 left-0 z-10 rounded-br-xl px-3 py-1 text-[11px] font-bold tracking-wide"
+          className="ribbon absolute top-0 left-0 z-10 rounded-br-xl px-3.5 py-1.5 text-xs font-bold tracking-wide origin-top-left transition-transform duration-300 ease-out group-hover:scale-[1.6] group-hover:shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
           style={{ background: SAVINGS_GREEN, color: "white" }}
         >
           -{model.discountPct}% OFF

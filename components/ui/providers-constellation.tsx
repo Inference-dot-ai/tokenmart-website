@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Model } from "@/lib/google-sheets";
 import { InferenceLogo } from "@/components/ui/inference-logo";
 
 type BrandEntry =
@@ -24,30 +23,28 @@ const PROVIDER_BRAND: Record<string, BrandEntry> = {
   fishaudio:        { kind: "svg",      file: "fishaudio.svg", monoDark: true },
 };
 
+// Constellation is purely decorative — hardcode the providers so it renders
+// the same in dev and production regardless of what the models API returns.
+const HARDCODED_PROVIDERS: string[] = [
+  "deepseek",
+  "xai",
+  "z.ai",
+  "anthropic",
+  "openai",
+  "google",
+  "moonshot ai",
+  "kling ai",
+  "bytedance",
+  "minimax",
+  "fishaudio",
+];
+
 const MAX_PROVIDERS = 12;
 
 export function ProvidersConstellation() {
-  const [providers, setProviders] = useState<string[]>([]);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    fetch("/api/models")
-      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then((data: Model[]) => {
-        const seen = new Set<string>();
-        const list: string[] = [];
-        for (const m of data) {
-          const p = (m.provider || "").trim();
-          if (p && !seen.has(p)) {
-            seen.add(p);
-            list.push(p);
-          }
-        }
-        setProviders(list);
-      })
-      .catch(() => {});
-  }, []);
+  const providers = HARDCODED_PROVIDERS;
 
   useEffect(() => {
     const el = containerRef.current;
@@ -162,7 +159,7 @@ export function ProvidersConstellation() {
           so the incoming curves converge at the logo's visual center.
           Text floats absolutely below the logo. */}
       <div
-        className="absolute pointer-events-none"
+        className="absolute pointer-events-none z-20"
         style={{
           left: `${TM_X_PCT}%`,
           top: `${TM_Y_PCT}%`,
