@@ -17,12 +17,11 @@ const PROVIDER_BRAND: Record<string, BrandEntry> = {
   deepseek:         { kind: "svg",      file: "deepseek.svg",  monoDark: true },
   bytedance:        { kind: "svg",      file: "bytedance.svg" },
   xai:              { kind: "svg",      file: "x.svg",         monoDark: true },
-  "alibaba / qwen": { kind: "svg",      file: "alibabacloud.svg" },
   "moonshot ai":    { kind: "wordmark", text: "Kimi",     color: "#1E1E2E" },
   "z.ai":           { kind: "wordmark", text: "Z.AI",     color: "#0A66F5" },
   minimax:          { kind: "wordmark", text: "MiniMax",  color: "#FF5A1F" },
   "kling ai":       { kind: "wordmark", text: "Kling",    color: "#111827" },
-  fishaudio:        { kind: "wordmark", text: "Fish",     color: "#3B82F6" },
+  fishaudio:        { kind: "svg",      file: "fishaudio.svg", monoDark: true },
 };
 
 const MAX_PROVIDERS = 12;
@@ -75,7 +74,6 @@ export function ProvidersConstellation() {
     return [...rest.slice(0, half), ...primes, ...rest.slice(half)];
   })();
   const visible = ordered;
-  const providerCount = providers.length || MAX_PROVIDERS;
 
   // Lines start at the right edge of the logo strip and end at the tokenmart node.
   const STRIP_X_PCT = 14;    // center of the vertical strip
@@ -104,36 +102,42 @@ export function ProvidersConstellation() {
             const y = ((i + 0.5) / visible.length) * size.h;
             const d = buildWavyPath(stripX, y, tmX, tmY, i);
             const pathId = `constellation-path-${i}`;
-            const dur = 3.6 + (i % 3) * 0.7;
-            const delay = (i * 0.32) % 2.4;
+            const dur = 1.8 + (i % 3) * 0.35;
+            const dotsPerPath = 3;
             return (
               <g key={i}>
                 <path
                   id={pathId}
                   d={d}
                   fill="none"
-                  stroke="var(--color-border)"
+                  stroke="var(--color-text-muted)"
                   strokeWidth={1}
-                  opacity={0.75}
+                  opacity={0.5}
                 />
-                <circle r={3.5} fill="var(--pink)" opacity={0}>
-                  <animateMotion
-                    dur={`${dur}s`}
-                    begin={`${delay}s`}
-                    repeatCount="indefinite"
-                    rotate="auto"
-                  >
-                    <mpath href={`#${pathId}`} />
-                  </animateMotion>
-                  <animate
-                    attributeName="opacity"
-                    values="0;1;1;0"
-                    keyTimes="0;0.08;0.92;1"
-                    dur={`${dur}s`}
-                    begin={`${delay}s`}
-                    repeatCount="indefinite"
-                  />
-                </circle>
+                {Array.from({ length: dotsPerPath }).map((_, k) => {
+                  const stagger = (dur / dotsPerPath) * k + (i * 0.13) % dur;
+                  const begin = -stagger;
+                  return (
+                    <circle key={k} r={3.5} fill="var(--pink)" opacity={0}>
+                      <animateMotion
+                        dur={`${dur}s`}
+                        begin={`${begin}s`}
+                        repeatCount="indefinite"
+                        rotate="auto"
+                      >
+                        <mpath href={`#${pathId}`} />
+                      </animateMotion>
+                      <animate
+                        attributeName="opacity"
+                        values="0;1;1;0"
+                        keyTimes="0;0.08;0.92;1"
+                        dur={`${dur}s`}
+                        begin={`${begin}s`}
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                  );
+                })}
               </g>
             );
           })}
@@ -173,23 +177,15 @@ export function ProvidersConstellation() {
               height: "clamp(84px, 11vw, 120px)",
               background: "var(--color-text)",
             }}
-            aria-label="tokenmart"
+            aria-label="TokenMart"
           >
             <InferenceLogo className="w-[54%] h-[54%]" color="#ffffff" />
           </div>
 
-          <div className="absolute left-1/2 top-full -translate-x-1/2 mt-4 flex flex-col items-center gap-2 whitespace-nowrap">
-            <div
-              className="text-2xl md:text-3xl font-bold tracking-tight"
-              style={{ color: "var(--color-text)" }}
-            >
-              tokenmart
-            </div>
-            <div
-              className="text-xs md:text-sm"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              {providerCount}+ providers · one platform
+          <div className="absolute left-1/2 top-full -translate-x-1/2 mt-4 flex flex-col items-center whitespace-nowrap">
+            <div className="text-2xl md:text-3xl font-bold tracking-tight">
+              <span style={{ color: "var(--color-text)" }}>Token</span>
+              <span style={{ color: "var(--pink)" }}>Mart</span>
             </div>
           </div>
         </div>
@@ -219,7 +215,6 @@ function ProviderLogo({
   provider,
   xPct,
   yPct,
-  index,
 }: {
   provider: string;
   xPct: number;
@@ -239,7 +234,7 @@ function ProviderLogo({
         top: `${yPct}%`,
         transform: "translate(-50%, -50%)",
         opacity: 0,
-        animation: `fadeIn 0.6s ease ${0.15 + index * 0.06}s forwards`,
+        animation: "fadeIn 0.6s ease 0.15s forwards",
       }}
     >
       <div

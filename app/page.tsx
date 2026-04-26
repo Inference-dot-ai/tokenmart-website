@@ -17,20 +17,55 @@ import {
   ChevronDown,
   Layers,
   Gauge,
+  Flame,
+  Rocket,
+  Hourglass,
 } from "lucide-react";
+import { getSessionOfferDeadline } from "@/lib/utils";
+import { getPlaceholderImage } from "@/lib/placeholder-assets";
 import Link from "next/link";
 // import { ButtonCta } from "@/components/ui/button-shiny"; // commented out with search card
 import { HeroSection } from "@/components/ui/hero-section-shadcnui";
 // import { FlashDealsBanner } from "@/components/ui/flash-deals-banner";
-import { FlashDealsCountdown } from "@/components/ui/flash-deals-countdown";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { Navbar } from "@/components/ui/navbar";
 import { Footer } from "@/components/ui/footer";
 import { DiscountPopup } from "@/components/ui/discount-popup";
 import { PriceTagFab } from "@/components/ui/price-tag-fab";
 // import { SaleCountdown } from "@/components/ui/sale-countdown";
-import { FeaturedMarquee } from "@/components/ui/featured-marquee";
-import type { Model } from "@/lib/google-sheets";
+import { FeaturedModelCard } from "@/components/ui/card-21";
+import type { Category, Model } from "@/lib/google-sheets";
+
+const CATEGORY_THEME: Record<Category, string> = {
+  LLM: "326 100% 30%",
+  Image: "280 55% 28%",
+  Video: "215 60% 28%",
+  Audio: "25 70% 32%",
+};
+
+const GROK_4_1_OVERRIDE: Model = {
+  name: "Grok 4.1",
+  provider: "xAI",
+  category: "LLM",
+  description: "",
+  price: "$2.10",
+  unit: "/1M tokens",
+  originalPrice: "$6.00",
+  discountPct: 65,
+  featured: true,
+  assetUrl: "/featured-models/grok-4.1.png",
+  assetType: "image",
+};
+
+const ASSET_OVERRIDES: Record<string, { url: string; type: "image" | "video" }> = {
+  "claude opus 4.7": { url: "/featured-models/claude-4.7.png", type: "image" },
+  "claude sonnet 4.6": { url: "/featured-models/claude-sonet-4.6.png", type: "image" },
+  "gpt 5.4": { url: "/featured-models/chatgpt-5.4.png", type: "image" },
+  "gemini 3.1 pro": { url: "/featured-models/gemini-3.1.png", type: "image" },
+  "nano banana 2": { url: "/featured-models/nanobanana2.png", type: "image" },
+  "grok 4.1": { url: "/featured-models/grok-4.1.png", type: "image" },
+};
+
 
 // ── Search card constants (commented out with search card) ──
 // const TABS = ["Tokens / AI Models", "GPUs / Hardware"];
@@ -89,12 +124,44 @@ const FAQS: { q: string; a: string }[] = [
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [featuredModels, setFeaturedModels] = useState<Model[]>([]);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+
+  useEffect(() => {
+    const tick = () => {
+      const end = getSessionOfferDeadline();
+      setSecondsLeft(Math.max(0, Math.floor((end.getTime() - Date.now()) / 1000)));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const hh = secondsLeft == null ? "--" : pad(Math.floor((secondsLeft % 86400) / 3600));
+  const mm = secondsLeft == null ? "--" : pad(Math.floor((secondsLeft % 3600) / 60));
+  const ss = secondsLeft == null ? "--" : pad(secondsLeft % 60);
 
   useEffect(() => {
     fetch("/api/models")
       .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
       .then((models: Model[]) =>
-        setFeaturedModels(models.filter((m) => m.featured))
+        setFeaturedModels(
+          models
+            .filter((m) => m.featured)
+            .map((m) => {
+              if (m.name.toLowerCase().includes("seedance")) return GROK_4_1_OVERRIDE;
+              const renamed = { ...m, name: m.name.replace(/\s*Preview$/i, "") };
+              const override = ASSET_OVERRIDES[renamed.name.toLowerCase()];
+              if (override) {
+                renamed.assetUrl = override.url;
+                renamed.assetType = override.type;
+              } else if (!renamed.assetUrl) {
+                renamed.assetUrl = getPlaceholderImage(renamed.name);
+                renamed.assetType = "image";
+              }
+              return renamed;
+            })
+        )
       )
       .catch((err) => console.error("Failed to load featured models", err));
   }, []);
@@ -127,13 +194,212 @@ export default function Home() {
       <main className="relative z-20 max-w-5xl mx-auto px-6 pt-4 pb-8 flex flex-col items-center text-center">
         {/* <FlashDealsBanner /> */}
 
+        {/* ── OFFER COUPONS ── */}
+        <motion.div
+          className="w-full max-w-3xl mt-2"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.75 }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* ── Coupon 1: Top-up Deal ── */}
+            <div
+              className="relative rounded-2xl p-5 md:p-6 text-left"
+              style={{
+                background: "var(--color-surface)",
+                border: "2px dashed var(--pink)",
+              }}
+            >
+              {/* Bonus badge — top-right stamp inside the card */}
+              <div
+                className="absolute top-3 right-3 flex flex-col items-center justify-center w-20 h-20 rounded-full text-white z-10"
+                style={{
+                  background:
+                    "radial-gradient(circle at 35% 30%, #FF3D9A 0%, var(--pink) 55%, #B8005F 100%)",
+                  boxShadow:
+                    "0 10px 28px rgba(209, 0, 118, 0.55), 0 0 0 3px rgba(255, 255, 255, 0.9)",
+                  transform: "rotate(8deg)",
+                }}
+              >
+                <span className="text-xl font-extrabold leading-none tracking-tight">
+                  +25%
+                </span>
+                <span className="text-[11px] font-bold leading-none mt-1 uppercase tracking-wider">
+                  Bonus
+                </span>
+              </div>
+
+              <div
+                className="text-[11px] font-bold tracking-[0.18em] uppercase"
+                style={{ color: "var(--pink)" }}
+              >
+                Today&apos;s Deal
+              </div>
+
+              <div className="mt-4 flex items-center gap-3">
+                <div className="flex flex-col leading-none">
+                  <span
+                    className="text-[10px] font-semibold tracking-[0.15em] uppercase"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
+                    You Pay
+                  </span>
+                  <span
+                    className="mt-1 text-3xl md:text-4xl font-bold tracking-tight font-[family-name:var(--font-chakra)]"
+                    style={{ color: "var(--color-text)" }}
+                  >
+                    $100
+                  </span>
+                </div>
+                <ArrowRight
+                  className="w-5 h-5"
+                  style={{ color: "var(--color-text-muted)" }}
+                  strokeWidth={2.5}
+                />
+                <div className="flex flex-col leading-none">
+                  <span
+                    className="text-[10px] font-semibold tracking-[0.15em] uppercase"
+                    style={{ color: "var(--pink)" }}
+                  >
+                    You Get
+                  </span>
+                  <span
+                    className="mt-1 text-3xl md:text-4xl font-bold tracking-tight font-[family-name:var(--font-chakra)]"
+                    style={{ color: "var(--pink)" }}
+                  >
+                    $125
+                  </span>
+                </div>
+              </div>
+
+              <div
+                className="mt-5 pt-4 flex items-center gap-2 text-sm"
+                style={{ borderTop: "1px dashed var(--color-border)" }}
+              >
+                <Hourglass
+                  className="w-4 h-4"
+                  strokeWidth={2.5}
+                  style={{ color: "var(--pink)" }}
+                />
+                <span
+                  className="font-semibold"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  Ends in
+                </span>
+                <span
+                  suppressHydrationWarning
+                  className="font-[family-name:var(--font-mono)] font-bold tabular-nums tracking-wider"
+                  style={{ color: "var(--color-text)" }}
+                >
+                  {hh}:{mm}:{ss}
+                </span>
+              </div>
+            </div>
+
+            {/* ── Coupon 2: Social Proof ── */}
+            <div
+              className="relative rounded-2xl p-5 md:p-6 text-left overflow-hidden"
+              style={{
+                background: "var(--color-surface)",
+                border: "2px dashed var(--pink)",
+              }}
+            >
+              <div
+                className="text-[11px] font-bold tracking-[0.18em] uppercase"
+                style={{ color: "var(--pink)" }}
+              >
+                Limited Spots
+              </div>
+
+              <div className="mt-4 flex items-center gap-3">
+                <Flame
+                  className="w-10 h-10 shrink-0"
+                  fill="currentColor"
+                  strokeWidth={0}
+                  style={{ color: "var(--pink)" }}
+                />
+                <div className="flex flex-col leading-none">
+                  <span
+                    className="text-3xl md:text-4xl font-bold tracking-tight font-[family-name:var(--font-chakra)]"
+                    style={{ color: "var(--color-text)" }}
+                  >
+                    5,000+
+                  </span>
+                  <span
+                    className="mt-1.5 text-sm font-semibold"
+                    style={{ color: "var(--pink)" }}
+                  >
+                    Offers Claimed
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <div
+                  className="w-full h-2 rounded-full overflow-hidden"
+                  style={{
+                    background: "var(--color-bg)",
+                    border: "1px solid var(--color-border)",
+                  }}
+                >
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, #7C3AED 0%, #A855F7 35%, #EC4899 70%, #EF4444 100%)",
+                      boxShadow: "0 0 12px rgba(168, 85, 247, 0.45)",
+                    }}
+                    initial={{ width: 0 }}
+                    animate={{ width: "90%" }}
+                    transition={{ duration: 1.2, ease: "easeOut", delay: 0.9 }}
+                  />
+                </div>
+                <div
+                  className="mt-2 text-xs text-right font-semibold"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  A few left!
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <Link
+              href="/signup"
+              className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all duration-200"
+              style={{
+                background: "var(--pink)",
+                boxShadow: "0 8px 24px var(--pink-glow)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.boxShadow =
+                  "0 12px 30px var(--pink-glow)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px var(--pink-glow)";
+              }}
+            >
+              Claim Offers Now
+              <ArrowRight
+                className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                strokeWidth={2}
+              />
+            </Link>
+          </div>
+        </motion.div>
+
         {/* ── FEATURED MODELS ── */}
         {featuredModels.length > 0 && (
           <motion.div
-            className="w-full max-w-6xl mt-2"
+            className="w-full max-w-6xl mt-16"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut", delay: 0.75 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.8 }}
           >
             <div className="relative">
               <div className="relative mb-8 text-center">
@@ -145,16 +411,186 @@ export default function Home() {
                 </div>
               </div>
 
-              <FlashDealsCountdown />
-
-              <div className="relative mt-10">
-                <FeaturedMarquee models={featuredModels} />
+              <div className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                {featuredModels.slice(0, 6).map((m) => (
+                  <div
+                    key={`${m.category}|${m.provider}|${m.name}`}
+                    className="w-full h-[420px]"
+                  >
+                    <FeaturedModelCard
+                      imageUrl={m.assetUrl}
+                      assetType={m.assetType}
+                      modelName={m.name}
+                      price={m.price}
+                      unit={m.unit}
+                      originalPrice={m.originalPrice}
+                      discountPct={m.discountPct}
+                      href="/signup"
+                      themeColor={CATEGORY_THEME[m.category]}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* ── GET STARTED ── */}
+        {/* ── PRICING TIERS ── */}
+        <motion.div
+          id="pricing"
+          className="w-full max-w-6xl mt-16 scroll-mt-28"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.85 }}
+        >
+          <div className="mb-8 text-center">
+            <h2
+              className="text-3xl md:text-4xl font-bold tracking-tight"
+              style={{ color: "var(--color-text)" }}
+            >
+              Pricing
+            </h2>
+            <p
+              className="text-base mt-3 max-w-2xl mx-auto"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Top up once, use across every model. More credits, bigger bonus.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {/* Tier 1 — Most Popular */}
+            <div
+              className="relative rounded-2xl p-6 flex flex-col items-center text-center"
+              style={{
+                background:
+                  "linear-gradient(180deg, var(--pink-lo) 0%, var(--color-surface) 100%)",
+                border: "1px solid var(--border-pink)",
+                boxShadow:
+                  "0 0 0 3px var(--pink-lo), 0 0 40px var(--pink-glow)",
+              }}
+            >
+              <span
+                className="absolute -top-3 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider text-white"
+                style={{ background: "var(--pink)" }}
+              >
+                <Flame className="w-3 h-3" fill="currentColor" strokeWidth={0} />
+                MOST POPULAR
+              </span>
+              <div
+                className="text-3xl font-bold mt-3"
+                style={{ color: "var(--color-text)" }}
+              >
+                $100
+              </div>
+              <div
+                className="text-xl font-bold mt-2"
+                style={{ color: "var(--color-text)" }}
+              >
+                Get <span style={{ color: "var(--pink)" }}>$125</span>
+              </div>
+              <span
+                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white mt-4"
+                style={{ background: "var(--pink)" }}
+              >
+                +25% Bonus
+              </span>
+            </div>
+
+            {/* Tier 2 */}
+            <div
+              className="rounded-2xl p-6 flex flex-col items-center text-center"
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                className="text-3xl font-bold"
+                style={{ color: "var(--color-text)" }}
+              >
+                $10,000
+              </div>
+              <div
+                className="text-xl font-bold mt-2"
+                style={{ color: "var(--color-text)" }}
+              >
+                Get <span style={{ color: "var(--pink)" }}>$13,000</span>
+              </div>
+              <span
+                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white mt-4"
+                style={{ background: "var(--pink)" }}
+              >
+                +30% Bonus
+              </span>
+            </div>
+
+            {/* Tier 3 — Talk to Sales */}
+            <div
+              className="rounded-2xl p-6 flex flex-col items-center text-center"
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                className="text-2xl font-bold"
+                style={{ color: "var(--color-text)" }}
+              >
+                Talk to Sales
+              </div>
+              <div
+                className="text-sm mt-2"
+                style={{ color: "var(--color-text-dim)" }}
+              >
+                and get up to
+              </div>
+              <div className="mt-1 inline-flex items-center gap-2">
+                <span
+                  className="text-3xl font-bold"
+                  style={{ color: "var(--pink)" }}
+                >
+                  65%
+                </span>
+                <Rocket
+                  className="w-6 h-6"
+                  style={{ color: "var(--pink)" }}
+                  strokeWidth={2}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 flex justify-center">
+            <Link
+              href="/signup"
+              className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all duration-200"
+              style={{
+                background: "var(--pink)",
+                boxShadow: "0 8px 24px var(--pink-glow)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.boxShadow =
+                  "0 12px 30px var(--pink-glow)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px var(--pink-glow)";
+              }}
+            >
+              Get Bonus Now
+              <ArrowRight
+                className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                strokeWidth={2}
+              />
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* ── GET STARTED ── (commented out) */}
+        {false && (
         <motion.div
           className="w-full max-w-6xl mt-16 text-left"
           initial={{ opacity: 0, y: 20 }}
@@ -393,6 +829,7 @@ export default function Home() {
             </div>
           </div>
         </motion.div>
+        )}
 
         {/* ── WHY CHOOSE TOKENMART ── */}
         <motion.div
@@ -403,7 +840,7 @@ export default function Home() {
         >
           <div className="mb-8 text-center">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
-              Why Choose tokenmart?
+              Why Choose TokenMart?
             </h2>
             <p className="text-base mt-3 max-w-2xl mx-auto" style={{ color: "var(--color-text-muted)" }}>
               The unified API platform that makes AI integration simple, reliable, and cost-effective.
