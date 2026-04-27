@@ -248,6 +248,19 @@
   background-size: 100% 1.5px;
 }
 
+/* Featured card variant: thicker, slower, solid white. Triggered when the
+   hosting card (which carries `.featured-strike-host`) is hovered. */
+.strike-anim-xl {
+  background-image: linear-gradient(to right, #fff, #fff);
+  background-repeat: no-repeat;
+  background-position: 0 55%;
+  background-size: 0% 3px;
+  transition: background-size 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.featured-strike-host:hover .strike-anim-xl {
+  background-size: 100% 3px;
+}
+
 .model-card .price-box {
   border-radius: 0.5rem;
 }

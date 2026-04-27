@@ -61,7 +61,7 @@ const FeaturedModelCard = React.forwardRef<HTMLDivElement, FeaturedModelCardProp
             "--theme-color": themeColor,
           } as React.CSSProperties
         }
-        className={cn("group w-full h-full", className)}
+        className={cn("group featured-strike-host w-full h-full", className)}
         {...props}
       >
         <a
@@ -124,14 +124,14 @@ const FeaturedModelCard = React.forwardRef<HTMLDivElement, FeaturedModelCardProp
                 <span className="text-2xl font-extrabold tabular-nums">{price}</span>
                 {unit && <span className="text-sm text-white/80">{unit}</span>}
                 {originalPrice && (
-                  <span className="text-sm text-white/60 line-through">
+                  <span className="strike-anim-xl text-2xl font-extrabold tabular-nums text-white/60 inline-block w-fit">
                     {originalPrice}
                   </span>
                 )}
               </div>
 
               {/* Get API */}
-              <div className="mt-8 flex items-center justify-between bg-[hsl(var(--theme-color)/0.2)] backdrop-blur-md border border-[hsl(var(--theme-color)/0.3)] rounded-lg px-4 py-3 transition-all duration-300 group-hover:bg-[hsl(var(--theme-color)/0.4)] group-hover:border-[hsl(var(--theme-color)/0.5)]">
+              <div className="mt-8 flex items-center justify-between bg-white/80 backdrop-blur-md border border-white/60 rounded-lg px-4 py-3 text-neutral-900 transition-all duration-300 group-hover:bg-white/95 group-hover:border-white/80">
                 <span className="text-sm font-semibold tracking-wide">Get API</span>
                 <ArrowRight className="h-4 w-4 transform transition-transform duration-300 group-hover:translate-x-1" />
               </div>

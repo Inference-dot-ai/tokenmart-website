@@ -66,6 +66,78 @@ const ASSET_OVERRIDES: Record<string, { url: string; type: "image" | "video" }> 
   "grok 4.1": { url: "/featured-models/grok-4.1.png", type: "image" },
 };
 
+// Initial featured-model list rendered on first paint so the section never blanks
+// out when the /api/models fetch is slow or blocked (e.g. by browser extensions
+// that wrap window.fetch). Live API data overrides this when it arrives.
+const INITIAL_FEATURED: Model[] = [
+  GROK_4_1_OVERRIDE,
+  {
+    name: "Claude Opus 4.7",
+    provider: "Anthropic",
+    category: "LLM",
+    description: "Anthropic's most capable Claude — long-horizon reasoning and coding.",
+    price: "$21.25",
+    unit: "/1M tokens",
+    originalPrice: "$25.00",
+    discountPct: 15,
+    featured: true,
+    assetUrl: "/featured-models/claude-4.7.png",
+    assetType: "image",
+  },
+  {
+    name: "Claude Sonnet 4.6",
+    provider: "Anthropic",
+    category: "LLM",
+    description: "Premium balanced Claude for fast, capable answers across production workloads.",
+    price: "$12.75",
+    unit: "/1M tokens",
+    originalPrice: "$15.00",
+    discountPct: 15,
+    featured: true,
+    assetUrl: "/featured-models/claude-sonet-4.6.png",
+    assetType: "image",
+  },
+  {
+    name: "GPT 5.4",
+    provider: "OpenAI",
+    category: "LLM",
+    description: "Most capable GPT-5 line for professional use and reasoning-forward tasks.",
+    price: "$12.75",
+    unit: "/1M tokens",
+    originalPrice: "$15.00",
+    discountPct: 15,
+    featured: true,
+    assetUrl: "/featured-models/chatgpt-5.4.png",
+    assetType: "image",
+  },
+  {
+    name: "Gemini 3.1 Pro",
+    provider: "Google",
+    category: "LLM",
+    description: "Preview flagship Gemini for stronger reasoning.",
+    price: "$9.60",
+    unit: "/1M tokens",
+    originalPrice: "$12.00",
+    discountPct: 20,
+    featured: true,
+    assetUrl: "/featured-models/gemini-3.1.png",
+    assetType: "image",
+  },
+  {
+    name: "Nano Banana 2",
+    provider: "Google",
+    category: "Image",
+    description: "Upgraded Gemini image model with sharper natural-language control.",
+    price: "$0.04",
+    unit: "/img",
+    originalPrice: "$0.05",
+    discountPct: 20,
+    featured: true,
+    assetUrl: "/featured-models/nanobanana2.png",
+    assetType: "image",
+  },
+];
+
 
 // ── Search card constants (commented out with search card) ──
 // const TABS = ["Tokens / AI Models", "GPUs / Hardware"];
@@ -123,7 +195,7 @@ const FAQS: { q: string; a: string }[] = [
 
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [featuredModels, setFeaturedModels] = useState<Model[]>([]);
+  const [featuredModels, setFeaturedModels] = useState<Model[]>(INITIAL_FEATURED);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
 
   useEffect(() => {
@@ -144,25 +216,24 @@ export default function Home() {
   useEffect(() => {
     fetch("/api/models")
       .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
-      .then((models: Model[]) =>
-        setFeaturedModels(
-          models
-            .filter((m) => m.featured)
-            .map((m) => {
-              if (m.name.toLowerCase().includes("seedance")) return GROK_4_1_OVERRIDE;
-              const renamed = { ...m, name: m.name.replace(/\s*Preview$/i, "") };
-              const override = ASSET_OVERRIDES[renamed.name.toLowerCase()];
-              if (override) {
-                renamed.assetUrl = override.url;
-                renamed.assetType = override.type;
-              } else if (!renamed.assetUrl) {
-                renamed.assetUrl = getPlaceholderImage(renamed.name);
-                renamed.assetType = "image";
-              }
-              return renamed;
-            })
-        )
-      )
+      .then((models: Model[]) => {
+        const next = models
+          .filter((m) => m.featured)
+          .map((m) => {
+            if (m.name.toLowerCase().includes("seedance")) return GROK_4_1_OVERRIDE;
+            const renamed = { ...m, name: m.name.replace(/\s*Preview$/i, "") };
+            const override = ASSET_OVERRIDES[renamed.name.toLowerCase()];
+            if (override) {
+              renamed.assetUrl = override.url;
+              renamed.assetType = override.type;
+            } else if (!renamed.assetUrl) {
+              renamed.assetUrl = getPlaceholderImage(renamed.name);
+              renamed.assetType = "image";
+            }
+            return renamed;
+          });
+        if (next.length > 0) setFeaturedModels(next);
+      })
       .catch((err) => console.error("Failed to load featured models", err));
   }, []);
 
