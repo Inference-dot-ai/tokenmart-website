@@ -41,7 +41,7 @@ const ASSET_INDEX: Map<string, { url: string; type: "image" | "video" }> = (() =
 })();
 
 function slugifyName(name: string): string {
-  return name.toLowerCase().replace(/[\s._]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  return name.toLowerCase().replace(/[\s./_]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
 
 function attachAsset(m: ModelCore): Model {
