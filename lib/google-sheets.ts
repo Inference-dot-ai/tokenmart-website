@@ -205,14 +205,6 @@ export async function appendSubscriberEmail(email: string): Promise<void> {
   });
 }
 
-function normalizePrivateKey(raw: string | undefined): string | undefined {
-  if (!raw) return raw;
-  return raw
-    .trim()
-    .replace(/^"|"$/g, "")
-    .replace(/\\n/g, "\n");
-}
-
 export async function fetchModels(): Promise<Model[]> {
   if (!isConfigured()) {
     console.log("[google-sheets] Not configured — using fallback data");
