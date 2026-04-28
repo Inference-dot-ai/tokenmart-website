@@ -176,13 +176,19 @@ export function ProvidersConstellation() {
             }}
             aria-label="TokenMart"
           >
-            <InferenceLogo className="w-[54%] h-[54%]" color="#ffffff" />
+            <InferenceLogo className="w-[54%] h-[54%]" />
           </div>
 
           <div className="absolute left-1/2 top-full -translate-x-1/2 mt-4 flex flex-col items-center whitespace-nowrap">
             <div className="text-2xl md:text-3xl font-bold tracking-tight">
               <span style={{ color: "var(--color-text)" }}>Token</span>
               <span style={{ color: "var(--pink)" }}>Mart</span>
+            </div>
+            <div
+              className="mt-1.5 text-[10px] md:text-xs font-medium uppercase tracking-[0.2em]"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Smart tokens. Better prices<span style={{ color: "var(--pink)" }}>.</span>
             </div>
           </div>
         </div>

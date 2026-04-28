@@ -171,7 +171,7 @@ export async function appendSubscriberEmail(email: string): Promise<void> {
   const auth = new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      private_key: normalizePrivateKey(process.env.GOOGLE_PRIVATE_KEY),
     },
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
@@ -190,6 +190,14 @@ export async function appendSubscriberEmail(email: string): Promise<void> {
   });
 }
 
+function normalizePrivateKey(raw: string | undefined): string | undefined {
+  if (!raw) return raw;
+  return raw
+    .trim()
+    .replace(/^"|"$/g, "")
+    .replace(/\\n/g, "\n");
+}
+
 export async function fetchModels(): Promise<Model[]> {
   if (!isConfigured()) {
     console.log("[google-sheets] Not configured — using fallback data");
@@ -200,7 +208,7 @@ export async function fetchModels(): Promise<Model[]> {
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        private_key: normalizePrivateKey(process.env.GOOGLE_PRIVATE_KEY),
       },
       scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
     });

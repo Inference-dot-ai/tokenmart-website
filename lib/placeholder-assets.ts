@@ -9,7 +9,6 @@ export const PLACEHOLDER_IMAGES: string[] = [
   "/model-assets/gpt-image-1-5.png",
   "/model-assets/gemini-3-pro-preview.png",
   "/model-assets/gemini-3-flash-preview.png",
-  "/model-assets/nano-banana-pro.png",
   "/model-assets/midjourney-v7.png",
   "/model-assets/qwen-image-edit.png",
   "/model-assets/qwen-3.png",
