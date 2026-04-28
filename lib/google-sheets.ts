@@ -41,7 +41,7 @@ const ASSET_INDEX: Map<string, { url: string; type: "image" | "video" }> = (() =
 })();
 
 function slugifyName(name: string): string {
-  return name.toLowerCase().replace(/[\s._]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  return name.toLowerCase().replace(/[\s./_]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
 
 function attachAsset(m: ModelCore): Model {
@@ -203,6 +203,14 @@ export async function appendSubscriberEmail(email: string): Promise<void> {
       values: [[new Date().toISOString(), email]],
     },
   });
+}
+
+function normalizePrivateKey(raw: string | undefined): string | undefined {
+  if (!raw) return raw;
+  return raw
+    .trim()
+    .replace(/^"|"$/g, "")
+    .replace(/\\n/g, "\n");
 }
 
 export async function fetchModels(): Promise<Model[]> {
