@@ -51,6 +51,21 @@ function attachAsset(m: ModelCore): Model {
 
 const SHEET_RANGE = "All Model!A2:L" as const;
 
+// Cloudflare's plain-text env vars store the value verbatim, so a key
+// pasted with surrounding quotes from .env (e.g. `"-----BEGIN..."`) keeps
+// them. The JWT signer then chokes on a quoted PEM. Strip them defensively.
+function normalizePrivateKey(raw: string | undefined): string | undefined {
+  if (!raw) return raw;
+  let k = raw.trim();
+  if (
+    (k.startsWith('"') && k.endsWith('"')) ||
+    (k.startsWith("'") && k.endsWith("'"))
+  ) {
+    k = k.slice(1, -1);
+  }
+  return k.replace(/\\n/g, "\n");
+}
+
 const TYPE_TO_CATEGORY: Record<string, Category> = {
   "Text Generation": "LLM",
   "Image Generation": "Image",
@@ -171,7 +186,7 @@ export async function appendSubscriberEmail(email: string): Promise<void> {
   const auth = new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      private_key: normalizePrivateKey(process.env.GOOGLE_PRIVATE_KEY),
     },
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
@@ -200,7 +215,7 @@ export async function fetchModels(): Promise<Model[]> {
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        private_key: normalizePrivateKey(process.env.GOOGLE_PRIVATE_KEY),
       },
       scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
     });

@@ -35,9 +35,21 @@ function b64url(input: ArrayBuffer | Uint8Array | string): string {
   return btoa(bin).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
 }
 
+// Cloudflare's plain-text env vars keep surrounding quotes (`"-----BEGIN..."`)
+// when copy-pasted from .env, which breaks PEM parsing. Strip them first.
+function normalizePem(raw: string): string {
+  let k = raw.trim();
+  if (
+    (k.startsWith('"') && k.endsWith('"')) ||
+    (k.startsWith("'") && k.endsWith("'"))
+  ) {
+    k = k.slice(1, -1);
+  }
+  return k.replace(/\\n/g, "\n");
+}
+
 function pemToPkcs8(pem: string): ArrayBuffer {
-  const body = pem
-    .replace(/\\n/g, "\n")
+  const body = normalizePem(pem)
     .replace(/-----BEGIN [^-]+-----/, "")
     .replace(/-----END [^-]+-----/, "")
     .replace(/\s+/g, "");
