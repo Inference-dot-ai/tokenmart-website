@@ -50,7 +50,7 @@ export default function ModelsPage() {
   }, [models]);
 
   useEffect(() => {
-    fetch("/api/models")
+    fetch("/models.json")
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();

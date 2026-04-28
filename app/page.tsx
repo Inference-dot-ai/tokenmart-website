@@ -214,7 +214,7 @@ export default function Home() {
   const ss = secondsLeft == null ? "--" : pad(secondsLeft % 60);
 
   useEffect(() => {
-    fetch("/api/models")
+    fetch("/models.json")
       .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
       .then((models: Model[]) => {
         const next = models
