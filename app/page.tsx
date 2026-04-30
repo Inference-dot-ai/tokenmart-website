@@ -457,7 +457,7 @@ export default function Home() {
 
           <div className="mt-6 flex flex-col items-center gap-2">
             <Link
-              href="/signup"
+              href="https://console.service-inference.ai/"
               className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all duration-200"
               style={{
                 background: "var(--pink)",
@@ -519,7 +519,7 @@ export default function Home() {
                       inputPrice={m.inputPrice}
                       inputUnit={m.inputUnit}
                       originalInputPrice={m.originalInputPrice}
-                      href="/signup"
+                      href="https://console.service-inference.ai/"
                       themeColor={CATEGORY_THEME[m.category]}
                     />
                   </div>
@@ -657,7 +657,7 @@ export default function Home() {
 
           <div className="mt-8 flex justify-center">
             <Link
-              href="/signup"
+              href="https://console.service-inference.ai/"
               className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all duration-200"
               style={{
                 background: "var(--pink)",
@@ -780,7 +780,7 @@ export default function Home() {
               </div>
 
               <Link
-                href="/signup"
+                href="https://console.service-inference.ai/"
                 className="mt-auto w-full py-3 rounded-full text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200"
                 style={{ background: "var(--pink)" }}
                 onMouseEnter={(e) => {
