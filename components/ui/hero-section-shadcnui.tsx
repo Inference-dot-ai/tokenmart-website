@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
-import { CloudUpload, Box, Zap } from "lucide-react";
+import { CloudUpload, Box, Zap, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const MARQUEE_MODELS: { name: string; logo: string; invert?: boolean }[] = [
   { name: "Claude", logo: "/provider-logos/anthropic.svg", invert: true },
@@ -79,9 +80,28 @@ export function HeroSection() {
         <Feature icon={<Zap className="w-7 h-7 md:w-8 md:h-8" strokeWidth={2} />} label="Instant Access" />
       </motion.div>
 
+      <motion.div variants={itemVariants} className="my-12">
+        <Link
+          href="/signup"
+          className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all duration-200"
+          style={{ background: "var(--pink)", boxShadow: "0 8px 24px var(--pink-glow)" }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-1px)";
+            e.currentTarget.style.boxShadow = "0 12px 30px var(--pink-glow)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 8px 24px var(--pink-glow)";
+          }}
+        >
+          Get Started
+          <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" strokeWidth={2} />
+        </Link>
+      </motion.div>
+
       <motion.div
         variants={itemVariants}
-        className="mt-24 w-full max-w-5xl flex items-center gap-5 px-2"
+        className="w-full max-w-5xl flex items-center gap-5 px-2"
       >
         <span
           className="shrink-0 px-5 py-2.5 rounded-full text-[20px] font-bold tracking-[0.14em] uppercase text-white whitespace-nowrap"
