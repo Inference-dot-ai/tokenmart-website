@@ -52,6 +52,9 @@ const GROK_4_1_OVERRIDE: Model = {
   unit: "/1M tokens",
   originalPrice: "$6.00",
   discountPct: 65,
+  inputPrice: "$1.05",
+  inputUnit: "/1M tokens",
+  originalInputPrice: "$3.00",
   featured: true,
   assetUrl: "/featured-models/grok-4.1.png",
   assetType: "image",
@@ -80,6 +83,9 @@ const INITIAL_FEATURED: Model[] = [
     unit: "/1M tokens",
     originalPrice: "$25.00",
     discountPct: 15,
+    inputPrice: "$4.25",
+    inputUnit: "/1M tokens",
+    originalInputPrice: "$5.00",
     featured: true,
     assetUrl: "/featured-models/claude-4.7.png",
     assetType: "image",
@@ -93,6 +99,9 @@ const INITIAL_FEATURED: Model[] = [
     unit: "/1M tokens",
     originalPrice: "$15.00",
     discountPct: 15,
+    inputPrice: "$2.55",
+    inputUnit: "/1M tokens",
+    originalInputPrice: "$3.00",
     featured: true,
     assetUrl: "/featured-models/claude-sonet-4.6.png",
     assetType: "image",
@@ -106,6 +115,9 @@ const INITIAL_FEATURED: Model[] = [
     unit: "/1M tokens",
     originalPrice: "$15.00",
     discountPct: 15,
+    inputPrice: "$2.55",
+    inputUnit: "/1M tokens",
+    originalInputPrice: "$3.00",
     featured: true,
     assetUrl: "/featured-models/chatgpt-5.4.png",
     assetType: "image",
@@ -119,6 +131,9 @@ const INITIAL_FEATURED: Model[] = [
     unit: "/1M tokens",
     originalPrice: "$12.00",
     discountPct: 20,
+    inputPrice: "$2.40",
+    inputUnit: "/1M tokens",
+    originalInputPrice: "$3.00",
     featured: true,
     assetUrl: "/featured-models/gemini-3.1.png",
     assetType: "image",
@@ -132,6 +147,9 @@ const INITIAL_FEATURED: Model[] = [
     unit: "/img",
     originalPrice: "$0.05",
     discountPct: 20,
+    inputPrice: null,
+    inputUnit: null,
+    originalInputPrice: null,
     featured: true,
     assetUrl: "/featured-models/nanobanana2.png",
     assetType: "image",
@@ -498,6 +516,9 @@ export default function Home() {
                       unit={m.unit}
                       originalPrice={m.originalPrice}
                       discountPct={m.discountPct}
+                      inputPrice={m.inputPrice}
+                      inputUnit={m.inputUnit}
+                      originalInputPrice={m.originalInputPrice}
                       href="/signup"
                       themeColor={CATEGORY_THEME[m.category]}
                     />

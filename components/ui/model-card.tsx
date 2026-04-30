@@ -31,6 +31,8 @@ export function ModelCard({
 }) {
   const assetUrl = hideAsset ? null : model.assetUrl;
   const hasDiscount = model.discountPct !== null && model.originalPrice !== null;
+  const hasInputPricing = model.inputPrice !== null;
+  const inputUnit = model.inputUnit ?? model.unit;
 
   const [isHovered, setIsHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -152,7 +154,84 @@ export function ModelCard({
           style={{ background: "var(--color-border)" }}
         />
 
-        {hasDiscount ? (
+        {hasInputPricing ? (
+          <div className="flex items-end justify-between gap-2">
+            <div
+              className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 items-baseline min-w-0 flex-1"
+            >
+              <span
+                className="text-[10px] font-semibold uppercase tracking-wider"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Input
+              </span>
+              <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
+                <span
+                  className={`${hasDiscount ? "deal-price" : ""} ${featured ? "text-2xl" : "text-lg"} font-bold tabular-nums leading-none`}
+                  style={{ color: "var(--color-text)" }}
+                >
+                  {model.inputPrice}
+                </span>
+                {model.originalInputPrice && (
+                  <span
+                    className="strike-anim text-xs font-semibold inline-block w-fit"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
+                    {model.originalInputPrice}
+                  </span>
+                )}
+                {inputUnit && (
+                  <span
+                    className="text-[11px]"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
+                    {inputUnit}
+                  </span>
+                )}
+              </div>
+
+              <span
+                className="text-[10px] font-semibold uppercase tracking-wider"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Output
+              </span>
+              <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
+                <span
+                  className={`${hasDiscount ? "deal-price" : ""} ${featured ? "text-2xl" : "text-lg"} font-bold tabular-nums leading-none`}
+                  style={{ color: "var(--color-text)" }}
+                >
+                  {model.price}
+                </span>
+                {model.originalPrice && (
+                  <span
+                    className="strike-anim text-xs font-semibold inline-block w-fit"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
+                    {model.originalPrice}
+                  </span>
+                )}
+                {model.unit && (
+                  <span
+                    className="text-[11px]"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
+                    {model.unit}
+                  </span>
+                )}
+              </div>
+            </div>
+            {hasDiscount && (
+              <span
+                className="urgency flex items-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 shrink-0"
+                style={{ color: "var(--pink)" }}
+                aria-label="Limited time"
+              >
+                <Clock className={`${featured ? "w-5 h-5" : "w-4 h-4"} shake`} strokeWidth={2.25} />
+              </span>
+            )}
+          </div>
+        ) : hasDiscount ? (
           featured ? (
             <div className="flex items-end justify-between gap-2">
               <div className="flex flex-col gap-1 min-w-0">

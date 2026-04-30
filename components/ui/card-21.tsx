@@ -12,6 +12,9 @@ interface FeaturedModelCardProps extends React.HTMLAttributes<HTMLDivElement> {
   unit?: string;
   originalPrice?: string | null;
   discountPct?: number | null;
+  inputPrice?: string | null;
+  inputUnit?: string | null;
+  originalInputPrice?: string | null;
   href: string;
   themeColor: string;
 }
@@ -44,6 +47,9 @@ const FeaturedModelCard = React.forwardRef<HTMLDivElement, FeaturedModelCardProp
       unit,
       originalPrice,
       discountPct,
+      inputPrice,
+      inputUnit,
+      originalInputPrice,
       href,
       themeColor,
       ...props
@@ -52,6 +58,8 @@ const FeaturedModelCard = React.forwardRef<HTMLDivElement, FeaturedModelCardProp
   ) => {
     const hasVideo = !!imageUrl && assetType === "video";
     const hasImage = !!imageUrl && assetType === "image";
+    const hasInputPricing = !!inputPrice;
+    const resolvedInputUnit = inputUnit ?? unit;
 
     return (
       <div
@@ -120,15 +128,49 @@ const FeaturedModelCard = React.forwardRef<HTMLDivElement, FeaturedModelCardProp
               ) : null}
             </div>
             <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-extrabold tabular-nums">{price}</span>
-                {unit && <span className="text-sm text-white/80">{unit}</span>}
-                {originalPrice && (
-                  <span className="strike-anim-xl text-2xl font-extrabold tabular-nums text-white/60 inline-block w-fit">
-                    {originalPrice}
+              {hasInputPricing ? (
+                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 items-baseline">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-white/70">
+                    Input
                   </span>
-                )}
-              </div>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-xl font-extrabold tabular-nums">
+                      {inputPrice}
+                    </span>
+                    {originalInputPrice && (
+                      <span className="strike-anim-xl text-base font-bold tabular-nums text-white/60 inline-block w-fit">
+                        {originalInputPrice}
+                      </span>
+                    )}
+                    {resolvedInputUnit && (
+                      <span className="text-xs text-white/80">{resolvedInputUnit}</span>
+                    )}
+                  </div>
+
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-white/70">
+                    Output
+                  </span>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-xl font-extrabold tabular-nums">{price}</span>
+                    {originalPrice && (
+                      <span className="strike-anim-xl text-base font-bold tabular-nums text-white/60 inline-block w-fit">
+                        {originalPrice}
+                      </span>
+                    )}
+                    {unit && <span className="text-xs text-white/80">{unit}</span>}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-extrabold tabular-nums">{price}</span>
+                  {unit && <span className="text-sm text-white/80">{unit}</span>}
+                  {originalPrice && (
+                    <span className="strike-anim-xl text-2xl font-extrabold tabular-nums text-white/60 inline-block w-fit">
+                      {originalPrice}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Get API */}
               <div className="mt-8 flex items-center justify-between bg-white/80 backdrop-blur-md border border-white/60 rounded-lg px-4 py-3 text-neutral-900 transition-all duration-300 group-hover:bg-white/95 group-hover:border-white/80">

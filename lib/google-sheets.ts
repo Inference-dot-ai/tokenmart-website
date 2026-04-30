@@ -9,10 +9,13 @@ export interface Model {
   provider: string;
   category: Category;
   description: string;
-  price: string;                 // discounted price, e.g. "$12.75"
-  unit: string;                  // e.g. "/1M tokens", "/img", "/s"
-  originalPrice: string | null;  // "from" price when discount > 0
-  discountPct: number | null;    // 0-100; null when no discount
+  price: string;                      // discounted output price, e.g. "$12.75"
+  unit: string;                       // e.g. "/1M tokens", "/img", "/s"
+  originalPrice: string | null;       // "from" output price when discount > 0
+  discountPct: number | null;         // 0-100; null when no discount
+  inputPrice: string | null;          // discounted input price (LLMs), null when no input pricing
+  inputUnit: string | null;           // input unit (typically "/1M tokens")
+  originalInputPrice: string | null;  // "from" input price when discount > 0
   featured: boolean;
   assetUrl: string | null;
   assetType: "image" | "video" | null;
@@ -49,7 +52,7 @@ function attachAsset(m: ModelCore): Model {
   return { ...m, assetUrl: a?.url ?? null, assetType: a?.type ?? null };
 }
 
-const SHEET_RANGE = "All Model!A2:L" as const;
+const SHEET_RANGE = "All Model!A2:Q" as const;
 
 // Cloudflare's plain-text env vars store the value verbatim, so a key
 // pasted with surrounding quotes from .env (e.g. `"-----BEGIN..."`) keeps
@@ -83,6 +86,9 @@ const FALLBACK_MODELS: ModelCore[] = [
     unit: "/1M tokens",
     originalPrice: "$15.00",
     discountPct: 15,
+    inputPrice: "$2.55",
+    inputUnit: "/1M tokens",
+    originalInputPrice: "$3.00",
     featured: true,
   },
   {
@@ -94,6 +100,9 @@ const FALLBACK_MODELS: ModelCore[] = [
     unit: "/1M tokens",
     originalPrice: "$15.00",
     discountPct: 15,
+    inputPrice: "$2.55",
+    inputUnit: "/1M tokens",
+    originalInputPrice: "$3.00",
     featured: true,
   },
   {
@@ -105,6 +114,9 @@ const FALLBACK_MODELS: ModelCore[] = [
     unit: "/1M tokens",
     originalPrice: "$12.00",
     discountPct: 20,
+    inputPrice: "$2.40",
+    inputUnit: "/1M tokens",
+    originalInputPrice: "$3.00",
     featured: true,
   },
   {
@@ -116,6 +128,9 @@ const FALLBACK_MODELS: ModelCore[] = [
     unit: "/img",
     originalPrice: "$0.05",
     discountPct: 20,
+    inputPrice: null,
+    inputUnit: null,
+    originalInputPrice: null,
     featured: true,
   },
 ];
@@ -146,6 +161,9 @@ function parseRow(row: string[]): ModelCore | null {
   const discountedPrice = row[8]?.trim() ?? "";
   const provider = row[10]?.trim() ?? "";
   const description = row[11]?.trim() ?? "";
+  const inputFromPrice = row[13]?.trim() ?? "";
+  const inputUnitRaw = row[14]?.trim() ?? "";
+  const inputDiscountedPrice = row[15]?.trim() ?? "";
 
   if (!name) return null;
   const category = TYPE_TO_CATEGORY[typeLabel];
@@ -153,6 +171,8 @@ function parseRow(row: string[]): ModelCore | null {
 
   const discountPct = parsePercent(discountStr);
   const hasDiscount = discountPct !== null && !!discountedPrice && !!fromPrice;
+  const hasInput = !!inputFromPrice;
+  const hasInputDiscount = hasInput && hasDiscount && !!inputDiscountedPrice;
 
   return {
     name,
@@ -163,6 +183,9 @@ function parseRow(row: string[]): ModelCore | null {
     unit,
     originalPrice: hasDiscount ? fromPrice : null,
     discountPct: hasDiscount ? discountPct : null,
+    inputPrice: hasInput ? (hasInputDiscount ? inputDiscountedPrice : inputFromPrice) : null,
+    inputUnit: hasInput ? inputUnitRaw || unit : null,
+    originalInputPrice: hasInputDiscount ? inputFromPrice : null,
     featured: onHomePage.toLowerCase() === "featured",
   };
 }
