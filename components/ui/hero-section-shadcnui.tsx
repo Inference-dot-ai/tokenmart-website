@@ -81,10 +81,10 @@ export function HeroSection() {
 
       <motion.div
         variants={itemVariants}
-        className="mt-8 w-full max-w-5xl flex items-center gap-3 px-2"
+        className="mt-24 w-full max-w-5xl flex items-center gap-5 px-2"
       >
         <span
-          className="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-[0.14em] uppercase text-white whitespace-nowrap"
+          className="shrink-0 px-5 py-2.5 rounded-full text-[20px] font-bold tracking-[0.14em] uppercase text-white whitespace-nowrap"
           style={{
             background: "linear-gradient(90deg, #FF7A18, var(--pink))",
             boxShadow: "0 4px 16px var(--pink-glow)",
@@ -102,20 +102,20 @@ export function HeroSection() {
           }}
         >
           <div
-            className="flex items-center gap-10 py-2"
+            className="flex items-center gap-[72px] py-[14px]"
             style={{ width: "max-content", animation: "marquee 28s linear infinite" }}
           >
             {[...MARQUEE_MODELS, ...MARQUEE_MODELS].map((m, i) => (
-              <div key={i} className="flex items-center gap-2 shrink-0">
+              <div key={i} className="flex items-center gap-3.5 shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={m.logo}
                   alt=""
-                  className={`w-5 h-5 object-contain ${m.invert ? "logo-dark-invert" : ""}`}
+                  className={`w-[36px] h-[36px] object-contain ${m.invert ? "logo-dark-invert" : ""}`}
                   loading="lazy"
                 />
                 <span
-                  className="text-sm font-semibold tracking-tight"
+                  className="text-2xl font-semibold tracking-tight"
                   style={{ color: "var(--color-text)" }}
                 >
                   {m.name}
