@@ -8,8 +8,6 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 const NAV_LINKS = [
   { label: "Models", href: "/models" },
   { label: "Pricing", href: "/#pricing" },
-  { label: "Docs", href: "#" },
-  { label: "API", href: "#" },
 ];
 
 const FORM_URL = process.env.NEXT_PUBLIC_GOOGLE_FORM_URL || "";

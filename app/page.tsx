@@ -542,7 +542,7 @@ export default function Home() {
               className="text-3xl md:text-4xl font-bold tracking-tight"
               style={{ color: "var(--color-text)" }}
             >
-              Pricing
+              Get Bonus Tokens
             </h2>
             <p
               className="text-base mt-3 max-w-2xl mx-auto"
