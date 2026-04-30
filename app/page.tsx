@@ -265,7 +265,8 @@ export default function Home() {
       <main className="relative z-20 max-w-5xl mx-auto px-6 pt-4 pb-8 flex flex-col items-center text-center">
         {/* <FlashDealsBanner /> */}
 
-        {/* ── OFFER COUPONS ── */}
+        {/* ── OFFER COUPONS (hidden) ── */}
+        {false && (
         <motion.div
           className="w-full max-w-3xl mt-2"
           initial={{ opacity: 0, y: 20 }}
@@ -463,6 +464,7 @@ export default function Home() {
             </Link>
           </div>
         </motion.div>
+        )}
 
         {/* ── FEATURED MODELS ── */}
         {featuredModels.length > 0 && (
@@ -991,7 +993,8 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* ── FAQ ── */}
+        {/* ── FAQ (hidden) ── */}
+        {false && (
         <motion.div
           className="w-full max-w-6xl mt-24 text-left"
           initial={{ opacity: 0, y: 20 }}
@@ -1068,6 +1071,7 @@ export default function Home() {
             </div>
           </div>
         </motion.div>
+        )}
 
         {/* ── SEARCH CARD (commented out — replaced by Top Deals above) ── */}
         {/*
