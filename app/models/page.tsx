@@ -119,9 +119,9 @@ export default function ModelsPage() {
       className="min-h-screen relative"
       style={{ background: "var(--color-bg)", color: "var(--color-text)" }}
     >
-      {/* ── FLASH BANNER + NAV ── */}
+      {/* ── NAV ── */}
       <div className="sticky top-0 z-50">
-        <FlashBanner />
+        {/* <FlashBanner /> */}
 
         <Navbar fixed={false} />
       </div>
