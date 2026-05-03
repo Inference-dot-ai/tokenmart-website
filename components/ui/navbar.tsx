@@ -80,7 +80,7 @@ export function Navbar({ fixed = true }: NavbarProps) {
           Contact Sales
         </a>
         <a
-          href="https://console.service-inference.ai/"
+          href="https://console.service-inference.ai/signin"
           className="hidden sm:inline-flex items-center justify-center whitespace-nowrap text-sm md:text-base font-medium px-5 md:px-6 py-2 md:py-2.5 rounded-full transition-all duration-200"
           style={{
             background: "var(--cta-bg)",
@@ -182,7 +182,7 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
           Contact Sales
         </a>
         <a
-          href="https://console.service-inference.ai/"
+          href="https://console.service-inference.ai/signin"
           onClick={onClose}
           className="mt-3 inline-flex items-center justify-center w-full whitespace-nowrap text-base font-medium px-4 py-3 rounded-full transition-all duration-200"
           style={{

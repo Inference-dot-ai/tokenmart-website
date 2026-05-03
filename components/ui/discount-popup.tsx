@@ -6,7 +6,7 @@ import { X, ArrowRight, Flame } from "lucide-react";
 
 const STORAGE_KEY = "inference_discount_popup_dismissed";
 const SHOW_DELAY_MS = 15000;
-const CONSOLE_URL = "https://console.service-inference.ai/";
+const CONSOLE_URL = "https://console.service-inference.ai/signin";
 
 export function DiscountPopup() {
   const [open, setOpen] = useState(false);

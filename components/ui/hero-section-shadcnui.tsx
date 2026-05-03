@@ -82,7 +82,7 @@ export function HeroSection() {
 
       <motion.div variants={itemVariants} className="my-12">
         <Link
-          href="https://console.service-inference.ai/"
+          href="https://console.service-inference.ai/signin"
           className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all duration-200"
           style={{ background: "var(--pink)", boxShadow: "0 8px 24px var(--pink-glow)" }}
           onMouseEnter={(e) => {
