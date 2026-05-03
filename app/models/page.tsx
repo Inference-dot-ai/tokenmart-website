@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { notFound } from "next/navigation";
 import { motion } from "framer-motion";
 import { Search, ChevronDown, ChevronUp, LayoutGrid, Tag, Check } from "lucide-react";
 import { Navbar } from "@/components/ui/navbar";
@@ -12,6 +13,11 @@ import { extractPriceUSD } from "@/lib/price";
 import { getSessionOfferDeadline } from "@/lib/utils";
 import { getPlaceholderImage } from "@/lib/placeholder-assets";
 
+export default function ModelsPage() {
+  notFound();
+}
+
+
 const MODEL_TYPE_OPTIONS: { label: string; category: Category | null }[] = [
   { label: "All Models", category: null },
   { label: "Text Generation", category: "LLM" },
@@ -22,7 +28,7 @@ const MODEL_TYPE_OPTIONS: { label: string; category: Category | null }[] = [
 
 const SORT_OPTIONS = ["Trending", "Price: Low to High", "Price: High to Low", "Name A–Z"];
 
-export default function ModelsPage() {
+function _ModelsPageOriginal() {
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);

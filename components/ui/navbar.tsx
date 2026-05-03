@@ -5,15 +5,10 @@ import { Menu, X } from "lucide-react";
 import { InferenceLogo } from "@/components/ui/inference-logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
-const NAV_LINKS = [
-  { label: "Models", href: "/models" },
-  { label: "Pricing", href: "/#pricing" },
-];
+const NAV_LINKS: { label: string; href: string }[] = [];
 
-const FORM_URL = process.env.NEXT_PUBLIC_GOOGLE_FORM_URL || "";
-const FORM_HREF =
-  FORM_URL && !FORM_URL.includes("your-form-url") ? FORM_URL : "/signup";
-const FORM_IS_EXTERNAL = FORM_HREF !== "/signup";
+const FORM_HREF = "https://inferenceai.typeform.com/token-inferai";
+const FORM_IS_EXTERNAL = true;
 
 interface NavbarProps {
   fixed?: boolean;

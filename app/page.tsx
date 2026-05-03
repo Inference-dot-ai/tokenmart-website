@@ -552,10 +552,10 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {/* Tier 1 — Most Popular */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {/* Tier 1 — Most Popular / Limited Time */}
             <div
-              className="relative rounded-2xl p-6 flex flex-col items-center text-center"
+              className="relative rounded-2xl p-5 flex flex-col items-center text-center"
               style={{
                 background:
                   "linear-gradient(180deg, var(--pink-lo) 0%, var(--color-surface) 100%)",
@@ -565,35 +565,35 @@ export default function Home() {
               }}
             >
               <span
-                className="absolute -top-3 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider text-white"
+                className="absolute -top-3 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider text-white whitespace-nowrap"
                 style={{ background: "var(--pink)" }}
               >
                 <Flame className="w-3 h-3" fill="currentColor" strokeWidth={0} />
-                MOST POPULAR
+                LIMITED TIME · MOST POPULAR
               </span>
               <div
                 className="text-3xl font-bold mt-3"
                 style={{ color: "var(--color-text)" }}
               >
-                $100
+                $99
               </div>
               <div
-                className="text-xl font-bold mt-2"
+                className="text-lg font-bold mt-2"
                 style={{ color: "var(--color-text)" }}
               >
-                Get <span style={{ color: "var(--pink)" }}>$125</span>
+                Get <span style={{ color: "var(--pink)" }}>$118.80</span>
               </div>
               <span
                 className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white mt-4"
                 style={{ background: "var(--pink)" }}
               >
-                +25% Bonus
+                +20% Bonus
               </span>
             </div>
 
-            {/* Tier 2 */}
+            {/* Tier 2 — $499 */}
             <div
-              className="rounded-2xl p-6 flex flex-col items-center text-center"
+              className="rounded-2xl p-5 flex flex-col items-center text-center"
               style={{
                 background: "var(--color-surface)",
                 border: "1px solid var(--color-border)",
@@ -603,25 +603,112 @@ export default function Home() {
                 className="text-3xl font-bold"
                 style={{ color: "var(--color-text)" }}
               >
-                $10,000
+                $499
               </div>
               <div
-                className="text-xl font-bold mt-2"
+                className="text-lg font-bold mt-2"
                 style={{ color: "var(--color-text)" }}
               >
-                Get <span style={{ color: "var(--pink)" }}>$13,000</span>
+                Get <span style={{ color: "var(--pink)" }}>$518.96</span>
               </div>
               <span
                 className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white mt-4"
                 style={{ background: "var(--pink)" }}
               >
-                +30% Bonus
+                +4% Bonus
               </span>
             </div>
 
-            {/* Tier 3 — Talk to Sales */}
+            {/* Tier 3 — $999 */}
             <div
-              className="rounded-2xl p-6 flex flex-col items-center text-center"
+              className="rounded-2xl p-5 flex flex-col items-center text-center"
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                className="text-3xl font-bold"
+                style={{ color: "var(--color-text)" }}
+              >
+                $999
+              </div>
+              <div
+                className="text-lg font-bold mt-2"
+                style={{ color: "var(--color-text)" }}
+              >
+                Get <span style={{ color: "var(--pink)" }}>$1,058.94</span>
+              </div>
+              <span
+                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white mt-4"
+                style={{ background: "var(--pink)" }}
+              >
+                +6% Bonus
+              </span>
+            </div>
+
+            {/* Tier 4 — $4,999 */}
+            <div
+              className="rounded-2xl p-5 flex flex-col items-center text-center"
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                className="text-3xl font-bold"
+                style={{ color: "var(--color-text)" }}
+              >
+                $4,999
+              </div>
+              <div
+                className="text-lg font-bold mt-2"
+                style={{ color: "var(--color-text)" }}
+              >
+                Get <span style={{ color: "var(--pink)" }}>$5,398.92</span>
+              </div>
+              <span
+                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white mt-4"
+                style={{ background: "var(--pink)" }}
+              >
+                +8% Bonus
+              </span>
+            </div>
+
+            {/* Tier 5 — $9,999 */}
+            <div
+              className="rounded-2xl p-5 flex flex-col items-center text-center"
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                className="text-3xl font-bold"
+                style={{ color: "var(--color-text)" }}
+              >
+                $9,999
+              </div>
+              <div
+                className="text-lg font-bold mt-2"
+                style={{ color: "var(--color-text)" }}
+              >
+                Get <span style={{ color: "var(--pink)" }}>$10,998.90</span>
+              </div>
+              <span
+                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white mt-4"
+                style={{ background: "var(--pink)" }}
+              >
+                +10% Bonus
+              </span>
+            </div>
+
+            {/* Tier 6 — Talk to Sales */}
+            <a
+              href="https://inferenceai.typeform.com/token-inferai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl p-5 flex flex-col items-center text-center transition-colors"
               style={{
                 background: "var(--color-surface)",
                 border: "1px solid var(--color-border)",
@@ -652,7 +739,7 @@ export default function Home() {
                   strokeWidth={2}
                 />
               </div>
-            </div>
+            </a>
           </div>
 
           <div className="mt-8 flex justify-center">
@@ -959,7 +1046,7 @@ export default function Home() {
                   <ReadoutJson model="nano-banana-pro" />
                 </>
               }
-              statValue="40+"
+              statValue="50+"
               statLabel="AI models"
             />
 
@@ -971,7 +1058,7 @@ export default function Home() {
               title="Always Pay the Lowest Price"
               body={
                 <>
-                  <Strong>Smart routing</Strong> saves up to <Strong>70%</Strong> on AI costs, automatically.
+                  <Strong>Smart routing</Strong> saves up to <Strong>65%</Strong> on AI costs, automatically.
                 </>
               }
               readout={
@@ -981,7 +1068,7 @@ export default function Home() {
                   <ReadoutLine label="saved" value="53%" accent="green" />
                 </>
               }
-              statValue="70%"
+              statValue="65%"
               statLabel="savings"
             />
 

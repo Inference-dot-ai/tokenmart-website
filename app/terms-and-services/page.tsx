@@ -5,7 +5,7 @@ import { Navbar } from "@/components/ui/navbar";
 import { Footer } from "@/components/ui/footer";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — inference.ai",
+  title: "Terms of Service — TokenMart",
   description:
     "Console Service Agreement for inference.ai — terms and conditions governing access to and use of the Platform.",
 };

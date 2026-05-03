@@ -72,7 +72,7 @@ export function PriceTagFab() {
                   className="text-2xl font-extrabold tracking-tight font-[family-name:var(--font-chakra)]"
                   style={{ color: "var(--color-text)" }}
                 >
-                  $100
+                  $99
                 </span>
                 <ArrowRight
                   className="w-4 h-4"
@@ -83,14 +83,14 @@ export function PriceTagFab() {
                   className="text-2xl font-extrabold tracking-tight font-[family-name:var(--font-chakra)]"
                   style={{ color: "var(--pink)" }}
                 >
-                  $125
+                  $118.80
                 </span>
               </div>
               <span
                 className="px-3 py-1.5 rounded-lg text-xs font-extrabold text-white shrink-0 tracking-tight uppercase"
                 style={{ background: "rgba(209, 0, 118, 0.85)" }}
               >
-                25% Bonus
+                20% Bonus
               </span>
             </div>
 

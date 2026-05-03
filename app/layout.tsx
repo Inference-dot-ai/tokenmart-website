@@ -27,9 +27,9 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "inference.ai — Stop Overpaying for AI Tokens",
+  title: "TokenMart",
   description:
-    "Same GPT-4o, Claude, Gemini and 40+ models at up to 30% below retail. Real savings from GPU-level optimization — not routing tricks.",
+    "Same GPT, Claude, Gemini and 40+ models at up to 65% below retail. Real savings from GPU-level optimization — not routing tricks.",
 };
 
 export default function RootLayout({

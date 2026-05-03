@@ -178,7 +178,7 @@ export function FlashDealsBanner() {
 
         {/* CTA */}
         <Link
-          href="/models"
+          href="https://console.service-inference.ai/models"
           className="hidden md:flex shrink-0 items-center gap-1.5 px-5 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors group"
           style={{
             color: "var(--color-text)",
