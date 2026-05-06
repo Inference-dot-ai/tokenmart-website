@@ -86,6 +86,43 @@ curl -X POST https://<host>/api/getu/scan \
 Unset `NEXT_PUBLIC_GETU_API_KEY` and redeploy — the SDK no longer initialises
 and CTAs revert to plain hard-coded URLs. No code change required.
 
+## Blog
+
+Blog posts live in `content/blog/*.mdx`. Adding a post is a small PR — no
+admin UI required.
+
+### Publishing flow
+
+1. Create `content/blog/<slug>.mdx`.
+2. Fill in the frontmatter (see the schema below).
+3. Write the body in Markdown / MDX.
+4. Open a PR. CI runs `npm run build` which statically generates the post.
+
+### Frontmatter schema
+
+```yaml
+---
+title: "..."             # required
+description: "..."       # required, used for meta + OG (<160 chars)
+publishedAt: 2026-05-06  # required, ISO date
+updatedAt: 2026-05-12    # optional
+author: "client"         # required, key into lib/authors.ts
+tags: ["pricing"]        # optional
+coverImage: "/blog/.../cover.png"  # optional
+ogImage: "/blog/.../og.png"        # optional, falls back to coverImage
+draft: false             # optional, hidden in production when true
+canonical: ""            # optional, override canonical for syndicated posts
+faq:                     # optional, emits FAQPage JSON-LD
+  - q: "..."
+    a: "..."
+---
+```
+
+### What runs automatically
+
+- Listing at `/blog`, detail at `/blog/<slug>`, sitemap entry, OG/Twitter
+  meta, Article JSON-LD, FAQPage JSON-LD (if `faq` set), reading time.
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.

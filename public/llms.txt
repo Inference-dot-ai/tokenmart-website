@@ -1,0 +1,27 @@
+# TokenMart
+
+> Same GPT, Claude, Gemini and 40+ models — at up to 65% below retail.
+> Real savings from GPU-level optimization, not routing tricks.
+
+## About
+
+TokenMart resells official frontier model APIs (OpenAI, Anthropic, Google,
+DeepSeek, xAI, ByteDance and others) at a discount enabled by GPU-level
+inference optimization, not by re-routing to cheaper models or quantized
+clones. The model you call is the model you get.
+
+## Site map
+
+- [Homepage](https://thetokenmart.ai/)
+- [Models catalog](https://thetokenmart.ai/models)
+- [Blog](https://thetokenmart.ai/blog)
+- [Sign up](https://thetokenmart.ai/signup)
+- [Terms of service](https://thetokenmart.ai/terms-and-services)
+
+## Blog
+
+- [How LLM Aggregators Sell Claude Opus 4.7 at $4.25/Mtok Instead of $5.00](https://thetokenmart.ai/blog/llm-aggregator-pricing): The actual mechanic behind the 15–65% discount — volume-tier pass-through, smart routing, prepaid credit bonuses — plus the three situations where going direct still wins.
+
+## Indexes
+
+- [Sitemap (XML)](https://thetokenmart.ai/sitemap.xml)

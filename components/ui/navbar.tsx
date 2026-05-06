@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
 import { InferenceLogo } from "@/components/ui/inference-logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { trackCtaClick, useGetuHref } from "@/lib/attribution";
@@ -63,6 +64,19 @@ export function Navbar({ fixed = true }: NavbarProps) {
       </div>
 
       <div className="flex items-center gap-2 md:gap-3 shrink-0">
+        <Link
+          href="/blog"
+          className="hidden sm:inline-flex items-center justify-center whitespace-nowrap text-sm md:text-base font-medium px-3 py-1.5 rounded-full transition-colors duration-150"
+          style={{ color: "var(--color-text-dim)" }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "var(--color-text)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--color-text-dim)";
+          }}
+        >
+          Blog
+        </Link>
         <ThemeToggle />
         <a
           href={FORM_HREF}
@@ -178,6 +192,17 @@ function MobileMenu({
               {l.label}
             </a>
           ))}
+          <Link
+            href="/blog"
+            onClick={onClose}
+            className="py-3 px-2 text-lg font-medium border-b last:border-b-0"
+            style={{
+              color: "var(--color-text)",
+              borderColor: "var(--color-border)",
+            }}
+          >
+            Blog
+          </Link>
         </nav>
 
         <a
