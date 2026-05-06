@@ -3,6 +3,9 @@
 import { motion, type Variants } from "framer-motion";
 import { CloudUpload, Box, Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { trackCtaClick, useGetuHref } from "@/lib/attribution";
+
+const SIGNIN_HREF = "https://console.service-inference.ai/signin";
 
 const MARQUEE_MODELS: { name: string; logo: string; invert?: boolean }[] = [
   { name: "Claude", logo: "/provider-logos/anthropic.svg", invert: true },
@@ -14,6 +17,7 @@ const MARQUEE_MODELS: { name: string; logo: string; invert?: boolean }[] = [
 ];
 
 export function HeroSection() {
+  const signinHref = useGetuHref(SIGNIN_HREF);
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -82,7 +86,8 @@ export function HeroSection() {
 
       <motion.div variants={itemVariants} className="my-12">
         <Link
-          href="https://console.service-inference.ai/signin"
+          href={signinHref}
+          onClick={() => trackCtaClick("hero")}
           className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all duration-200"
           style={{ background: "var(--pink)", boxShadow: "0 8px 24px var(--pink-glow)" }}
           onMouseEnter={(e) => {

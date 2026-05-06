@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, ArrowRight, Flame } from "lucide-react";
+import { trackCtaClick, useGetuHref } from "@/lib/attribution";
 
 const STORAGE_KEY = "inference_discount_popup_dismissed";
 const SHOW_DELAY_MS = 15000;
@@ -10,6 +11,7 @@ const CONSOLE_URL = "https://console.service-inference.ai/signin";
 
 export function DiscountPopup() {
   const [open, setOpen] = useState(false);
+  const ctaHref = useGetuHref(CONSOLE_URL);
 
   function dismiss() {
     setOpen(false);
@@ -209,8 +211,11 @@ export function DiscountPopup() {
 
             {/* CTA — link to console */}
             <a
-              href={CONSOLE_URL}
-              onClick={dismiss}
+              href={ctaHref}
+              onClick={() => {
+                trackCtaClick("discount_popup");
+                dismiss();
+              }}
               className="group mt-5 w-full py-3.5 rounded-full text-base font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200"
               style={{
                 background: "var(--pink)",
