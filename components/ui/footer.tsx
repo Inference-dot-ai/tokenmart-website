@@ -33,6 +33,13 @@ export function Footer() {
           <p>© 2026 TokenMart. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link
+              href="/blog"
+              className="hover:underline transition-colors"
+              style={{ color: "var(--color-text-dim)" }}
+            >
+              Blog
+            </Link>
+            <Link
               href="/terms-and-services"
               className="hover:underline transition-colors"
               style={{ color: "var(--color-text-dim)" }}

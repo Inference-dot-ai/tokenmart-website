@@ -1,0 +1,106 @@
+---
+title: "How LLM Aggregators Sell Claude Opus 4.7 at $4.25/Mtok Instead of $5.00"
+description: "Aggregators like TokenMart list the same Claude, GPT-5.4, and Gemini models at 15–65% below provider rates. The discount isn't a promo — here's the actual mechanic, and when it costs you more than it saves."
+publishedAt: 2026-05-06
+updatedAt: 2026-05-06
+author: "client"
+tags: ["pricing", "infrastructure", "model-comparison", "costs"]
+coverImage: "/blog/covers/llm-aggregator-pricing.jpg"
+ogImage: "/blog/og/llm-aggregator-pricing.jpg"
+faq:
+  - q: "Why is Claude Opus 4.7 cheaper at TokenMart than at Anthropic directly?"
+    a: "Aggregators commit to bulk volume across thousands of customers, get volume-tiered rates the average customer can't reach individually, and pass most of the discount through. On Claude Opus 4.7 the listed gap is $5.00/Mtok at Anthropic vs $4.25/Mtok at TokenMart for input tokens — a 15% structural discount, not a promo."
+  - q: "Is the model identical to the provider's direct API?"
+    a: "Yes — same model weights, same API surface, same outputs. The aggregator forwards the request to the upstream provider; you get back the same response you'd get calling the provider directly. The only thing that changes is who issues the invoice."
+  - q: "What's the catch?"
+    a: "Three real ones. (1) You're trusting the aggregator's uptime on top of the upstream provider's uptime. (2) Some aggregators rate-limit aggressively at peak. (3) If you've already negotiated an enterprise rate with a single provider, the aggregator may not beat it. The discount math wins for teams paying list price today."
+  - q: "When does using an aggregator cost more than going direct?"
+    a: "When you're already on a committed-spend enterprise contract, when your workload depends on provider-specific features the aggregator hasn't wrapped yet (fine-tuning, batch API, beta endpoints), or when compliance requires single-tenant inference end-to-end."
+---
+
+Anthropic lists Claude Opus 4.7 at $5.00 per million input tokens. TokenMart sells the same model, same API, same outputs at $4.25. That's not a launch promo and it doesn't expire — it's the listed price. The difference comes from a structural pricing layer that most teams paying provider list rates don't know exists. This article explains how that layer works, what the savings actually look like across a realistic workload, and the three situations where going through an aggregator costs you more than it saves.
+
+## What's actually broken with paying provider list price
+
+Most teams shipping LLM features pay close to list price for one or more of three reasons.
+
+First, they don't have the volume. Anthropic and OpenAI's enterprise tiers kick in around $50k–$100k per month of committed spend. A team burning $4k/month on Claude doesn't get to the table where those rates live. The pricing page is the price.
+
+Second, they're locked into one provider's SDK. Once your code is wired to the Anthropic Python client, comparing GPT-5.4 means a second integration, a second invoice, a second observability stack, and a second on-call rotation if there's an incident. Most teams put off the comparison because the switching cost is real today and the savings are theoretical until proven otherwise.
+
+Third — and this is the expensive one — there's no price discovery. Provider pricing pages don't show what other customers actually pay. You don't know whether your team is overpaying until someone runs the comparison externally and tells you. The first two problems fix themselves with scale or engineering hours. The third one doesn't fix itself at all.
+
+## How aggregator pricing actually works
+
+Aggregators commit to bulk volume across thousands of customers, hit provider volume tiers no individual customer reaches, and pass most of the discount through to your invoice — keeping a thin spread.
+
+That's the entire mechanic. The rest is implementation.
+
+Four parts to it in practice:
+
+**Volume-tier pass-through.** The aggregator's combined customer base buys enough monthly volume to land in tiers individual customers can't reach. The customer-visible portion of that tier shows up as the listed discount on the aggregator's pricing page. On TokenMart at the moment, that produces:
+
+- Claude Opus 4.7: $4.25 vs $5.00 input (–15%)
+- Claude Sonnet 4.6: $2.55 vs $3.00 input (–15%)
+- GPT-5.4: $2.00 vs $2.50 input (–20%)
+- Gemini 3.1 Pro: $0.77 vs $1.10 input (–30%)
+- Grok 4.1: $1.05 vs $3.00 input (–65%)
+
+The discount varies so much by model because each upstream provider's volume tier structure is different. Anthropic's tiers compress; xAI's expand. The aggregator passes through what it gets — which is why the Grok number is so much larger than the Claude number.
+
+**Smart routing.** When the same task can be served by more than one model — a summarization step that GPT-5.4 and Gemini 3.1 Pro both handle to spec, an extraction step where DeepSeek and Claude Sonnet produce equivalent JSON — routing picks the cheapest provider that meets the task's evaluation threshold, per request. The savings compound on top of the volume-tier discount, but only on the portion of the workload that has routing surface area. This is the part most aggregator marketing overstates; we'll come back to it.
+
+**Pre-paid credit bonus.** Top-up prepayment is a second-layer discount through bonus credit. TokenMart's current schedule: $99 prepaid → $118.80 in credit (+20%), $499 → $518.96 (+4%), $999 → $1,058.94 (+6%), $4,999 → $5,398.92 (+8%), $9,999 → $10,998.90 (+10%). The bonus is real spendable credit on the same models at the same rates — not a promo coupon and not a discount on top of a discount. Treat it as a working-capital trade: pay a month early, get extra credit.
+
+**Unified billing and observability.** One dashboard across every model the aggregator routes to — call counts, spend per model, savings vs list — replaces the four-to-six separate provider consoles a multi-model team would otherwise tab between. This isn't a price discount; it's a time discount. Roughly an engineer's afternoon per month, depending on how many providers you're juggling.
+
+## A worked example: 800M tokens/month across three models
+
+Real list prices. Real TokenMart prices. Same workload both columns.
+
+| Item | Volume | Direct provider | TokenMart | Saved |
+|---|---|---|---|---|
+| Claude Opus 4.7, input | 100M | $500.00 | $425.00 | $75 (–15%) |
+| GPT-5.4, input | 200M | $500.00 | $400.00 | $100 (–20%) |
+| Gemini 3.1 Pro, input | 500M | $550.00 | $385.00 | $165 (–30%) |
+| **Input total** | **800M** | **$1,550.00** | **$1,210.00** | **$340 (–21.9%)** |
+
+Output tokens compound this further. Output rates run 4–5x input across all three providers, and the percentage discount on output matches input. For a typical 1:4 input-to-output ratio, the full monthly delta on this workload comes out around $1,000–1,400 saved at the same usage level.
+
+Two things this example shows, and one it deliberately doesn't.
+
+**What it shows:** the volume-tier pass-through *alone*, with no smart routing applied, produces a ~22% blended reduction across a realistic three-model workload. The 65% headline number is real on specific models — Grok 4.1, in this case — but a typical mixed workload blends down to the 20–35% range.
+
+**What it doesn't show:** smart routing savings. Those depend entirely on what fraction of your workload has routing surface area. If 80% of your traffic is locked to a specific Claude model because no other model passes your evals, smart routing saves you nothing on that 80% — the blended savings stay near the volume-tier number. If half your workload is cost-sensitive summarization or extraction where multiple models pass the same eval, routing can push the blend into the 30–45% range.
+
+The 65% banner number is real. It is not the number to use in your CFO's forecast.
+
+## When the aggregator model is a worse deal
+
+Three real situations. If you're in any of them, run the math carefully or stay direct.
+
+**You're already on a committed-spend enterprise contract.** If you've negotiated a >$50k/month deal with Anthropic or OpenAI, your effective rate may already match or beat the listed aggregator discount. The aggregator's bulk math doesn't compound with your existing contract — you're already buying in their tier. The math has to be re-run; don't assume.
+
+**You need provider-specific features the aggregator hasn't surfaced yet.** Fine-tuning, batch API, prompt caching APIs, region-pinned inference, beta endpoints — aggregators ship these on a lag, sometimes a long one. If your workload depends on any of them today, going direct is the right call until the aggregator catches up. TokenMart surfaces 50+ models through one API, but like every aggregator, doesn't yet wrap every long-tail provider feature.
+
+**Single-tenant or compliance-restricted workloads.** Some aggregators multiplex routing and observability through shared infrastructure. If your contract requires single-tenant inference end-to-end — certain healthcare, finance, and government workloads — confirm the aggregator's posture in writing before switching. Don't assume from a marketing page.
+
+A team paying provider list price today, with no enterprise contract, no exotic feature dependency, and no single-tenant requirement, has no real reason not to evaluate. A team in any of those three buckets should run the numbers carefully — sometimes the answer is still the aggregator, sometimes it's not. Both groups exist. We'd rather the second one stays direct than switches and gets surprised.
+
+## How to evaluate any LLM aggregator in 30 minutes
+
+A short playbook that works for TokenMart, OpenRouter, or any other aggregator currently shipping.
+
+1. **Pull the aggregator's pricing page and the upstream provider's pricing page side-by-side, on the day you're evaluating.** Confirm the listed discount is real, on the model you actually use. Aggregator discounts vary per model; don't extrapolate one model's number to your full workload.
+2. **Send the same 100 prompts to the aggregator and the upstream provider.** Diff the outputs. Allowing for non-determinism on temperature > 0, the diff should be empty. If it isn't, you're not getting the same model — stop and ask why.
+3. **Measure p95 latency under your real concurrency.** Aggregator routing adds 20–80ms of overhead per request. For chat UIs, invisible. For sub-second agent loops, sometimes it matters.
+4. **Read the failed-request billing policy.** Some aggregators bill on the upstream provider's policy, some absorb provider-side failures, some bill 5xx responses. Get the answer in writing before committing significant spend.
+5. **Run a one-week parallel pilot, not a one-day test.** Discount math, routing math, and reliability all change with traffic shape across days of the week. A Tuesday morning sample is not data.
+
+If those five steps come back clean, the switching decision is mechanical. If any of them surface something weird, that's the signal — investigate before, not after.
+
+---
+
+If you're paying provider list price today and you don't fall into one of the three buckets above, the savings are sitting in a settings change. [Sign in to TokenMart](https://console.service-inference.ai/signin) and the dashboard shows the per-request delta against your current setup — including the requests where we'd route the same way you already do and save you nothing.
+
+That's the version we'd want to read before making the call.
