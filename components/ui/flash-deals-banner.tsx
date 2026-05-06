@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Zap } from "lucide-react";
 import Link from "next/link";
+import { trackCtaClick, useGetuHref } from "@/lib/attribution";
+
+const MODELS_HREF = "https://console.service-inference.ai/models";
 
 const DEALS: { model: string; discount: number }[] = [
   { model: "GPT-4o", discount: 40 },
@@ -44,6 +47,7 @@ function splitDuration(ms: number) {
 const pad = (n: number) => n.toString().padStart(2, "0");
 
 export function FlashDealsBanner() {
+  const modelsHref = useGetuHref(MODELS_HREF);
   const [remaining, setRemaining] = useState({
     days: 0,
     hours: 0,
@@ -178,7 +182,8 @@ export function FlashDealsBanner() {
 
         {/* CTA */}
         <Link
-          href="https://console.service-inference.ai/models"
+          href={modelsHref}
+          onClick={() => trackCtaClick("flash_deals_banner")}
           className="hidden md:flex shrink-0 items-center gap-1.5 px-5 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors group"
           style={{
             color: "var(--color-text)",

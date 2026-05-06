@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { InferenceLogo } from "@/components/ui/inference-logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { trackCtaClick, useGetuHref } from "@/lib/attribution";
 
 const NAV_LINKS: { label: string; href: string }[] = [];
 
 const FORM_HREF = "https://inferenceai.typeform.com/token-inferai";
 const FORM_IS_EXTERNAL = true;
+const SIGNIN_HREF = "https://console.service-inference.ai/signin";
 
 interface NavbarProps {
   fixed?: boolean;
@@ -16,6 +18,7 @@ interface NavbarProps {
 
 export function Navbar({ fixed = true }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const signinHref = useGetuHref(SIGNIN_HREF);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -32,7 +35,7 @@ export function Navbar({ fixed = true }: NavbarProps) {
 
   return (
     <>
-      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} signinHref={signinHref} />
     <nav
       className={`glass-nav z-50 flex items-center justify-between gap-2 md:gap-6 px-3 md:px-6 py-1.5 w-[calc(100%-1rem)] md:w-[calc(100%-2rem)] max-w-7xl rounded-full ${
         fixed
@@ -80,7 +83,8 @@ export function Navbar({ fixed = true }: NavbarProps) {
           Contact Sales
         </a>
         <a
-          href="https://console.service-inference.ai/signin"
+          href={signinHref}
+          onClick={() => trackCtaClick("navbar")}
           className="hidden sm:inline-flex items-center justify-center whitespace-nowrap text-sm md:text-base font-medium px-5 md:px-6 py-2 md:py-2.5 rounded-full transition-all duration-200"
           style={{
             background: "var(--cta-bg)",
@@ -105,7 +109,15 @@ export function Navbar({ fixed = true }: NavbarProps) {
   );
 }
 
-function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
+function MobileMenu({
+  open,
+  onClose,
+  signinHref,
+}: {
+  open: boolean;
+  onClose: () => void;
+  signinHref: string;
+}) {
   return (
     <div
       className={`md:hidden fixed inset-0 z-[60] transition-opacity duration-200 ${
@@ -182,8 +194,11 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
           Contact Sales
         </a>
         <a
-          href="https://console.service-inference.ai/signin"
-          onClick={onClose}
+          href={signinHref}
+          onClick={() => {
+            trackCtaClick("navbar_mobile");
+            onClose();
+          }}
           className="mt-3 inline-flex items-center justify-center w-full whitespace-nowrap text-base font-medium px-4 py-3 rounded-full transition-all duration-200"
           style={{
             background: "var(--cta-bg)",

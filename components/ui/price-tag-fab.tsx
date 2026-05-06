@@ -3,10 +3,14 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
+import { trackCtaClick, useGetuHref } from "@/lib/attribution";
+
+const SIGNIN_HREF = "https://console.service-inference.ai/signin";
 
 export function PriceTagFab() {
   const [scrolledPast, setScrolledPast] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const signinHref = useGetuHref(SIGNIN_HREF);
 
   useEffect(() => {
     const getThreshold = () => window.innerHeight * 0.8;
@@ -95,7 +99,8 @@ export function PriceTagFab() {
             </div>
 
             <a
-              href="https://console.service-inference.ai/signin"
+              href={signinHref}
+              onClick={() => trackCtaClick("price_tag_fab")}
               className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-semibold text-white transition-all duration-200"
               style={{ background: "var(--pink)" }}
               onMouseEnter={(e) => {

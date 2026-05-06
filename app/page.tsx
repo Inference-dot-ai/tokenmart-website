@@ -24,6 +24,10 @@ import {
 import { getSessionOfferDeadline } from "@/lib/utils";
 import { getPlaceholderImage } from "@/lib/placeholder-assets";
 import Link from "next/link";
+import { trackCtaClick, useGetuHref } from "@/lib/attribution";
+
+const SIGNIN_HREF = "https://console.service-inference.ai/signin";
+const MODELS_HREF = "https://console.service-inference.ai/models";
 // import { ButtonCta } from "@/components/ui/button-shiny"; // commented out with search card
 import { HeroSection } from "@/components/ui/hero-section-shadcnui";
 // import { FlashDealsBanner } from "@/components/ui/flash-deals-banner";
@@ -215,6 +219,8 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [featuredModels, setFeaturedModels] = useState<Model[]>(INITIAL_FEATURED);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const signinHref = useGetuHref(SIGNIN_HREF);
+  const modelsHref = useGetuHref(MODELS_HREF);
 
   useEffect(() => {
     const tick = () => {
@@ -457,7 +463,8 @@ export default function Home() {
 
           <div className="mt-6 flex flex-col items-center gap-2">
             <Link
-              href="https://console.service-inference.ai/signin"
+              href={signinHref}
+              onClick={() => trackCtaClick("home_offers")}
               className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all duration-200"
               style={{
                 background: "var(--pink)",
@@ -519,7 +526,7 @@ export default function Home() {
                       inputPrice={m.inputPrice}
                       inputUnit={m.inputUnit}
                       originalInputPrice={m.originalInputPrice}
-                      href="https://console.service-inference.ai/models"
+                      href={modelsHref}
                       themeColor={CATEGORY_THEME[m.category]}
                     />
                   </div>
@@ -744,7 +751,8 @@ export default function Home() {
 
           <div className="mt-8 flex justify-center">
             <Link
-              href="https://console.service-inference.ai/signin"
+              href={signinHref}
+              onClick={() => trackCtaClick("home_pricing")}
               className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all duration-200"
               style={{
                 background: "var(--pink)",
@@ -867,7 +875,8 @@ export default function Home() {
               </div>
 
               <Link
-                href="https://console.service-inference.ai/signin"
+                href={signinHref}
+                onClick={() => trackCtaClick("home_plan_card")}
                 className="mt-auto w-full py-3 rounded-full text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200"
                 style={{ background: "var(--pink)" }}
                 onMouseEnter={(e) => {

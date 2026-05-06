@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo_Black, Chakra_Petch, JetBrains_Mono, Outfit } from "next/font/google";
+import { GetuAttribution } from "@/components/attribution/getu-attribution-provider";
 import "./globals.css";
 
 const archivoBlack = Archivo_Black({
@@ -52,6 +53,7 @@ export default function RootLayout({
         className="font-[family-name:var(--font-outfit)] antialiased"
         suppressHydrationWarning
       >
+        <GetuAttribution />
         {children}
       </body>
     </html>

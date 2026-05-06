@@ -4,6 +4,7 @@ import { ArrowRight, ExternalLink } from "lucide-react";
 import { Navbar } from "@/components/ui/navbar";
 import { ProvidersConstellation } from "@/components/ui/providers-constellation";
 import Link from "next/link";
+import { trackCtaClick, trackSignupIntent } from "@/lib/attribution";
 
 function GoogleGIcon({ className }: { className?: string }) {
   return (
@@ -59,6 +60,10 @@ export default function SignupPage() {
             href={formHref}
             target={isConfigured ? "_blank" : undefined}
             rel={isConfigured ? "noopener noreferrer" : undefined}
+            onClick={() => {
+              trackCtaClick("signup_page");
+              if (isConfigured) trackSignupIntent("google_form");
+            }}
             className="flex items-center justify-center gap-2.5 w-full max-w-sm px-5 py-3 rounded-full text-sm font-medium transition-all duration-200"
             style={{
               background: "var(--pink)",
