@@ -1,0 +1,222 @@
+---
+title: "OpenAI-Compatible API in 2026: How to Call Claude, Gemini, and Grok Without Rewriting Code"
+description: "The OpenAI Chat Completions API is the de facto standard. Every major model now speaks it — directly or through gateways. Here's the actual migration path, the edge cases that break, and the production code patterns that work."
+publishedAt: 2026-05-09
+updatedAt: 2026-05-09
+author: "client"
+tags: ["infrastructure", "playbook", "model-comparison"]
+coverImage: "/blog/covers/openai-compatible-api.jpg"
+ogImage: "/blog/og/openai-compatible-api.jpg"
+faq:
+  - q: "What does OpenAI-compatible API mean?"
+    a: "An OpenAI-compatible API accepts requests in the OpenAI Chat Completions format — the same JSON shape used by client.chat.completions.create() in OpenAI's SDK. You change two lines (the base URL and the API key) and your existing OpenAI integration calls a different model behind the scenes. The compatibility covers streaming, tool calls, JSON mode, vision input, and system prompts; some advanced provider-specific features fall back to the native API."
+  - q: "Can I really use the OpenAI SDK with Claude?"
+    a: "Yes. Anthropic ships an OpenAI SDK compatibility layer at api.anthropic.com/v1 that accepts OpenAI-formatted requests for Claude models, though Anthropic explicitly notes it's intended for evaluation rather than production. Aggregator gateways like TokenMart, OpenRouter, and others wrap Claude (along with GPT, Gemini, Grok, DeepSeek, and dozens more) behind a single OpenAI-compatible endpoint that's production-ready and unifies billing across providers."
+  - q: "What's the difference between calling Claude through the Anthropic SDK and through an OpenAI-compatible gateway?"
+    a: "Output is identical — same model, same tokens, same response. What changes: with the Anthropic SDK you handle their native message format and provider-specific features (extended thinking, prompt caching, citations) directly. Through an OpenAI-compatible gateway, those advanced features sometimes need extra_body parameters or aren't surfaced at all. For 90% of production workloads — chat, RAG, tool calling, structured output — the gateway path is functionally equivalent."
+  - q: "Does function calling work across providers through OpenAI-compatible APIs?"
+    a: "Yes, with caveats. The OpenAI tool-calling JSON shape is supported by every major provider's compatibility layer (Anthropic, Google, xAI, DeepSeek). Subtle differences exist in how each model formats tool_call_id, handles parallel tool calls, and returns reasoning content. Production code that swaps providers needs a thin adapter for tool-result handling — usually 30–50 lines — but the request-side code is unchanged."
+  - q: "How do I point Claude Code, Cursor, or Cline at an OpenAI-compatible gateway?"
+    a: "Set ANTHROPIC_BASE_URL to the gateway's endpoint and ANTHROPIC_API_KEY to your gateway key. Claude Code and Anthropic-SDK-based tools will route through the gateway and hit any model in the gateway's catalog when you specify the model ID with a vendor prefix (e.g., anthropic/claude-opus-4.7, openai/gpt-5.4). The same trick works for Cursor's custom OpenAI base URL setting and Cline's API configuration."
+---
+
+The OpenAI Chat Completions API became the de facto standard for LLM access not because OpenAI shipped first, but because every other provider — including Anthropic, Google, xAI, and DeepSeek — eventually built a compatibility layer that accepts the same request shape. By mid-2026, you can call Claude Opus 4.7, Gemini 3.1 Pro, and Grok 4.1 through `client.chat.completions.create()` with no SDK migration, no auth juggling, and no second billing relationship — provided you point the client at the right base URL. This article walks through what that compatibility actually covers, the four edge cases that consistently break code that assumed it was simpler than it is, and the production patterns for swapping models without re-architecting the integration.
+
+## What "OpenAI-compatible" actually means in 2026
+
+The phrase shows up on every aggregator's marketing page and on most provider documentation, but it covers a wider range of behaviors than the marketing implies. At its narrowest, it means a server accepts a POST to `/v1/chat/completions` with the OpenAI request body — `model`, `messages`, optional `temperature`, `max_tokens`, `stream`, `tools`, `response_format` — and returns the OpenAI response shape. At its broadest, it means an entire fleet of features (function calling, streaming with deltas, vision input, JSON mode, structured outputs, prompt caching, reasoning tokens, parallel tool calls) work the same way they would against `api.openai.com`. Different providers cover different fractions of that surface, and the gap between them is where production bugs live.
+
+The simplest case is OpenAI's own API — the reference implementation. The next-simplest case is gateway services like TokenMart, OpenRouter, Cline, and similar — they speak OpenAI's protocol natively because that's their entire product. Behind them, requests get translated to whichever upstream provider's native format the model uses, then the response gets translated back. The translation is mostly mechanical, but it's the place where edge cases creep in: a Claude reasoning_content field that doesn't have a clean OpenAI equivalent, a Gemini safety filter that fires before the model generates anything, a tool_call_id format mismatch between providers. None of these are blockers; all of them require a few lines of defensive handling.
+
+The third case is each upstream provider's own OpenAI compatibility layer. Anthropic ships one at `api.anthropic.com/v1` that accepts OpenAI-formatted requests for Claude models — but Anthropic's own documentation says it's intended for "test and compare model capabilities" rather than production, which is unusually direct framing for an official compatibility layer. Google ships one at `generativelanguage.googleapis.com/v1beta/openai/` for Gemini models, which is more production-stable but limited in advanced feature coverage. The honest picture: if you want OpenAI SDK compatibility on a single provider, the official compat layer works for evaluation; if you want it to work across providers in production, a gateway is the path that holds up.
+
+## The five-line migration
+
+The smallest possible change to hit a different provider with existing OpenAI SDK code is two lines — base URL and key — but in practice you also adjust the model name and add a vendor prefix when calling through a gateway. Here's the pattern, in Python:
+
+```python
+from openai import OpenAI
+
+# Before: calling OpenAI directly
+client = OpenAI(api_key="sk-openai-...")
+response = client.chat.completions.create(
+    model="gpt-5.4",
+    messages=[{"role": "user", "content": "Summarize this PDF"}],
+)
+
+# After: calling Claude Opus 4.7 through a gateway
+client = OpenAI(
+    base_url="https://api.tokenmart.ai/v1",  # gateway endpoint
+    api_key="tm-...",                        # gateway key
+)
+response = client.chat.completions.create(
+    model="anthropic/claude-opus-4.7",       # vendor-prefixed model ID
+    messages=[{"role": "user", "content": "Summarize this PDF"}],
+)
+```
+
+In TypeScript, the change is the same shape:
+
+```typescript
+import OpenAI from "openai";
+
+const client = new OpenAI({
+    baseURL: "https://api.tokenmart.ai/v1",
+    apiKey: process.env.TOKENMART_API_KEY,
+});
+
+const response = await client.chat.completions.create({
+    model: "anthropic/claude-opus-4.7",
+    messages: [{ role: "user", content: "Summarize this PDF" }],
+});
+```
+
+What's worth understanding here is what didn't change. The request body, the response parsing, the streaming setup, the error handling — everything past the constructor is identical to the OpenAI-direct version. Existing instrumentation continues to work. Existing prompt-engineering code continues to work. The migration is genuinely two lines for any team that already wrote against the OpenAI SDK; for teams that wrote against Anthropic's native SDK, a similar two-line change against `ANTHROPIC_BASE_URL` works (covered later in this article). The reason this matters is that the integration cost — historically the largest hidden cost in switching providers — collapses to nearly zero when both sides speak the same protocol. The only real cost left is evaluation time, and that's a cost you'd pay regardless.
+
+## Where compatibility breaks (and how to handle it)
+
+Four edge cases that consistently surprise teams who assumed OpenAI-compatibility was complete. None of them are blockers; all of them are worth knowing before you ship.
+
+**System messages and developer messages.** OpenAI's API supports both `system` and `developer` roles, and lets either role appear anywhere in the conversation. Anthropic's native API only supports a single initial system message, and the OpenAI compatibility layer (whether direct from Anthropic or through a gateway) usually concatenates all system/developer messages with newlines and submits them as one. This is fine for most workflows, but it breaks code that intentionally injects mid-conversation system instructions to steer the model — those instructions get bunched at the top of the conversation, where they have less effect. The fix is straightforward: detect the provider you're routing to, and either restructure the system messages into a single prefix (for Claude) or convert them to user messages with explicit framing (for stricter compatibility). The translation is one helper function, applied once.
+
+**Tool calling and parallel tool calls.** The OpenAI tool format — `tools: [{type: "function", function: {name, parameters}}]` and `tool_calls` in the response — is supported across all the major compatibility layers. What varies is the details: whether the model emits parallel tool calls (multiple at once), how it formats the `tool_call_id`, and how it handles tool-result messages with multiple tool_call_ids in flight simultaneously. Claude tends to emit fewer parallel calls than GPT-5.4 does on the same prompt; Gemini's tool-calling is reliable but its `tool_call_id` format differs slightly. Production code that swaps providers usually wraps the tool-result handling in a thin adapter — 30–50 lines of code that normalizes IDs and handles the parallel-call edge case. Once written, the adapter rarely changes.
+
+**Streaming and reasoning tokens.** Streaming via SSE works identically across providers — the same `stream=True` flag, the same `chunk.choices[0].delta` access pattern. What's new in 2026 is the `reasoning_content` field that several providers emit during streaming for reasoning-enabled models (Claude with extended thinking, GPT-5.4 with its reasoning mode, DeepSeek R1, Gemini 3 with thinking_config). The OpenAI SDK's typed deltas don't always include this field, which means Python code that reads `chunk.choices[0].delta.content` works fine but loses the reasoning trace; if you want the reasoning, you read `chunk.choices[0].delta` as a dict and look for `reasoning_content`. Different providers turn reasoning on through different parameters — `reasoning_effort` for OpenAI/DeepSeek, `extra_body` for Gemini, an `extended_thinking` flag for Claude on some gateways — and the gateway typically exposes one normalized field that gets translated to whichever provider parameter is correct.
+
+**Vision, audio, and provider-specific multimodal features.** Image input through the OpenAI multipart message format works across Claude, Gemini, and GPT-5.4 with no changes. Audio input is more fragmented — Gemini supports it natively, GPT-5.4 supports it through the audio API rather than chat completions, Claude doesn't accept raw audio. Document/PDF input is supported on Claude natively, on Gemini through a different API, and on OpenAI via file upload. The honest summary: image input is portable; audio and PDF are not, and code that depends on them needs provider-specific paths. Most teams handle this with a model-routing layer that picks the model based on the input modality, which is a pattern worth setting up early even if you only use one model today.
+
+## Production patterns that hold up across providers
+
+Three patterns that make the OpenAI-compatible layer actually useful in production, beyond the initial migration.
+
+**Single client, multiple models, runtime selection.** The cleanest production pattern is one OpenAI client pointed at a gateway, with the model selected at runtime based on the task. The gateway abstracts the provider, the OpenAI SDK abstracts the protocol, and the application code only sees a model string.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.tokenmart.ai/v1",
+    api_key=os.environ["TOKENMART_API_KEY"],
+)
+
+def call_model(task: str, prompt: str) -> str:
+    model = {
+        "complex_reasoning":   "anthropic/claude-opus-4.7",
+        "long_context":        "google/gemini-3.1-pro",
+        "fast_classification": "google/gemini-3-flash",
+        "bulk_extraction":     "deepseek/deepseek-v3.2",
+        "general_chat":        "openai/gpt-5.4",
+    }[task]
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return response.choices[0].message.content
+```
+
+This is the pattern that makes the routing approach from earlier articles tractable. Without an OpenAI-compatible gateway, the same logic requires four SDKs, four sets of credentials, and four dashboards. With it, the routing decision is a string lookup and the implementation is a hash map.
+
+**Failover with cross-provider redundancy.** When primary provider capacity is the constraint — Anthropic Tier limits, OpenAI rate limits during traffic spikes, Gemini's regional outages — having a cross-provider fallback inside the same OpenAI client is a one-function pattern:
+
+```python
+def call_with_failover(prompt: str) -> str:
+    primary = "anthropic/claude-sonnet-4.6"
+    fallback = "openai/gpt-5.4"
+
+    try:
+        return client.chat.completions.create(
+            model=primary,
+            messages=[{"role": "user", "content": prompt}],
+            timeout=30,
+        ).choices[0].message.content
+    except (RateLimitError, APITimeoutError, APIError) as e:
+        logger.warning(f"Primary {primary} failed: {e}; falling back to {fallback}")
+        return client.chat.completions.create(
+            model=fallback,
+            messages=[{"role": "user", "content": prompt}],
+        ).choices[0].message.content
+```
+
+The pattern is dry to write because it's identical to a same-provider failover pattern. The only difference is that the fallback model belongs to a different provider, and the gateway handles the translation. For production-grade reliability, this is more durable than retrying the same provider with backoff — when one provider has a capacity event, retries against the same provider compound the problem; switching to a different provider sidesteps it.
+
+**Streaming with reasoning tokens, normalized.** The streaming pattern that surfaces both content and reasoning content across providers, accommodating the SDK's looser typing on `delta`:
+
+```python
+def stream_with_reasoning(model: str, prompt: str):
+    stream = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        stream=True,
+        extra_body={"reasoning": {"effort": "medium"}},
+    )
+
+    reasoning_buffer = []
+    content_buffer = []
+    for chunk in stream:
+        delta = chunk.choices[0].delta
+        # Normalize across providers; some emit reasoning_content,
+        # some put it inside a reasoning object, some don't emit it.
+        delta_dict = delta.model_dump() if hasattr(delta, "model_dump") else dict(delta)
+        if reasoning := delta_dict.get("reasoning_content"):
+            reasoning_buffer.append(reasoning)
+        if content := delta.content:
+            content_buffer.append(content)
+
+    return {
+        "reasoning": "".join(reasoning_buffer),
+        "content":   "".join(content_buffer),
+    }
+```
+
+The reasoning normalization is roughly twenty lines and handles every major reasoning-enabled provider in 2026. Once written, it doesn't need to change as new reasoning models ship — the gateway handles the translation upstream.
+
+## Configuring developer tools (Claude Code, Cursor, Cline)
+
+A subset of OpenAI-compatible setup that's worth covering separately because it's where most "how do I do this" questions actually come from. The pattern: developer tools designed against one provider's SDK can be redirected to a gateway by overriding the base URL and API key.
+
+**Claude Code.** Anthropic's official CLI for coding with Claude. Set the environment variables in the shell where you launch `claude`:
+
+```bash
+export ANTHROPIC_BASE_URL="https://api.tokenmart.ai/anthropic"
+export ANTHROPIC_API_KEY="tm-..."
+export ANTHROPIC_MODEL="anthropic/claude-opus-4.7"  # or any other model
+
+claude
+```
+
+The trick here is the `ANTHROPIC_BASE_URL` override, which Claude Code originally added to support enterprise proxies and gateway routing. Most aggregators expose an Anthropic-compatible endpoint at a sub-path (here, `/anthropic`) alongside their OpenAI-compatible endpoint at `/v1` — Claude Code talks to the Anthropic-compatible one because that's what its underlying SDK speaks. The `ANTHROPIC_MODEL` override lets you point Claude Code at any model in the gateway's catalog, not just Claude. Pointing it at `openai/gpt-5.4` is genuinely useful for comparison work; pointing it at `deepseek/deepseek-v3.2` for cost-sensitive bulk refactors is a real production pattern.
+
+**Cursor.** Settings → Models → "Override OpenAI Base URL." Set the URL to the gateway's `/v1` endpoint and the API key to your gateway key. Cursor will route its model requests through the gateway, including for non-OpenAI models if the gateway maps them. Some Cursor features (Composer's specific behaviors, Cmd-K's specialized prompts) are tuned to OpenAI's specific models; mileage varies on those.
+
+**Cline, OpenCode, Continue, and similar VS Code extensions.** Each has a settings UI for "OpenAI Base URL" or equivalent. The configuration is identical: gateway URL, gateway key, model parameter with vendor prefix. These tools typically work better through a gateway than direct because they tend to swap models frequently for different tasks, which is exactly what gateway routing is built for.
+
+The common thread across all three: developer tools that exposed a base URL override were designed assuming someone would eventually want to redirect them. The OpenAI-compatible gateway is just the most useful thing to redirect them to.
+
+## When the OpenAI-compatible path isn't right
+
+Three real cases where calling the provider's native API is the better choice. We've made the case for compatibility above; the honest version of this article also has to make the opposite case where it applies.
+
+**You depend on a provider-specific feature the gateway doesn't surface yet.** Claude's prompt caching, Gemini's batch API, OpenAI's Responses API and WebSocket Realtime endpoint, Anthropic's citations and computer use — these advanced features get wrapped by gateways on a lag, and the lag varies. If your application depends on prompt caching to make economics work (a common pattern at scale), and your gateway hasn't surfaced it for the model you use, the savings from gateway pricing get eaten by the savings you lose from not caching. The decision is workload-specific: most production apps don't depend on these features, but the ones that do should call the native API for those routes and use the gateway for the rest.
+
+**You're already on a committed-spend enterprise contract with one provider.** If you've negotiated a tier-3 or tier-4 enterprise rate with Anthropic or OpenAI, the gateway's pricing layer doesn't compound with that — you're already buying at volume directly. The gateway still gives you the OpenAI SDK abstraction and the failover pattern, which are worth something, but the primary economic argument doesn't apply. Use a gateway for non-primary providers; stay direct for the primary.
+
+**You need provider-specific compliance posture.** A handful of regulated workloads require single-tenant inference, named-provider data processing agreements, or specific regional inference (US-only, EU-only, BAA-covered). Some gateways multiplex across customer base in ways that don't fit those constraints. Confirm your gateway's posture in writing before routing regulated traffic; for some teams the answer is the gateway is fine, for others it's not.
+
+A team building a typical SaaS product, not on enterprise contracts yet, with no exotic compliance constraints, has no real reason not to use an OpenAI-compatible gateway from day one. The migration cost is two lines, the lock-in is none, and the operational benefits compound. Teams in any of the three buckets above should mix gateway and direct calls per route.
+
+## How to evaluate any OpenAI-compatible gateway in 30 minutes
+
+A short playbook that works for TokenMart, OpenRouter, or any other gateway shipping in 2026.
+
+1. **Run the same five-line migration against your existing OpenAI SDK code.** Change base URL, change API key, change model name to a vendor-prefixed ID. Run the existing test suite. If anything breaks, the gateway is more "OpenAI-inspired" than "OpenAI-compatible" and you'll fight it forever; pick a different one.
+2. **Send the same 100 production prompts through the gateway and the upstream provider.** Diff the outputs. The diff should be empty modulo non-determinism on temperature > 0. If the outputs differ in structure or content, the gateway is doing more translation than it should.
+3. **Test the four edge cases above.** Streaming. Tool calls. System messages. Vision input. If any of these break in non-obvious ways, write down the workaround now — you'll need it later, and the gateway you pick should be one whose workarounds are tolerable.
+4. **Measure p95 latency for first-token and total response time.** Gateways add 20–80ms of routing overhead. Most chat UIs don't care; sub-second agent loops sometimes do.
+5. **Read the failure-mode documentation.** What happens when the upstream provider is down? Does the gateway fail over automatically (and to what model)? Does it return a structured error with a retry-after? Does it bill failed requests? These answers determine the failure modes you'll inherit, and they matter more than per-token pricing for production reliability.
+
+If those five steps come back clean, the gateway integrates and the choice between gateways becomes a function of pricing, model coverage, and dashboard quality.
+
+---
+
+If your team is building against the OpenAI SDK today and wants Claude, Gemini, Grok, or DeepSeek behind the same client, the migration is two lines. [Sign in to TokenMart](https://console.service-inference.ai/signin) and the OpenAI-compatible endpoint exposes 50+ models behind one API key, with the structural pricing discussed in earlier articles applied automatically. The same code that calls GPT-5.4 today calls Claude Opus 4.7 tomorrow, with no SDK migration and no second billing relationship — and the dashboard tells you per-model spend and where the routing decisions land. That's the version of the OpenAI-compatible stack worth setting up before the next migration becomes urgent.
