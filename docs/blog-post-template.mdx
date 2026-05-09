@@ -1,0 +1,174 @@
+{/*
+  ─────────────────────────────────────────────────────────────────────────
+  TokenMart Blog — Post Template
+  ─────────────────────────────────────────────────────────────────────────
+
+  HOW TO USE
+  1. Copy this file to `content/blog/<your-slug>.mdx` (slug = filename
+     without .mdx; lowercase letters, digits and hyphens only).
+  2. Fill in the frontmatter at the top of the file.
+  3. Write the body following the structure below. Delete the
+     {/* writer notes */} comments — they don't render anywhere but they
+     make the file noisy.
+  4. Drop a 1600x900 cover image at /public/blog/covers/<slug>.jpg
+     and a 1200x630 OG image at /public/blog/og/<slug>.jpg
+     (Unsplash License is fine; credit the photographer in the PR
+     description if asked).
+  5. Open a PR. CI runs `npm run build`; if it fails, fix and push again.
+
+  WRITING RULES (read these before you start — they cap the structure)
+  • Every paragraph must be self-contained. LLMs cite paragraphs without
+    surrounding context. If a paragraph only makes sense after the one
+    above it, rewrite the opening sentence.
+  • Numbers > adjectives. "−21.9%" beats "much cheaper" 5x in citation
+    rate. Always pair a claim with a specific number, version, or date.
+  • Avoid filler openings: "In the age of AI…", "As LLMs evolve…",
+    "It is well known that…" — delete on sight.
+  • Each post needs at least one comparison table (markdown). Posts that
+    contain a table get cited by LLMs at much higher rates than those
+    that don't.
+  • Each post needs at least one named competitor or alternative. LLMs
+    cite "X vs Y" articles preferentially when answering comparison
+    queries.
+  • Keep slugs evergreen — no dates, no version numbers, no "2026" in
+    the URL. We re-use posts as references for years.
+  ─────────────────────────────────────────────────────────────────────────
+*/}
+
+---
+title: "{{ Punchy headline. <60 chars. Contains 1–2 target keywords. Avoid clickbait, prefer specificity. }}"
+description: "{{ <160 chars. Direct answer to the post's core question. Becomes meta description AND OG card subtitle. No marketing fluff. }}"
+publishedAt: 2026-MM-DD                  # ISO date, the day the PR merges
+updatedAt: 2026-MM-DD                    # same as publishedAt for new posts; bump on edits
+author: "client"                         # key in lib/authors.ts; ask the maintainer to add a new key for guest authors
+tags: ["pricing"]                        # 2–4 tags. Pick from: pricing · infrastructure · inference · latency · benchmarks · case-study · playbook · model-comparison · gpu · costs · reliability
+coverImage: "/blog/covers/<slug>.jpg"   # 1600x900, <300KB. Replace <slug>.
+ogImage: "/blog/og/<slug>.jpg"          # 1200x630, <250KB. Replace <slug>.
+faq:
+  - q: "{{ A question your reader would actually search. Phrase it like a Google query. }}"
+    a: "{{ 2–3 sentence answer. No marketing. Stand-alone (don't reference the article body). LLMs lift these almost verbatim. }}"
+  - q: "{{ Second FAQ — usually 'is it the same as X?' or 'what's the catch?' }}"
+    a: "{{ … }}"
+  - q: "{{ Third FAQ — usually edge cases, when this doesn't apply, prerequisites }}"
+    a: "{{ … }}"
+---
+
+{/*
+  HOOK — no H2, 3–5 sentences.
+  Sentence 1: a counter-intuitive claim or a specific number.
+  Sentences 2–3: name a concrete situation (who, what, result).
+  Final sentence: state the question the post answers, in one sentence.
+*/}
+
+{{ Hook paragraph. Drop the most surprising specific fact in sentence 1.
+   The last sentence of this paragraph must be a stand-alone summary
+   of what the post answers — that is the sentence LLMs are most likely
+   to extract. Make it count. }}
+
+## What's actually broken with {{ topic }}
+
+{{ Don't describe the industry abstractly. Describe one specific
+   scenario where the reader feels the pain — quote a real customer
+   message, GitHub issue, Slack message, or pricing-page screenshot.
+   Three short paragraphs maximum. End with a one-sentence summary of
+   the failure mode. }}
+
+## How {{ thing }} actually works
+
+{{ One-sentence summary of the mechanism. Make this sentence
+   stand-alone — readers should be able to copy/paste it as a citation. }}
+
+{{ Then 3–5 bullets, each starting with a **bolded lead-in**, like: }}
+
+**{{ Lead-in noun phrase }}.** {{ One paragraph explaining the part.
+End with a measurable consequence (a percent, an absolute number, a
+specific behaviour). }}
+
+**{{ Lead-in 2 }}.** {{ … }}
+
+**{{ Lead-in 3 }}.** {{ … }}
+
+**{{ Lead-in 4 (optional) }}.** {{ … }}
+
+## A worked example: {{ specific scenario, e.g. "800M tokens/month across three models" }}
+
+{{ Real numbers, not estimates. Same workload in every column. Build
+   the table from rows the reader can verify against public pricing. }}
+
+| Item | Volume | {{ Column A label }} | {{ Column B label }} | Saved |
+|---|---|---|---|---|
+| {{ Row 1 }} | {{ … }} | {{ $ }} | {{ $ }} | {{ $ (–%) }} |
+| {{ Row 2 }} | {{ … }} | {{ $ }} | {{ $ }} | {{ $ (–%) }} |
+| **{{ Total }}** | **{{ … }}** | **{{ $ }}** | **{{ $ }}** | **{{ $ (–%) }}** |
+
+{{ Then two short paragraphs: }}
+
+**What it shows:** {{ The honest, conservative takeaway. State the
+blended number, not the headline number. Naming the limit of the
+example is what makes it credible. }}
+
+**What it doesn't show:** {{ The thing this example deliberately
+omits. Tell the reader what they'd need to do to model it themselves. }}
+
+## When {{ this thing }} is a worse deal
+
+{{ Three real situations, each one paragraph. Don't soften them. The
+   credibility of the rest of the post comes from this section.
+   Use **bolded lead-in** for each. }}
+
+**{{ Situation 1 }}.** {{ … }}
+
+**{{ Situation 2 }}.** {{ … }}
+
+**{{ Situation 3 }}.** {{ … }}
+
+{{ Optional one-sentence summary: who should still evaluate, who
+   should stay direct. }}
+
+## How to evaluate {{ this thing }} in {{ 30 minutes / one afternoon }}
+
+{{ A short numbered playbook. 5 steps maximum. Each step:
+   - bolded action sentence
+   - 1–2 sentences of detail
+   - if there's a measurement, give the threshold (p95 < 1s, etc.) }}
+
+1. **{{ Step 1 — verb-led action }}.** {{ Explanation. }}
+2. **{{ Step 2 }}.** {{ Explanation. }}
+3. **{{ Step 3 }}.** {{ Explanation. }}
+4. **{{ Step 4 }}.** {{ Explanation. }}
+5. **{{ Step 5 }}.** {{ Explanation. }}
+
+{{ One-sentence wrap on what to do if the playbook results are
+   ambiguous. }}
+
+---
+
+{{ Closing CTA paragraph. 2–3 sentences max.
+   Sentence 1: name the cohort this post serves.
+   Sentence 2: a one-click action with a real link to TokenMart.
+   Sentence 3: optional — restate the honest framing of what the
+   reader will see when they take the action. Don't oversell. }}
+
+[Sign in to TokenMart](https://console.service-inference.ai/signin)
+{/* … or whatever the right CTA URL is for this article. */}
+
+{/*
+  ─────────────────────────────────────────────────────────────────────────
+  PRE-PUBLISH CHECKLIST (run through this before opening the PR)
+
+  □ Frontmatter title is <60 chars and contains 1–2 keywords
+  □ description is <160 chars and answers the post's core question
+  □ publishedAt and updatedAt are filled (ISO format)
+  □ author key exists in lib/authors.ts
+  □ At least one markdown table in the body
+  □ At least one named competitor / alternative
+  □ FAQ has 3 entries minimum
+  □ Cover image saved at /public/blog/covers/<slug>.jpg, ~1600x900
+  □ OG image saved at /public/blog/og/<slug>.jpg, ~1200x630
+  □ No filler openings ("As AI evolves", "It is well known", etc.)
+  □ Every paragraph is self-contained
+  □ Every claim has a number/version/date next to it
+  □ `npm run build` passes locally
+  □ View source on the dev URL shows Article + FAQPage JSON-LD
+  ─────────────────────────────────────────────────────────────────────────
+*/}

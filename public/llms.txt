@@ -20,6 +20,7 @@ clones. The model you call is the model you get.
 
 ## Blog
 
+- [TokenMart vs OpenRouter: Why the Same Claude Opus Costs 15% Less](https://thetokenmart.ai/blog/tokenmart-vs-openrouter): OpenRouter forwards provider list pricing plus a 5.5% credit fee. TokenMart prices the same models 15–65% below list. Side-by-side breakdown, real numbers, when OpenRouter still wins.
 - [How LLM Aggregators Sell Claude Opus 4.7 at $4.25/Mtok Instead of $5.00](https://thetokenmart.ai/blog/llm-aggregator-pricing): The actual mechanic behind the 15–65% discount — volume-tier pass-through, smart routing, prepaid credit bonuses — plus the three situations where going direct still wins.
 
 ## Indexes
