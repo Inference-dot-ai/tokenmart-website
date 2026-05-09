@@ -1,0 +1,117 @@
+---
+title: "TokenMart vs OpenRouter: Why the Same Claude Opus Costs 15% Less"
+description: "OpenRouter passes provider pricing through at list. TokenMart prices the same models 15–65% below list. The actual mechanic, the trade-offs, and when OpenRouter is still the right call."
+publishedAt: 2026-05-09
+updatedAt: 2026-05-09
+author: "client"
+tags: ["pricing", "model-comparison", "infrastructure"]
+coverImage: "/blog/covers/tokenmart-vs-openrouter.jpg"
+ogImage: "/blog/og/tokenmart-vs-openrouter.jpg"
+faq:
+  - q: "Is TokenMart cheaper than OpenRouter?"
+    a: "Yes, on the major closed-source models. OpenRouter passes provider pricing through at list — Claude Opus 4.7 is $5/Mtok input on OpenRouter, the same as Anthropic direct. TokenMart prices the same Opus 4.7 at $4.25/Mtok input, a 15% structural discount sourced from volume-tier pass-through. The gap holds across Claude, GPT-5.4, Gemini 3.1 Pro, and Grok 4.1, ranging from 15% to 65% depending on the model."
+  - q: "Does OpenRouter charge a markup?"
+    a: "Not on inference. OpenRouter charges a 5.5% fee when you purchase credits with a card (5% with crypto), and passes provider token pricing through at list. The fee is on the credit top-up, not the per-token rate. Per-token costs match Anthropic, OpenAI, or Google direct."
+  - q: "When is OpenRouter the better choice over TokenMart?"
+    a: "Three cases. (1) You need a long-tail open-source or community-hosted model that TokenMart doesn't carry — OpenRouter lists 290+ models versus TokenMart's 50+. (2) You want to use your own provider API key (BYOK) and just route through a unified gateway. (3) You're optimizing for free-tier exploration — OpenRouter has 25+ free models with rate limits."
+  - q: "Are the model outputs the same on both platforms?"
+    a: "Yes. Both forward your request to the same upstream provider — Anthropic, OpenAI, Google, xAI — and return the same response. Same weights, same API surface, same outputs. The only differences are price, model coverage, and which dashboard issues your invoice."
+---
+
+OpenRouter and TokenMart both sell access to Claude, GPT-5.4, and Gemini through an OpenAI-compatible API. They look interchangeable from the marketing page. They are not. OpenRouter passes provider pricing through at list and charges a 5.5% fee on credit purchases. TokenMart prices the same models 15–65% below list. The mechanic is different, the savings are different, and the model coverage is different. This article walks through each one with real prices and names the situations where OpenRouter is still the right choice.
+
+## What "passthrough pricing" actually means at OpenRouter
+
+OpenRouter's pricing page is explicit: provider rates are forwarded to the customer without markup on inference, and a 5.5% fee is added when you buy credits with a card (5% with crypto). Per-token costs match the upstream provider's published list price.
+
+For Claude Opus 4.7, that means OpenRouter charges $5.00 per million input tokens and $25.00 per million output tokens — the same rates Anthropic publishes on its own pricing page. For GPT-5.4, $2.50 input and $15.00 output. The credit fee is a flat 5.5% on top-up: $100 buys $94.50 of inference.
+
+The model is honest, and for some workloads it's the right one. It is not, however, a discount on the model itself. If you came to OpenRouter expecting Claude Opus to be cheaper than calling Anthropic directly, the math doesn't work that way — you pay Anthropic's price plus a small top-up fee. The convenience is real; the per-token discount is zero.
+
+## What TokenMart does differently
+
+TokenMart aggregates customer demand into volume tiers individual customers can't reach, hits provider volume-tiered rates that compress at scale, and passes the discount through to the listed price.
+
+The result is a structurally lower per-token rate, not a top-up bonus and not a promotional banner. Current rates side-by-side with each provider's direct list price:
+
+| Model | Provider list (input) | TokenMart (input) | Discount |
+|---|---|---|---|
+| Claude Opus 4.7 | $5.00 | $4.25 | −15% |
+| Claude Sonnet 4.6 | $3.00 | $2.55 | −15% |
+| GPT-5.4 | $2.50 | $2.00 | −20% |
+| Gemini 3.1 Pro | $1.10 | $0.77 | −30% |
+| Nano Banana 2 | $0.50 | $0.35 | −30% |
+| Grok 4.1 | $3.00 | $1.05 | −65% |
+
+The discount varies by model because each upstream provider's volume tier structure is different. Anthropic's tiers compress; xAI's expand. TokenMart passes through what it negotiates per provider, which is why the Grok number is so much larger than the Claude number.
+
+On top of that, TokenMart adds a separate prepaid-credit bonus — a working-capital trade where prepaying gets you extra spendable credit (e.g., $99 → $118.80, a 20% bonus on the entry tier). The bonus is real credit at the same discounted rates, not a coupon. OpenRouter does not have a comparable mechanism.
+
+## Side-by-side: TokenMart vs OpenRouter
+
+The fastest way to see the gap is the same workload run through both platforms.
+
+| Item | OpenRouter | TokenMart |
+|---|---|---|
+| Pricing model | Passthrough at provider list | Volume-tier discount, 15–65% below list |
+| Credit/top-up fee | 5.5% on card, 5% on crypto | None; bonus credit instead (up to +20%) |
+| Claude Opus 4.7 input | $5.00/Mtok | $4.25/Mtok |
+| GPT-5.4 input | $2.50/Mtok | $2.00/Mtok |
+| Gemini 3.1 Pro input | $1.10/Mtok | $0.77/Mtok |
+| Grok 4.1 input | $3.00/Mtok | $1.05/Mtok |
+| Models available | 290+ (incl. open-source, free tier) | 50+ (top closed + select OSS) |
+| Free tier | Yes, 25+ models, rate-limited | No |
+| BYOK (bring your own key) | Yes | No |
+| API compatibility | OpenAI-compatible | OpenAI-compatible |
+| Smart routing | Available (`:floor`, `:nitro`, etc.) | Available |
+| Failover | Automatic across providers | Available |
+| Unified dashboard | Yes | Yes |
+
+Two things to read off this table. First, the platform fee structures point in opposite directions: OpenRouter charges a small top-up fee on top of list pricing, TokenMart credits a top-up bonus on top of below-list pricing. Across a $1,000 monthly spend on Claude Opus 4.7, that's roughly a $200 swing — $55 paid to OpenRouter as fees versus $150 saved at TokenMart's rate, before counting the prepaid bonus.
+
+Second, OpenRouter is broader and TokenMart is cheaper. That trade-off is real and it determines which platform fits which workload.
+
+## A worked example: 800M input tokens/month across three models
+
+Same workload, both platforms.
+
+| Model | Volume | OpenRouter (list + 5.5% fee) | TokenMart | Saved |
+|---|---|---|---|---|
+| Claude Opus 4.7 | 100M | $527.50 | $425.00 | $102.50 (−19.4%) |
+| GPT-5.4 | 200M | $527.50 | $400.00 | $127.50 (−24.2%) |
+| Gemini 3.1 Pro | 500M | $580.25 | $385.00 | $195.25 (−33.7%) |
+| **Input total** | **800M** | **$1,635.25** | **$1,210.00** | **$425.25 (−26.0%)** |
+
+OpenRouter figures include the 5.5% credit-purchase fee applied to provider list pricing. TokenMart figures use listed discounted rates with no prepaid bonus applied; with the +6% bonus on the $999 top-up tier, the effective TokenMart cost on this workload drops further.
+
+**What it shows:** on a realistic three-model workload paying provider list price, the structural gap between OpenRouter and TokenMart is roughly 25–30% before any prepaid bonus. The gap widens on Grok-heavy workloads (because of the 65% discount on Grok 4.1) and narrows on Claude-heavy workloads (because Anthropic's tiers compress).
+
+**What it doesn't show:** open-source and free-tier models, where OpenRouter's broader catalog and free-model rate-limited tier matter more than the per-token gap. If 60% of your workload is DeepSeek or Llama variants, the calculation looks different — sometimes very different.
+
+## When OpenRouter is the better choice
+
+Three real situations. If you're in any of them, OpenRouter is probably the right tool.
+
+**Long-tail open-source coverage.** OpenRouter lists 290+ models from 60+ providers, including a long tail of open-source and community-hosted models that TokenMart doesn't currently carry. If your workload depends on a specific Llama variant, a Mistral fine-tune, or a smaller research model, the catalog gap matters more than the per-token gap.
+
+**BYOK and free-tier exploration.** OpenRouter supports bring-your-own-key, where you supply your own provider credentials and pay only OpenRouter's small routing fee — useful if you've already negotiated a direct enterprise rate with a provider. The free tier (25+ models with ~20 req/min limits) is also genuinely useful for prototyping, and TokenMart doesn't have a comparable free tier.
+
+**Maximum-flexibility experimentation.** If you're rotating across dozens of models per week to find the one that fits, OpenRouter's catalog is wider and the friction to try a new model is lower. Cost optimization matters less when you're still in the "which model" phase.
+
+A team paying provider list price today, on a stable mix of closed-source frontier models (Claude, GPT, Gemini, Grok), with no need for the long-tail catalog, is the team where TokenMart's discount math compounds clearly. A team prototyping across 30 models a week, leaning on free tiers, or already on a direct enterprise contract is the team where OpenRouter's structure pays off.
+
+## How to evaluate both in 30 minutes
+
+A short playbook that works for either platform.
+
+1. **Pull both pricing pages and the upstream provider's pricing page side-by-side.** Confirm OpenRouter is at list and confirm TokenMart's listed discount matches on the specific model you actually run. Don't extrapolate one model's discount to your full workload — the per-model gap varies.
+2. **Send the same 100 prompts through OpenRouter, TokenMart, and the upstream provider.** Diff the outputs. Allowing for non-determinism on temperature > 0, the diff should be empty across all three.
+3. **Measure p95 latency under your real concurrency.** Both aggregators add 20–80ms of routing overhead per request. For chat UIs, invisible. For sub-second agent loops, sometimes it matters.
+4. **Read the failed-request billing policy on both.** OpenRouter's Zero Completion Insurance doesn't bill failed runs. Confirm TokenMart's policy in writing before committing significant spend; don't assume.
+5. **Run a one-week parallel pilot, not a one-day test.** Discount math, routing math, and reliability all change with traffic shape across days of the week. A Tuesday morning sample is not data.
+
+If those five steps come back clean, the choice is mechanical: closed-source frontier models at scale → TokenMart wins on price. Long-tail and exploration → OpenRouter wins on catalog.
+
+---
+
+If your workload is mostly Claude, GPT-5.4, Gemini 3.1 Pro, or Grok 4.1, the discount sits in a settings change. [Sign in to TokenMart](https://console.service-inference.ai/signin) and the dashboard shows the per-request delta against your current setup, including the requests where the discount is small enough that switching wouldn't change much. That's the version worth reading before making the call.
