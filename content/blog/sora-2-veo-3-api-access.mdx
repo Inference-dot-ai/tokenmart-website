@@ -1,0 +1,92 @@
+---
+title: "How to Access Sora 2 and Veo 3 via API in 2026 (Without the Tier-2 Wall)"
+description: "Sora 2 needs an OpenAI Tier-2 account. Veo 3 needs a GCP project and Vertex AI billing. Aggregators skip both. Here's the actual friction, the real per-second pricing, and the trade-offs nobody mentions."
+publishedAt: 2026-05-09
+updatedAt: 2026-05-09
+author: "client"
+tags: ["infrastructure", "model-comparison", "pricing"]
+coverImage: "/blog/covers/sora-2-veo-3-api-access.jpg"
+ogImage: "/blog/og/sora-2-veo-3-api-access.jpg"
+faq:
+  - q: "How do I get API access to Sora 2?"
+    a: "OpenAI gates Sora 2 API access behind organizational Tier 2, which requires a paid account with at least $10 in lifetime spend across your organization, plus 7+ days since first payment. The model is also restricted from many countries. The fastest unblocked path is through an aggregator that already holds organizational access — TokenMart routes Sora 2 requests through a unified OpenAI-compatible API, no Tier-2 setup required on your side."
+  - q: "Can I use Veo 3 without Google Cloud?"
+    a: "Not directly. Google ships Veo 3 through Vertex AI, which means a billing-enabled GCP project, IAM permissions, and (for full SDK access) a Python integration. The Gemini API is slightly easier but limited. Aggregators wrap both behind one API key — you pay per second of generated video without provisioning any GCP infrastructure."
+  - q: "What does Sora 2 actually cost per video?"
+    a: "OpenAI's published rates: $0.10/second for Sora 2 standard at 720p, $0.30/second for Sora 2 Pro at 720p, and $0.50/second for Sora 2 Pro at 1024p. A 10-second clip therefore runs $1.00 (standard), $3.00 (Pro 720p), or $5.00 (Pro 1024p). Audio synthesis is included; the pricing is on output duration, not tokens."
+  - q: "What does Veo 3 actually cost per video?"
+    a: "Vertex AI lists Veo 3 at $0.50/second video-only and $0.75/second with synchronized audio. Veo 3.1 Fast is $0.10/second without audio after the April 7, 2026 price cut. Veo 3.1 Lite, released March 31, 2026, is roughly $0.05/second. An 8-second Veo 3 clip with audio is $6.00 — the most expensive frontier video output on the market by a wide margin."
+  - q: "Are aggregator-served Sora 2 and Veo 3 outputs the same as the official APIs?"
+    a: "Yes. The aggregator forwards the prompt to the upstream provider and returns the same response. Same model weights, same generation, same C2PA metadata where applicable. The differences are who issues the invoice, which dashboard shows your usage, and whether you had to set up the upstream provider's account at all."
+---
+
+The two most-searched AI video models of 2026 are also the two hardest to actually use. OpenAI's Sora 2 sits behind organizational Tier 2 — a real wall that requires paid history with OpenAI before the API is even visible in your dashboard, and the model is geo-restricted on top of that. Google's Veo 3 sits behind Vertex AI — which means a billing-enabled Google Cloud project, IAM roles, region selection, and a Python SDK integration before you can generate a single second of video. For teams who came from text-model APIs, where you sign up with an email and have a working integration in twenty minutes, the gap between "I have OpenAI credits" and "I can generate a Sora video" can be days of administrative work and several hundred dollars of prerequisite spend. This article walks through what that friction actually looks like, what each model really costs per second, and how aggregator access changes the math.
+
+## What's actually broken with direct Sora 2 and Veo 3 access
+
+The most common complaint about frontier video models in 2026 isn't price — it's that you can't reach the API at all without infrastructure that takes longer to build than the integration itself. OpenAI and Google both ship these models through restrictive distribution paths that make sense for them as risk management and make no sense for a product team trying to ship a feature next week.
+
+For Sora 2, the friction starts before you even see the model. OpenAI requires your organization to be at Tier 2 before the Sora API endpoints appear, which means a paid account with at least $10 in lifetime spend across the organization and at least seven days since your first successful payment. New accounts that funded a $50 credit balance yesterday cannot use Sora 2 today. The model is also restricted in a long list of countries and regions, and even within accessible regions, OpenAI throttles new accounts aggressively — five requests per minute at the Plus tier is a common starting limit, which is enough for one person to evaluate the model and not enough to ship anything to users. Teams that already operate on Tier 4 or Tier 5 don't notice these barriers; teams who arrive at Sora 2 from a smaller starting point spend a week clearing them.
+
+For Veo 3, the friction is structural rather than gated. Google ships Veo through Vertex AI by default, and Vertex AI is a Google Cloud product, which means you need a billing-enabled GCP project, a service account, IAM permissions, and a Python (or Node) SDK integration before you can call the model. The Gemini API is a slightly lighter path, but the full Veo 3 surface — including the multi-shot controls, image-to-video conditioning, and Veo 3.1 Lite at the lowest pricing tier — lives on Vertex AI. Generated videos are also automatically deleted from Vertex storage after 48 hours, which means production applications need to download and re-host every video they generate, adding a storage layer the documentation glosses over. None of this is unreasonable for an enterprise infrastructure product. It is also not what most product teams want to manage when they're trying to ship a marketing demo.
+
+The third frustration is that there's no single dashboard. A team that wants to compare Sora 2 against Veo 3 against Kling against Nano Banana 2 needs four separate accounts, four separate billing relationships, four separate observability stacks, and — in Sora's case — to clear an organizational tier wall before the comparison even starts. The decision of "which model fits best for our use case" turns into a procurement problem before it becomes a quality problem, and most teams either skip the comparison entirely or default to whichever provider they happened to use first.
+
+## How API aggregators actually solve this for video
+
+The mechanic is simple, and it's the same one that makes aggregators interesting for text models: a third-party platform holds organizational access to each upstream provider, exposes a unified OpenAI-compatible endpoint, and forwards your request to whichever upstream you ask for. For video models specifically, the value isn't primarily about price — it's about removing every prerequisite between you and a generated clip.
+
+**Pre-cleared organizational access.** TokenMart, OpenRouter, fal.ai, and Replicate each maintain enterprise-tier accounts with OpenAI, Google, and (in some cases) the Chinese video model labs. When you make a Sora 2 request through their API, you're hitting the upstream Sora 2 endpoint with their organizational credentials. You don't need to be at OpenAI Tier 2 yourself, you don't need a Vertex AI project, and you don't need to wait through the seven-day account-aging window. For a team trying to put a video feature into a product before the next release, the difference between "available now" and "available after we clear procurement and OpenAI Tier 2" can be the difference between shipping the feature and not shipping it. This is the single largest reason teams use aggregators for video models, and it's underweighted in most marketing copy because aggregators prefer to lead with price.
+
+**A single OpenAI-compatible endpoint across providers.** Once you're authenticated against the aggregator, switching from Sora 2 to Veo 3 to Nano Banana 2 to Kling is a matter of changing the model parameter in your request. There is no second SDK to learn, no second billing relationship to maintain, and no second observability stack to wire up. For evaluation work, where you're trying to figure out which model fits a given prompt category before committing, this is the difference between an afternoon and a sprint. For production work, where you may want to fall back from one provider to another if a generation fails, this turns into a one-line code change instead of a parallel integration.
+
+**Unified per-second billing.** Video model billing is structurally different from text model billing. Text APIs charge per token; video APIs charge per second of generated output, with multipliers for resolution, audio, and model tier. An aggregator normalizes this in a single dashboard — you see how many seconds of Sora 2, Veo 3, and Nano Banana you used in a given day, what each one cost, and where your spend is concentrated. The alternative is three browser tabs open against three different cloud consoles, each with its own credit balance and refresh cadence. Engineering hours spent reconciling those three tabs at the end of the month are real, and they don't show up on anyone's pricing page.
+
+**Pricing pass-through where it exists, and access where it doesn't.** This is the honest part. On text models, aggregators like TokenMart can pass through structural discounts from upstream volume tiers — 15% on Claude Opus 4.7, 65% on Grok 4.1, and so on. On video models, those discount structures are still being negotiated industry-wide, and the per-second rates you see at most aggregators are at or near upstream list price. The value proposition for video, in mid-2026, is overwhelmingly about access friction, model variety, and unified billing — not about a 30% per-second discount. A platform that promises one is either subsidizing it temporarily or pricing on a model variant rather than the headline model.
+
+## Real per-second pricing across the major video models
+
+These are list prices as of May 2026. Aggregator-served pricing tracks these closely with small variations.
+
+| Model | Provider | Resolution | Audio | Per-second | Cost of 10-sec clip |
+|---|---|---|---|---|---|
+| Sora 2 | OpenAI | 720p | Included | $0.10 | $1.00 |
+| Sora 2 Pro | OpenAI | 720p | Included | $0.30 | $3.00 |
+| Sora 2 Pro | OpenAI | 1024p | Included | $0.50 | $5.00 |
+| Veo 3 | Google Vertex | 1080p | No audio | $0.50 | $5.00 |
+| Veo 3 | Google Vertex | 1080p | With audio | $0.75 | $7.50 |
+| Veo 3.1 Fast | Google Vertex | 1080p | No audio | $0.10 | $1.00 |
+| Veo 3.1 Lite | Google Vertex | 720p | No audio | ~$0.05 | ~$0.50 |
+| Nano Banana 2 | Google | n/a (image) | n/a | $0.05/image | n/a |
+
+A few things stand out from this table. Sora 2 standard at $0.10/second is dramatically cheaper than Veo 3 at $0.75/second with audio — the gap is 7.5x for what most viewers would consider comparable output. Veo 3.1 Fast and Veo 3.1 Lite have closed most of that gap, but only on the no-audio path; turning on synchronized audio adds 50% to the per-second rate across all Veo 3 variants. Nano Banana 2 isn't directly comparable because it's an image model rather than video, but it shows up on the same dashboards because the same teams that generate one-shot product visuals also generate animated versions of them, and unified billing matters more when both flows live next to each other.
+
+The other thing worth noting: an 8-second Veo 3 clip with audio costs $6.00, which is more than most teams' entire monthly Claude budget at small-to-mid scale. Video model spend is qualitatively different from text model spend — a single bad prompt that produces an unusable clip costs as much as thousands of failed text completions, and the iteration cycle is much slower. Cost optimization for video isn't about per-second discounts; it's about getting the prompt right on the first or second generation, using the cheaper Fast and Lite variants for drafts, and reserving the headline-quality model for final output. Any aggregator that helps with that — by showing per-prompt cost in the dashboard, by making it trivial to retry against a cheaper variant — saves more money than the per-second list price difference would.
+
+## When direct access still makes more sense
+
+Three situations where the aggregator path is the wrong call. We've made the case for aggregator access above; the honest version of this article also has to make the opposite case where it applies.
+
+**You're already on Tier 4 or Tier 5 with OpenAI, and you have a Vertex AI project for other workloads.** If your team has already cleared the access walls described in the first section, the marginal value of aggregating is small. You don't save the setup time because the setup is done. You don't save the procurement time because the contracts are signed. The remaining value is unified billing and dashboard, which is real but probably not worth migrating an existing integration over. New workloads might be worth routing through an aggregator; established ones probably aren't.
+
+**You need provider-specific features that the aggregator hasn't surfaced yet.** Both OpenAI and Google ship features on Sora 2 and Veo 3 faster than aggregators can wrap them. C2PA metadata controls, region-pinned inference, custom safety policies, and certain advanced camera controls show up on the upstream provider first and on the aggregator weeks or months later. If your application depends on any of these — and many production video applications do — going direct is the right call until the aggregator catches up. This is more often a problem on Veo 3 than on Sora 2, because Google's release cadence on Vertex AI is quick and the aggregator wrapping work is non-trivial.
+
+**Compliance requires single-tenant inference and a direct contractual relationship with the model provider.** Some healthcare, government, and finance video applications can't route through a multiplexed aggregator because the contract requires the model provider's name on the data processing agreement. If that's your situation, you already know it, and the aggregator path doesn't help. Most companies aren't here, but the ones that are tend to assume the rest of the industry is — and design recommendations from that perspective overstate the case for direct access. The right answer is "it depends on your compliance posture," and it's worth checking with the legal team rather than assuming the constraints carry over.
+
+A team that wants to ship a video feature this quarter, doesn't already have enterprise-tier accounts with OpenAI and Google, and doesn't have a single-tenant compliance constraint should default to aggregator access. The setup is one API key, the model surface is uniform, and the access walls disappear. Teams in any of the three buckets above should run the math more carefully — but for most of the market in 2026, the friction-removal value of the aggregator path is larger than any per-second pricing argument either direction.
+
+## How to evaluate any video API in 30 minutes
+
+A short playbook for either Sora 2 or Veo 3, on either an aggregator or the upstream provider.
+
+1. **Generate the same five-prompt set on each provider you're considering.** Pick prompts representative of your actual use case — product shots if you're building e-commerce, multi-shot narrative if you're building marketing video, talking-head if you're building avatars. Don't use generic "cinematic" prompts; they tell you nothing useful about how the model handles your real workload.
+2. **Time the round-trip from request to delivered video.** Sora 2 typically returns in 30–90 seconds for a 10-second clip; Veo 3 typically returns in 60–120 seconds. Aggregators add a small overhead, usually under five seconds, but it's worth measuring rather than assuming. If your application has a UX where users wait synchronously, this matters; if you're generating video in a background job, it doesn't.
+3. **Cost the five generations against your monthly volume estimate.** Multiply per-second rates by your expected output duration and frequency. Video costs scale linearly with duration and quadratically with iteration count — if your team needs three generations per final clip on average, the cost is three times the headline number, which is the math most teams forget when they project from a $1.00 single-clip cost.
+4. **Read the failed-generation billing policy.** Some providers and aggregators bill failed generations; some don't; some bill safety-rejected generations differently from technical-failure generations. The policy matters more for video than for text because each failed generation is 50–500x the cost of a failed text completion. Get the answer in writing before you commit production traffic.
+5. **Run a one-week parallel pilot, not a one-day test.** Output quality on video models varies more than on text models — by prompt category, by time of day (because of upstream provider load), and by random seed. A Tuesday-afternoon comparison of three models on five prompts tells you almost nothing useful. A week of real prompts at real concurrency tells you what you need to know.
+
+If the playbook results are clean and consistent, the choice is mechanical: aggregator for speed-to-ship and unified billing, direct provider for advanced features and existing infrastructure. If the results are mixed — which is more common on video than text — the answer is usually a hybrid: aggregator for evaluation and lower-stakes production, direct provider for the workload that matters most.
+
+---
+
+If your team wants to compare Sora 2 against Veo 3 against Nano Banana 2 without setting up three separate provider accounts, the integration is one API key. [Sign in to TokenMart](https://console.service-inference.ai/signin) and the dashboard shows every video and image model behind the same OpenAI-compatible endpoint, with per-second pricing and per-prompt cost tracking on every generation. That's the version of the comparison most teams skip — and it's the one worth running before deciding which provider gets the production workload.

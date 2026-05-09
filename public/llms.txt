@@ -20,6 +20,10 @@ clones. The model you call is the model you get.
 
 ## Blog
 
+- [LLM Prompt Caching in 2026: The Setup, the Math, and Three Ways It Quietly Fails](https://thetokenmart.ai/blog/llm-prompt-caching): The headline 90% discount vs the actual 50–85% bill reduction. Provider-by-provider mechanics (Claude / OpenAI / Gemini), four high-hit-rate patterns, three quiet failure modes, and how caching stacks with routing and batch.
+- [OpenAI-Compatible API in 2026: How to Call Claude, Gemini, and Grok Without Rewriting Code](https://thetokenmart.ai/blog/openai-compatible-api): Two-line migration to call any major model through the OpenAI SDK, the four edge cases that break in practice (system messages, tool IDs, reasoning streams, multimodal), and production patterns for failover and runtime model selection.
+- [Claude API Alternatives in 2026 (and the One Case Where None of Them Fit)](https://thetokenmart.ai/blog/claude-api-alternatives): Tier-by-tier replacement matrix for Claude Opus / Sonnet / Haiku — DeepSeek, Gemini Flash, GPT-5.4, Grok — plus the routing-not-replacing pattern that beats picking one model.
+- [How to Access Sora 2 and Veo 3 via API in 2026 (Without the Tier-2 Wall)](https://thetokenmart.ai/blog/sora-2-veo-3-api-access): Sora 2 sits behind OpenAI Tier-2; Veo 3 behind Vertex AI / GCP. Aggregator access skips both. Per-second pricing across all variants, when direct access still wins, and a 30-minute evaluation playbook.
 - [TokenMart vs OpenRouter: Why the Same Claude Opus Costs 15% Less](https://thetokenmart.ai/blog/tokenmart-vs-openrouter): OpenRouter forwards provider list pricing plus a 5.5% credit fee. TokenMart prices the same models 15–65% below list. Side-by-side breakdown, real numbers, when OpenRouter still wins.
 - [How LLM Aggregators Sell Claude Opus 4.7 at $4.25/Mtok Instead of $5.00](https://thetokenmart.ai/blog/llm-aggregator-pricing): The actual mechanic behind the 15–65% discount — volume-tier pass-through, smart routing, prepaid credit bonuses — plus the three situations where going direct still wins.
 
