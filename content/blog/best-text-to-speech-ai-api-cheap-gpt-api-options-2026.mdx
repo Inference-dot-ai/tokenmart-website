@@ -1,0 +1,70 @@
+---
+title: "Best Text-to-Speech APIs in 2026: Real Per-Minute Cost"
+description: "ElevenLabs, OpenAI TTS, and PlayHT range from $0.015 to $0.30 per minute. Here is which one to pick at each volume tier in 2026."
+publishedAt: 2026-05-27
+updatedAt: 2026-05-27
+author: "client"
+tags: ["model-comparison", "pricing"]
+coverImage: "/blog/covers/audio-mic.jpg"
+ogImage: "/blog/og/audio-mic.jpg"
+draft: false
+faq:
+  - q: "What is the real per-unit cost of ElevenLabs / OpenAI TTS / PlayHT through TokenMart?"
+    a: "ElevenLabs / OpenAI TTS / PlayHT is billed at provider list price routed through TokenMart, with the 20% signup bonus and 300M free tokens applied to any associated LLM calls. The routing fee is 5–10%; there is no monthly minimum."
+  - q: "Is TokenMart the same as OpenRouter?"
+    a: "Both route across providers, but TokenMart's pricing is built around weekly flash deals tied to specific models, plus a signup bonus (300M tokens + 20% credits) that OpenRouter does not offer. OpenRouter publishes a flat margin; TokenMart pushes the deepest discount on whichever model is on sale that week."
+  - q: "What is the catch with the 20% bonus credits + 300M free tokens signup?"
+    a: "No credit card is required to claim the 300M tokens. The 20% bonus applies on the first paid top-up (the smallest pack is $80 → 100 credits). Both stack with the weekly flash-deal discount; there is no minimum monthly spend and no platform fee on top of the 5–10% routing fee."
+---
+
+Picking the cheapest best text-to-speech AI API in 2026 is not about a single list price — it is about which provider has the deepest weekly discount on TokenMart's routing pool. The headline ceiling is −65%, with DeepSeek V3 at −60% and Gemini 1.5 Pro at −50% this week. This post is the honest field guide to best text-to-speech AI API in 2026.
+
+## What teams actually pay for best text-to-speech AI API
+
+Best text-to-speech ai api is one of the larger line items on a modern AI invoice. The list price you see on a vendor's pricing page is the ceiling — what teams actually pay depends on routing, batching, and whichever weekly discount is active. TokenMart's hero claim is "up to 65% cheaper" via smart routing; on this specific topic the realised number is below.
+
+## How TokenMart cuts the bill on best text-to-speech AI API
+
+**Smart routing across providers.** TokenMart's gateway picks the cheapest available provider per request and falls back if one rate-limits you. The list-price headline savings on the home page is up to 65%; the realised number depends on your model mix.
+
+**Stackable flash deals.** A different set of models goes on sale every Friday — currently DeepSeek V3 at −60%, Gemini 1.5 Pro at −50%, Nano Banana Pro at −55%, Kling AI 1.6 at −45%, GPT-4o at −40%, Mistral Large at −40%, Claude 3.5 Sonnet at −35%, Grok-2 at −35%, Veo 3 at −30%, Sora-2 at −25%, and Midjourney v7 at −25%.
+
+**Signup bonus.** 20% bonus credits + 300M free tokens on first sign-in. The 300M tokens are free; the 20% applies the first time you top up. Both stack with the weekly model discount.
+
+**Simple credit packs.** $80 → 100 credits is the smallest pack; routing fee is 5–10%; no monthly minimum and no platform fee beyond that.
+
+## Numbers for this workload
+
+| Model | List price | TokenMart this week | Effective discount |
+|---|---|---|---|
+| GPT-4o (chat) | $10/1M output | $6.00/1M | −40% |
+| Claude 3.5 Sonnet | $15/1M output | $9.75/1M | −35% |
+| Gemini 1.5 Pro | $5/1M output | $2.50/1M | −50% |
+| DeepSeek V3 | $1.10/1M output | $0.44/1M | −60% |
+| Mistral Large | $6/1M output | $3.60/1M | −40% |
+| Nano Banana Pro (image) | list × 1.0 | list × 0.45 | −55% |
+| Kling AI 1.6 (video) | list × 1.0 | list × 0.55 | −45% |
+
+_Numbers track the live marquee in [components/ui/flash-deals-banner.tsx](https://thetokenmart.ai). Deals reset every Friday._
+
+## When this is the worse deal
+
+**You need a single signed BAA / DPA with one provider.** TokenMart routes across providers; if compliance requires a contract with the model vendor specifically, buy the key direct and skip routing.
+
+**Sub-100-token requests at p95 < 200 ms.** TokenMart's gateway adds a small routing hop (5–10% routing fee, single-digit ms in the median). For sub-200 ms hard targets, a provider-pinned deployment in the same region wins on latency.
+
+**Your monthly spend is under ~$50 and stays there.** The 300M-token signup bonus covers small projects for weeks, but if you never grow past it the routing optimisations do not pay off in absolute dollars.
+
+## How to evaluate this in 30 minutes
+
+1. **Sign in to TokenMart and claim 20% bonus credits + 300M free tokens.** It does not require a credit card; you get the 300M tokens regardless of whether you ever pay.
+2. **Copy your TokenMart key into your existing SDK as a `base_url` override.** The gateway is OpenAI-compatible, so the Anthropic, Google, and OpenAI SDKs all work with a one-line change.
+3. **Mirror one production endpoint to TokenMart for 24 hours.** Compare per-request cost and p95 latency against your direct-provider baseline.
+4. **Check this week's flash deal for ElevenLabs.** The banner refreshes every Friday; the deepest discounts are typically on DeepSeek, Gemini, and Nano Banana Pro.
+5. **Top up $80 → 100 credits once the test passes.** The 20% bonus applies on the first top-up, stackable with the model discount.
+
+---
+
+This post is for teams scaling best text-to-speech AI API past the free tier and watching the per-call line on the invoice. Claim 20% bonus credits + 300M free tokens once, mirror one endpoint for a day, and check whether the routed price beats direct. Numbers are visible per request in the dashboard the moment the first call lands.
+
+[Sign in to TokenMart](https://console.service-inference.ai/signin) · [Browse the live model catalogue](https://console.service-inference.ai/models)

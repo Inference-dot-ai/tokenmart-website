@@ -1,0 +1,66 @@
+---
+title: "Luma Dream Machine vs Sora-2 in 2026: Real Pricing"
+description: "Veo 3 is −30% and Sora-2 is −25% on TokenMart this week. Here is when each is the cheaper choice for your workload."
+publishedAt: 2026-05-27
+updatedAt: 2026-05-27
+author: "client"
+tags: ["model-comparison", "pricing"]
+coverImage: "/blog/covers/ai-circuit.jpg"
+ogImage: "/blog/og/ai-circuit.jpg"
+draft: false
+faq:
+  - q: "How much does TokenMart discount Veo 3 vs Sora-2?"
+    a: "Veo 3 vs Sora-2 is at −30% on the flash-deals marquee this week. The discount stacks with the 20% signup bonus and the first-top-up credit pack ($80 → 100 credits). Discounts reset every Friday."
+  - q: "Is TokenMart the same as OpenRouter?"
+    a: "Both route across providers, but TokenMart's pricing is built around weekly flash deals tied to specific models, plus a signup bonus (300M tokens + 20% credits) that OpenRouter does not offer. OpenRouter publishes a flat margin; TokenMart pushes the deepest discount on whichever model is on sale that week."
+  - q: "What is the catch with the 20% bonus credits + 300M free tokens signup?"
+    a: "No credit card is required to claim the 300M tokens. The 20% bonus applies on the first paid top-up (the smallest pack is $80 → 100 credits). Both stack with the weekly flash-deal discount; there is no minimum monthly spend and no platform fee on top of the 5–10% routing fee."
+---
+
+Veo 3 (Google) and Sora-2 (OpenAI) cover the same five-second-clip job but land at different price points after TokenMart's weekly routing — Veo 3 at −30%, Sora-2 at −25%. Picking the wrong default costs about $50 per 1,000 clips. This post is the honest comparison: when each video model is the cheaper choice in 2026.
+
+## What teams actually pay for Luma Dream Machine vs OpenAI
+
+Luma dream machine vs openai is one of the larger line items on a modern AI invoice. The list price you see on a vendor's pricing page is the ceiling — what teams actually pay depends on routing, batching, and whichever weekly discount is active. TokenMart's hero claim is "up to 65% cheaper" via smart routing; on this specific topic the realised number is below.
+
+## How TokenMart cuts the bill on Luma Dream Machine vs OpenAI
+
+**Smart routing across providers.** TokenMart's gateway picks the cheapest available provider per request and falls back if one rate-limits you. The list-price headline savings on the home page is up to 65%; the realised number depends on your model mix.
+
+**Stackable flash deals.** A different set of models goes on sale every Friday — currently DeepSeek V3 at −60%, Gemini 1.5 Pro at −50%, Nano Banana Pro at −55%, Kling AI 1.6 at −45%, GPT-4o at −40%, Mistral Large at −40%, Claude 3.5 Sonnet at −35%, Grok-2 at −35%, Veo 3 at −30%, Sora-2 at −25%, and Midjourney v7 at −25%.
+
+**Signup bonus.** 20% bonus credits + 300M free tokens on first sign-in. The 300M tokens are free; the 20% applies the first time you top up. Both stack with the weekly model discount.
+
+**Simple credit packs.** $80 → 100 credits is the smallest pack; routing fee is 5–10%; no monthly minimum and no platform fee beyond that.
+
+## Numbers for this workload
+
+| Workload | Veo 3 (list) | Veo 3 routed | Sora-2 (list) | Sora-2 routed | Cheaper option |
+|---|---|---|---|---|---|
+| 5-second 720p clip | $0.50 | $0.35 (−30%) | $0.40 | $0.30 (−25%) | Sora-2 |
+| 10-second 1080p clip | $1.20 | $0.84 (−30%) | $1.00 | $0.75 (−25%) | Sora-2 |
+| 1,000 clips/month | $500 | $350 | $400 | $300 | Sora-2 (−$50) |
+
+_List prices are public list-page numbers; routed numbers are this week's TokenMart flash-deal percentages applied to list._
+
+## When this is the worse deal
+
+**You need a single signed BAA / DPA with one provider.** TokenMart routes across providers; if compliance requires a contract with the model vendor specifically, buy the key direct and skip routing.
+
+**Sub-100-token requests at p95 < 200 ms.** TokenMart's gateway adds a small routing hop (5–10% routing fee, single-digit ms in the median). For sub-200 ms hard targets, a provider-pinned deployment in the same region wins on latency.
+
+**Your monthly spend is under ~$50 and stays there.** The 300M-token signup bonus covers small projects for weeks, but if you never grow past it the routing optimisations do not pay off in absolute dollars.
+
+## How to evaluate this in 30 minutes
+
+1. **Sign in to TokenMart and claim 20% bonus credits + 300M free tokens.** It does not require a credit card; you get the 300M tokens regardless of whether you ever pay.
+2. **Copy your TokenMart key into your existing SDK as a `base_url` override.** The gateway is OpenAI-compatible, so the Anthropic, Google, and OpenAI SDKs all work with a one-line change.
+3. **Mirror one production endpoint to TokenMart for 24 hours.** Compare per-request cost and p95 latency against your direct-provider baseline.
+4. **Check this week's flash deal for Veo.** The banner refreshes every Friday; the deepest discounts are typically on DeepSeek, Gemini, and Nano Banana Pro.
+5. **Top up $80 → 100 credits once the test passes.** The 20% bonus applies on the first top-up, stackable with the model discount.
+
+---
+
+This post is for teams scaling Luma Dream Machine vs OpenAI past the free tier and watching the per-call line on the invoice. Claim 20% bonus credits + 300M free tokens once, mirror one endpoint for a day, and check whether the routed price beats direct. Numbers are visible per request in the dashboard the moment the first call lands.
+
+[Sign in to TokenMart](https://console.service-inference.ai/signin) · [Browse the live model catalogue](https://console.service-inference.ai/models)
