@@ -1,31 +1,31 @@
 import type { Metadata } from "next";
-import { Archivo_Black, Chakra_Petch, JetBrains_Mono, Outfit } from "next/font/google";
+import { Space_Grotesk, Space_Mono, Outfit } from "next/font/google";
 import { GetuAttribution } from "@/components/attribution/getu-attribution-provider";
 import { SITE_URL } from "@/lib/blog";
 import { buildWebSiteJsonLd } from "@/lib/seo";
 import "./globals.css";
 
-const archivoBlack = Archivo_Black({
+// Warehouse redesign type system. Variable names are kept identical to the
+// previous setup (--font-display / --font-mono / --font-outfit) so every
+// existing `var(--font-*)` reference across the app repoints automatically.
+// Space Grotesk drives all display headings; --font-chakra is aliased to it
+// in globals.css. Body stays Outfit (Google Sans Flex, the prototype's body
+// face, is not in next/font/google — Outfit is the closest available match).
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  weight: ["400"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-display",
 });
 
-const chakra = Chakra_Petch({
+const spaceMono = Space_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-chakra",
-});
-
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "700"],
   variable: "--font-mono",
 });
 
 const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-outfit",
 });
 
@@ -60,7 +60,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${archivoBlack.variable} ${chakra.variable} ${jetbrains.variable} ${outfit.variable}`}
+      className={`${spaceGrotesk.variable} ${spaceMono.variable} ${outfit.variable}`}
       suppressHydrationWarning
     >
       <head>

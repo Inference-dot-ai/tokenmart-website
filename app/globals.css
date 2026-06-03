@@ -1,93 +1,141 @@
 @import "tailwindcss";
+@import "./tm.css";
 
 :root,
 [data-theme="light"] {
   color-scheme: light;
 
-  --pink: #D10076;
-  --pink-lo: rgba(209, 0, 118, 0.10);
-  --pink-mid: rgba(209, 0, 118, 0.20);
-  --pink-glow: rgba(209, 0, 118, 0.30);
-  --border-pink: rgba(209, 0, 118, 0.25);
+  /* ── Warehouse accent (shared across themes) ── */
+  --accent: #e61673;
+  --lime:   #c6ff3a;
+  --cyan:   #3ad8ff;
 
-  --background: #F8F8FC;
-  --foreground: #1A1A2E;
-  --muted-foreground: #6B6B8A;
-  --border: rgba(0, 0, 0, 0.08);
-  --primary: #D10076;
+  --pink: #e61673;
+  --pink-lo: rgba(230, 22, 115, 0.10);
+  --pink-mid: rgba(230, 22, 115, 0.20);
+  --pink-glow: rgba(230, 22, 115, 0.30);
+  --border-pink: rgba(230, 22, 115, 0.25);
+
+  --background: #f1efe8;
+  --foreground: #16151a;
+  --muted-foreground: #5b5a60;
+  --border: rgba(20, 18, 12, 0.12);
+  --primary: #e61673;
   --primary-foreground: #ffffff;
 
-  --color-bg:          #FAFAFA;
-  --color-surface:     #FFFFFF;
-  --color-surface-hi:  #FFFFFF;
-  --color-search-bg:   #FFFFFF;
-  --color-text:        #1A1A2E;
-  --color-text-dim:    #4A4A6A;
-  --color-text-muted:  #8888A8;
-  --color-border:      rgba(0, 0, 0, 0.08);
-  --color-nav-bg:      rgba(255, 255, 255, 0.92);
-  --color-nav-bg-end:  rgba(255, 255, 255, 0.88);
-  --color-nav-border:  rgba(0, 0, 0, 0.08);
-  --color-nav-shadow:  rgba(0, 0, 0, 0.08);
-  --color-nav-shine:   rgba(255, 255, 255, 0.5);
-  --color-card-shadow: rgba(0, 0, 0, 0.08);
+  /* ── Warehouse surfaces (redesign tokens) ── */
+  --bg:      #f1efe8;
+  --panel:   #ffffff;
+  --panel2:  #fbfaf6;
+  --panel3:  #f3f1ea;
+  --ink:     #16151a;
+  --dim:     #5b5a60;
+  --mute:    #8d8b8f;
+  --line:    rgba(20, 18, 12, 0.12);
+  --line2:   rgba(20, 18, 12, 0.2);
+  --grid-line: rgba(20, 18, 12, 0.032);
+  --header-bg: rgba(247, 246, 241, 0.86);
+  --chip-bg:   rgba(20, 18, 12, 0.05);
+  --ghost-bg:  rgba(20, 18, 12, 0.035);
+  --card-shadow: 0 18px 40px -26px rgba(20, 18, 12, 0.4);
+  --media1:  #efece3;
+  --media2:  #e6e2d7;
 
-  --cta-bg:            #000000;
-  --cta-fg:            #FFFFFF;
+  /* ── Existing app tokens, retargeted onto the warehouse palette ── */
+  --color-bg:          #f1efe8;
+  --color-surface:     #ffffff;
+  --color-surface-hi:  #fbfaf6;
+  --color-search-bg:   #ffffff;
+  --color-text:        #16151a;
+  --color-text-dim:    #5b5a60;
+  --color-text-muted:  #8d8b8f;
+  --color-border:      rgba(20, 18, 12, 0.12);
+  --color-nav-bg:      rgba(247, 246, 241, 0.92);
+  --color-nav-bg-end:  rgba(247, 246, 241, 0.86);
+  --color-nav-border:  rgba(20, 18, 12, 0.12);
+  --color-nav-shadow:  rgba(20, 18, 12, 0.10);
+  --color-nav-shine:   rgba(255, 255, 255, 0.6);
+  --color-card-shadow: rgba(20, 18, 12, 0.10);
 
-  --terminal-bg:         #F5F5F9;
-  --terminal-border:     rgba(0, 0, 0, 0.08);
-  --terminal-label:      rgba(26, 26, 46, 0.60);
-  --terminal-punct:      rgba(26, 26, 46, 0.45);
-  --terminal-value:      #1A1A2E;
-  --terminal-pink:       #D10076;
-  --terminal-green:      #16A34A;
-  --terminal-red:        #DC2626;
+  --cta-bg:            #0a0a0c;
+  --cta-fg:            #ffffff;
+
+  --terminal-bg:         #f3f1ea;
+  --terminal-border:     rgba(20, 18, 12, 0.10);
+  --terminal-label:      rgba(22, 21, 26, 0.60);
+  --terminal-punct:      rgba(22, 21, 26, 0.45);
+  --terminal-value:      #16151a;
+  --terminal-pink:       #e61673;
+  --terminal-green:      #16a34a;
+  --terminal-red:        #dc2626;
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --pink: #E10082;
-  --pink-lo: rgba(225, 0, 130, 0.12);
-  --pink-mid: rgba(225, 0, 130, 0.25);
-  --pink-glow: rgba(225, 0, 130, 0.45);
-  --border-pink: rgba(225, 0, 130, 0.30);
+  /* ── Warehouse accent (shared across themes) ── */
+  --accent: #e61673;
+  --lime:   #c6ff3a;
+  --cyan:   #3ad8ff;
+
+  --pink: #e61673;
+  --pink-lo: rgba(230, 22, 115, 0.14);
+  --pink-mid: rgba(230, 22, 115, 0.28);
+  --pink-glow: rgba(230, 22, 115, 0.45);
+  --border-pink: rgba(230, 22, 115, 0.32);
 
   /* shadcn-compatible tokens */
-  --background: #050509;
-  --foreground: #E4E4F0;
-  --muted-foreground: #9090B8;
-  --border: rgba(255, 255, 255, 0.08);
-  --primary: #E10082;
+  --background: #0a0a0c;
+  --foreground: #f5f5f7;
+  --muted-foreground: #a6a6ad;
+  --border: rgba(255, 255, 255, 0.09);
+  --primary: #e61673;
   --primary-foreground: #ffffff;
 
-  --color-bg:          #050509;
-  --color-surface:     #0A0A12;
-  --color-surface-hi:  #0F0F1C;
-  --color-search-bg:   #1a1a2e;
-  --color-text:        #E4E4F0;
-  --color-text-dim:    #9090B8;
-  --color-text-muted:  #52527A;
-  --color-border:      rgba(255,255,255,0.06);
-  --color-nav-bg:      rgba(10, 10, 18, 0.92);
-  --color-nav-bg-end:  rgba(10, 10, 18, 0.88);
-  --color-nav-border:  rgba(255, 255, 255, 0.08);
+  /* ── Warehouse surfaces (redesign tokens) ── */
+  --bg:      #0a0a0c;
+  --panel:   #111114;
+  --panel2:  #17171b;
+  --panel3:  #1d1d22;
+  --ink:     #f5f5f7;
+  --dim:     #a6a6ad;
+  --mute:    #6c6c75;
+  --line:    rgba(255, 255, 255, 0.09);
+  --line2:   rgba(255, 255, 255, 0.15);
+  --grid-line: rgba(255, 255, 255, 0.016);
+  --header-bg: rgba(10, 10, 12, 0.82);
+  --chip-bg:   rgba(255, 255, 255, 0.05);
+  --ghost-bg:  rgba(255, 255, 255, 0.03);
+  --card-shadow: 0 22px 46px -24px rgba(0, 0, 0, 0.9);
+  --media1:  #16161a;
+  --media2:  #0e0e12;
+
+  --color-bg:          #0a0a0c;
+  --color-surface:     #111114;
+  --color-surface-hi:  #17171b;
+  --color-search-bg:   #1d1d22;
+  --color-text:        #f5f5f7;
+  --color-text-dim:    #a6a6ad;
+  --color-text-muted:  #6c6c75;
+  --color-border:      rgba(255, 255, 255, 0.09);
+  --color-nav-bg:      rgba(10, 10, 12, 0.92);
+  --color-nav-bg-end:  rgba(10, 10, 12, 0.82);
+  --color-nav-border:  rgba(255, 255, 255, 0.09);
   --color-nav-shadow:  rgba(0, 0, 0, 0.6);
   --color-nav-shine:   rgba(255, 255, 255, 0.06);
   --color-card-shadow: rgba(0, 0, 0, 0.45);
 
-  --cta-bg:            #FFFFFF;
-  --cta-fg:            #0A0A12;
+  --cta-bg:            #ffffff;
+  --cta-fg:            #0a0a0c;
 
-  --terminal-bg:         #0A0A12;
-  --terminal-border:     rgba(255, 255, 255, 0.06);
-  --terminal-label:      rgba(228, 228, 240, 0.55);
-  --terminal-punct:      rgba(228, 228, 240, 0.45);
-  --terminal-value:      #E4E4F0;
-  --terminal-pink:       #F5B0D5;
-  --terminal-green:      #4ADE80;
-  --terminal-red:        #F87171;
+  --terminal-bg:         #0e0e12;
+  --terminal-border:     rgba(255, 255, 255, 0.08);
+  --terminal-label:      rgba(245, 245, 247, 0.55);
+  --terminal-punct:      rgba(245, 245, 247, 0.45);
+  --terminal-value:      #f5f5f7;
+  --terminal-pink:       #ff85bf;
+  --terminal-green:      #4ade80;
+  --terminal-red:        #f87171;
 }
 
 @theme inline {
@@ -100,7 +148,7 @@
   --color-text-muted:  var(--color-text-muted);
   --color-border:      var(--color-border);
 
-  --font-chakra:   var(--font-chakra);
+  --font-chakra:   var(--font-display);
   --font-mono:     var(--font-mono);
   --font-outfit:   var(--font-outfit);
   --font-display:  var(--font-display);
@@ -779,3 +827,11 @@ canvas {
 .blog-prose h2:hover .anchor,
 .blog-prose h3:hover .anchor { opacity: 1; }
 .blog-prose .anchor::before { content: "#"; }
+/* Prose links — restore link affordance overridden by the `.tm-root a` reset. */
+.blog-prose a {
+  color: var(--pink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+.blog-prose a:hover { text-decoration-thickness: 2px; }
