@@ -56,7 +56,11 @@ export function Burst({
   for (let i = 0; i < spikes * 2; i++) {
     const r = i % 2 === 0 ? 50 : 41;
     const a = (Math.PI / spikes) * i - Math.PI / 2;
-    pts.push(`${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`);
+    // Round to a fixed precision: Math.cos/Math.sin can differ in their last
+    // digits between the Node (server) and browser (client) engines, which
+    // makes the SSR-rendered `points` string mismatch on hydration. Rounding
+    // far above that divergence guarantees identical server/client output.
+    pts.push(`${(cx + r * Math.cos(a)).toFixed(3)},${(cy + r * Math.sin(a)).toFixed(3)}`);
   }
   return (
     <span className={`tm-burst tone-${tone}`} style={{ width: size, height: size, fontSize: size, ...style }}>
