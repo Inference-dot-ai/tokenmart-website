@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { Navbar } from "@/components/ui/navbar";
-import { Footer } from "@/components/ui/footer";
-import { PostCard } from "@/components/blog/PostCard";
+import { TMHeader } from "@/components/tm/Header";
+import { DealTicker } from "@/components/tm/DealTicker";
+import { TMFooter } from "@/components/tm/Footer";
+import { FinalCTA } from "@/components/tm/FinalCTA";
+import { BlogCard } from "@/components/tm/blog/BlogCard";
 import { listPosts, SITE_URL } from "@/lib/blog";
 import {
   buildBlogIndexJsonLd,
@@ -32,10 +34,7 @@ export default async function BlogIndex() {
   const blogJsonLd = buildBlogIndexJsonLd(posts);
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: "var(--color-bg)", color: "var(--color-text)" }}
-    >
+    <div className="tm-root bg-grid">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
@@ -44,55 +43,51 @@ export default async function BlogIndex() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
       />
-      <header className="flex justify-center pt-4">
-        <Navbar fixed={false} />
-      </header>
 
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 md:px-10 pt-12 pb-24">
-        <div className="text-center mb-14">
-          <p
-            className="text-[11px] font-bold tracking-[0.25em] uppercase mb-4"
-            style={{ color: "var(--pink)" }}
-          >
-            The TokenMart Blog
-          </p>
-          <h1
-            className="text-4xl md:text-6xl font-[family-name:var(--font-display)] tracking-tight leading-[1.05]"
-            style={{ color: "var(--color-text)" }}
-          >
-            Notes on pricing, infrastructure
-            <br className="hidden md:block" /> and the cost of inference.
+      <TMHeader activeBlog />
+      <DealTicker />
+
+      <main>
+        <section className="blog-lead">
+          <div className="blog-eyebrow">THE TOKENMART BLOG</div>
+          <h1 className="blog-lead-h">
+            Notes on pricing, infrastructure and the cost of inference.
           </h1>
-          <p
-            className="mt-5 text-base md:text-lg max-w-2xl mx-auto leading-relaxed"
-            style={{ color: "var(--color-text-dim)" }}
-          >
-            Why the same model can cost 3× more depending on who you buy it
-            from — and what we do about it.
+          <p className="blog-lead-sub">
+            Why the same model can cost 3× more depending on who you buy it from — and what we do
+            about it.
           </p>
-        </div>
+        </section>
 
-        {posts.length === 0 ? (
-          <div
-            className="rounded-2xl p-10 text-center"
-            style={{
-              background: "var(--color-surface)",
-              border: "1px dashed var(--color-border)",
-              color: "var(--color-text-muted)",
-            }}
-          >
-            No posts published yet.
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post) => (
-              <PostCard key={post.slug} post={post} />
-            ))}
-          </div>
-        )}
+        <section className="blog-list">
+          {posts.length === 0 ? (
+            <div
+              style={{
+                maxWidth: 1240,
+                margin: "0 auto",
+                padding: "40px",
+                textAlign: "center",
+                background: "var(--panel)",
+                border: "1px dashed var(--line2)",
+                borderRadius: 18,
+                color: "var(--mute)",
+              }}
+            >
+              No posts published yet.
+            </div>
+          ) : (
+            <div className="blog-grid">
+              {posts.map((post) => (
+                <BlogCard key={post.slug} post={post} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <FinalCTA />
       </main>
 
-      <Footer />
+      <TMFooter />
     </div>
   );
 }

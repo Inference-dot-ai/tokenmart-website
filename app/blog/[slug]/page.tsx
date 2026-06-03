@@ -4,14 +4,20 @@ import { compileMDX } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import Link from "next/link";
 
-import { Navbar } from "@/components/ui/navbar";
-import { Footer } from "@/components/ui/footer";
-import { PostHeader } from "@/components/blog/PostHeader";
+import { TMHeader } from "@/components/tm/Header";
+import { DealTicker } from "@/components/tm/DealTicker";
+import { TMFooter } from "@/components/tm/Footer";
+import { FinalCTA } from "@/components/tm/FinalCTA";
+import { BlogCover } from "@/components/tm/blog/BlogCover";
+import { CatPills } from "@/components/tm/blog/CatPills";
+import { BlogCard } from "@/components/tm/blog/BlogCard";
+import { coverFor } from "@/components/tm/blog/cover";
 import { Prose } from "@/components/blog/Prose";
 import { blogMdxComponents } from "@/components/blog/mdx-components";
-import Link from "next/link";
-import { getAllSlugs, getPost, SITE_URL } from "@/lib/blog";
+import { getAllSlugs, getPost, listPosts, SITE_URL } from "@/lib/blog";
+import { getAuthor } from "@/lib/authors";
 import {
   buildArticleJsonLd,
   buildBreadcrumbJsonLd,
@@ -37,6 +43,14 @@ export async function generateMetadata({
   const post = await getPost(slug);
   if (!post) return {};
   return buildPostMetadata(post);
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 export default async function BlogPostPage({
@@ -77,11 +91,12 @@ export default async function BlogPostPage({
     { name: post.title, url: `${SITE_URL}/blog/${post.slug}` },
   ]);
 
+  const author = getAuthor(post.author);
+  const markColor = coverFor(post.slug).c2;
+  const related = (await listPosts()).filter((p) => p.slug !== post.slug).slice(0, 3);
+
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: "var(--color-bg)", color: "var(--color-text)" }}
-    >
+    <div className="tm-root bg-grid">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
@@ -97,80 +112,87 @@ export default async function BlogPostPage({
         />
       ) : null}
 
-      <header className="flex justify-center pt-4">
-        <Navbar fixed={false} />
-      </header>
+      <TMHeader activeBlog />
+      <DealTicker />
 
-      <main className="flex-1 w-full pt-10 pb-24">
-        <article className="w-full max-w-3xl mx-auto px-6 md:px-8">
-          <nav
-            aria-label="Breadcrumb"
-            className="mb-8 text-xs font-medium tracking-wider uppercase"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            <ol className="flex items-center gap-2 flex-wrap">
-              <li>
-                <Link
-                  href="/"
-                  className="hover:underline"
-                  style={{ color: "var(--color-text-dim)" }}
-                >
-                  Home
-                </Link>
-              </li>
-              <li aria-hidden>/</li>
-              <li>
-                <Link
-                  href="/blog"
-                  className="hover:underline"
-                  style={{ color: "var(--color-text-dim)" }}
-                >
-                  Blog
-                </Link>
-              </li>
-            </ol>
-          </nav>
-          <PostHeader post={post} />
-          <Prose>{content}</Prose>
+      <main>
+        <article className="blog-article">
+          <div className="blog-article-in">
+            <Link className="blog-back" href="/blog">
+              ← All articles
+            </Link>
 
-          {post.faq && post.faq.length > 0 ? (
-            <section
-              className="mt-16 rounded-2xl p-7"
-              style={{
-                background: "var(--color-surface)",
-                border: "1px solid var(--color-border)",
-              }}
-            >
-              <h2
-                className="text-2xl font-[family-name:var(--font-display)] mb-5"
-                style={{ color: "var(--color-text)" }}
+            <CatPills cats={post.tags ?? []} />
+            <h1 className="blog-article-title">{post.title}</h1>
+
+            <div className="blog-article-meta">
+              <span className="blog-by-mark" style={{ background: markColor }}>
+                {author.name.charAt(0)}
+              </span>
+              <span>By {author.name}</span>
+              <span className="blog-dot">·</span>
+              <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+              <span className="blog-dot">·</span>
+              <span>{post.readingMinutes} min read</span>
+            </div>
+
+            <BlogCover
+              coverImage={post.coverImage}
+              slug={post.slug}
+              title={post.title}
+              className="hero"
+            />
+
+            <Prose>{content}</Prose>
+
+            {post.faq && post.faq.length > 0 ? (
+              <section
+                className="mt-16 rounded-2xl p-7"
+                style={{
+                  background: "var(--color-surface)",
+                  border: "1px solid var(--color-border)",
+                }}
               >
-                FAQ
-              </h2>
-              <dl className="flex flex-col gap-5">
-                {post.faq.map((item) => (
-                  <div key={item.q}>
-                    <dt
-                      className="font-semibold mb-1.5"
-                      style={{ color: "var(--color-text)" }}
-                    >
-                      {item.q}
-                    </dt>
-                    <dd
-                      className="leading-relaxed"
-                      style={{ color: "var(--color-text-dim)" }}
-                    >
-                      {item.a}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-          ) : null}
+                <h2
+                  className="text-2xl font-[family-name:var(--font-display)] mb-5"
+                  style={{ color: "var(--color-text)" }}
+                >
+                  FAQ
+                </h2>
+                <dl className="flex flex-col gap-5">
+                  {post.faq.map((item) => (
+                    <div key={item.q}>
+                      <dt className="font-semibold mb-1.5" style={{ color: "var(--color-text)" }}>
+                        {item.q}
+                      </dt>
+                      <dd className="leading-relaxed" style={{ color: "var(--color-text-dim)" }}>
+                        {item.a}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            ) : null}
+          </div>
         </article>
+
+        {related.length > 0 ? (
+          <section className="blog-related">
+            <div className="blog-related-head">
+              <h2 className="blog-related-h">More from the warehouse</h2>
+            </div>
+            <div className="blog-grid">
+              {related.map((p) => (
+                <BlogCard key={p.slug} post={p} showExcerpt={false} />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <FinalCTA />
       </main>
 
-      <Footer />
+      <TMFooter />
     </div>
   );
 }
