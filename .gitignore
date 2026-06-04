@@ -20,6 +20,9 @@
 # generated at build time by scripts/build-models-json.ts
 /public/models.json
 
+# generated at build time by scripts/build-tm-models.ts
+/public/tm-models.json
+
 # production
 /build
 
