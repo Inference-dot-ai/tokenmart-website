@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Burst, GlyphChip, Pill, PriceTag, Btn, Sticker } from "./primitives";
 import { TM_MODELS, discountOf, type TMModel } from "./catalog";
 
@@ -36,6 +39,26 @@ function ModelCard({ m, apiHref }: { m: TMModel; apiHref: string }) {
 }
 
 export function Marketplace({ apiHref }: { apiHref: string }) {
+  // First paint / offline fallback = the curated static catalog (also what the
+  // SSG HTML contains). Live prices + variant lists are fetched from the
+  // same-origin JSON written at build by scripts/build-tm-models.ts.
+  const [models, setModels] = useState<TMModel[]>(TM_MODELS);
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/tm-models.json")
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((data: TMModel[]) => {
+        if (alive && Array.isArray(data) && data.length > 0) setModels(data);
+      })
+      .catch(() => {
+        /* keep the static fallback */
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   return (
     <section className="tm-market" id="market">
       <div className="tm-market-banner">
@@ -58,7 +81,7 @@ export function Marketplace({ apiHref }: { apiHref: string }) {
         </div>
       </div>
       <div className="tm-grid">
-        {TM_MODELS.map((m) => (
+        {models.map((m) => (
           <ModelCard key={m.id} m={m} apiHref={apiHref} />
         ))}
       </div>
