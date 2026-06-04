@@ -2,10 +2,11 @@
 // JSX) so it can be imported by the build script (tsx) as well as the client.
 //
 // The live endpoint (https://model.service-inference.ai/public/models) only
-// provides model ids + token/unit pricing + reference price + discount. Every
-// *presentation* field below (brand, logo, tint, glyph, blurb, tags, unit, and
-// which ids form a family) is not in the endpoint and is curated here. The
-// build script merges the live prices + variant lists onto these families.
+// provides model ids + token/unit pricing + reference price + discount. The
+// presentation fields below are curated. Brand name + logo come from the
+// shared provider registry (lib/providers) so they live in one place and any
+// new provider auto-resolves a logo.
+import { getProvider, providerLogo } from "../../lib/providers";
 
 export type TMModel = {
   id: string;
@@ -42,84 +43,87 @@ export type Family = {
   fallback: { retail: number; wholesale: number; line: string };
 };
 
+/** Family minus the fields derived from the provider registry. */
+type FamilyDef = Omit<Family, "provider" | "logo"> & { providerKey: string };
+
 const has = (s: string) => (id: string) => id.toLowerCase().startsWith(s);
 
-export const FAMILIES: Family[] = [
+const FAMILY_DEFS: FamilyDef[] = [
   {
-    key: "claude", name: "Claude", provider: "Anthropic", category: "LLM", unit: "/1M out",
-    tint: "#ff7a45", glyph: "✳", logo: "/tm-assets/claude-logo.png",
+    key: "claude", name: "Claude", providerKey: "anthropic", category: "LLM", unit: "/1M out",
+    tint: "#ff7a45", glyph: "✳",
     blurb: "Top-shelf reasoning & code. Flies off the shelf.",
     tags: ["Reasoning", "Coding", "200K ctx"],
     match: has("claude"), primaryId: "claude-opus-4-8",
     fallback: { retail: 25, wholesale: 20, line: "Opus 4.8 · Sonnet 4.6 · Haiku 4.5" },
   },
   {
-    key: "gpt", name: "GPT", provider: "OpenAI", category: "LLM", unit: "/1M out",
-    tint: "#19c37d", glyph: "◍", logo: "/tm-assets/openai-logo.png",
+    key: "gpt", name: "GPT", providerKey: "openai", category: "LLM", unit: "/1M out",
+    tint: "#19c37d", glyph: "◍",
     blurb: "The crowd favorite. Stocked deep, priced low.",
     tags: ["General", "Tools", "Vision"],
     match: has("gpt"), primaryId: "gpt-5.4",
     fallback: { retail: 15, wholesale: 12, line: "GPT-5.5 · GPT-5.4 · GPT-5.2 Codex · GPT-5.1" },
   },
   {
-    key: "gemini", name: "Gemini", provider: "Google", category: "LLM", unit: "/1M out",
-    tint: "#4d8bff", glyph: "✦", logo: "/tm-assets/gemini-logo.png",
+    key: "gemini", name: "Gemini", providerKey: "google", category: "LLM", unit: "/1M out",
+    tint: "#4d8bff", glyph: "✦",
     blurb: "2M-token cart capacity. Bulk context, bulk savings.",
     tags: ["2M ctx", "Multimodal"],
     match: has("gemini"), primaryId: "gemini-3-pro-preview",
     fallback: { retail: 12, wholesale: 9.6, line: "3.1 Pro · 3 Pro · 3.5 Flash · 3 Flash" },
   },
   {
-    key: "grok", name: "Grok", provider: "xAI", category: "LLM", unit: "/1M out",
-    tint: "#d6d6d6", glyph: "✕", logo: "/tm-assets/grok-logo.png",
+    key: "grok", name: "Grok", providerKey: "xai", category: "LLM", unit: "/1M out",
+    tint: "#d6d6d6", glyph: "✕",
     blurb: "Real-time feed, sharp tongue. Just landed.",
     tags: ["Realtime", "Reasoning"],
     match: has("grok"), primaryId: "grok-4.3",
     fallback: { retail: 2.5, wholesale: 2, line: "Grok 4.3 · Grok 4.20 · Grok 4.1 Fast" },
   },
   {
-    key: "deepseek", name: "DeepSeek", provider: "DeepSeek", category: "LLM", unit: "/1M out",
-    tint: "#5b6cff", glyph: "◆", logo: "/tm-assets/deepseek-logo.png",
+    key: "deepseek", name: "DeepSeek", providerKey: "deepseek", category: "LLM", unit: "/1M out",
+    tint: "#5b6cff", glyph: "◆",
     blurb: "The warehouse-brand reasoner. Same job, a fraction of the price.",
     tags: ["Reasoning", "Chat"],
     match: has("deepseek"), primaryId: "deepseek-v4-pro",
     fallback: { retail: 3.48, wholesale: 0.87, line: "V4 Pro · V4 Flash · V3.2" },
   },
   {
-    key: "qwen", name: "Qwen", provider: "Alibaba", category: "LLM", unit: "/1M out",
-    tint: "#615ced", glyph: "◇", logo: "/tm-assets/qwen-logo.png",
+    key: "qwen", name: "Qwen", providerKey: "alibaba", category: "LLM", unit: "/1M out",
+    tint: "#615ced", glyph: "◇",
     blurb: "Open-shelf workhorse. Coder, vision, chat — all in one bin.",
     tags: ["Open", "Coding", "Vision"],
     match: has("qwen"), primaryId: "qwen3.7-max",
     fallback: { retail: 7.5, wholesale: 4.875, line: "Qwen 3.7 Max · 3.6 Plus · 3.5 Flash" },
   },
   {
-    key: "kimi", name: "Kimi", provider: "Kimi AI", category: "LLM", unit: "/1M out",
-    tint: "#ff8a3d", glyph: "◤", logo: "/tm-assets/kimi-logo.png",
+    key: "kimi", name: "Kimi", providerKey: "moonshot", category: "LLM", unit: "/1M out",
+    tint: "#ff8a3d", glyph: "◤",
     blurb: "Long-context specialist. Fast, frugal, multilingual.",
     tags: ["Long Context", "Vision"],
     match: has("kimi"), primaryId: "kimi-k2.6",
     fallback: { retail: 4, wholesale: 2.4, line: "Kimi K2.6 · K2.5" },
   },
   {
-    key: "glm", name: "GLM", provider: "Z.AI", category: "LLM", unit: "/1M out",
-    tint: "#a45bff", glyph: "◈", logo: "/tm-assets/zai-logo.png",
+    key: "glm", name: "GLM", providerKey: "zai", category: "LLM", unit: "/1M out",
+    tint: "#a45bff", glyph: "◈",
     blurb: "Overstocked & priced to move. Huge context, tiny bill.",
     tags: ["Long Context", "Chat"],
     match: has("glm"), primaryId: "glm-5",
     fallback: { retail: 2.08, wholesale: 1.248, line: "GLM-5 · GLM-5.1" },
   },
   {
-    key: "minimax", name: "MiniMax", provider: "MiniMax", category: "LLM", unit: "/1M out",
-    tint: "#f5246b", glyph: "∞", logo: "/tm-assets/minimax-logo.png",
+    key: "minimax", name: "MiniMax", providerKey: "minimax", category: "LLM", unit: "/1M out",
+    tint: "#f5246b", glyph: "∞",
     blurb: "Buy in bulk, run anywhere. No membership card.",
     tags: ["Open", "Multimodal"],
     match: has("minimax"), primaryId: "MiniMax-M3",
     fallback: { retail: 2.4, wholesale: 1.2, line: "M3 · M2.7 · M2.5" },
   },
   {
-    key: "seedance", name: "Seedance", provider: "ByteDance", category: "Video", unit: "/5s clip",
-    tint: "#1fc7c2", glyph: "►", logo: "/tm-assets/seedance-logo.png",
+    key: "seedance", name: "Seedance", providerKey: "bytedance", category: "Video", unit: "/5s clip",
+    tint: "#1fc7c2", glyph: "►",
     blurb: "Fresh off the reel. Cinematic clips by the cartload.",
     tags: ["Video gen", "1080p", "Text→Video"],
     match: (id) => id.toLowerCase().includes("seedance"),
@@ -127,6 +131,11 @@ export const FAMILIES: Family[] = [
     fallback: { retail: 0.07, wholesale: 0.035, line: "Seedance 2.0" },
   },
 ];
+
+export const FAMILIES: Family[] = FAMILY_DEFS.map(({ providerKey, ...rest }) => {
+  const p = getProvider(providerKey);
+  return { ...rest, provider: p?.name ?? providerKey, logo: p ? providerLogo(p) : "" };
+});
 
 export const discountOf = (m: { retail: number; wholesale: number }): number =>
   Math.round((1 - m.wholesale / m.retail) * 100);
