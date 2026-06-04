@@ -6,7 +6,6 @@ import { Hero } from "@/components/tm/Hero";
 import { Marketplace } from "@/components/tm/Marketplace";
 import { HowItWorks } from "@/components/tm/HowItWorks";
 import { Benefits } from "@/components/tm/Benefits";
-import { PricingCompare } from "@/components/tm/PricingCompare";
 import { FinalCTA } from "@/components/tm/FinalCTA";
 import { TMFooter } from "@/components/tm/Footer";
 import { useGetuHref } from "@/lib/attribution";
@@ -25,7 +24,6 @@ export default function Home() {
         <Marketplace apiHref={apiHref} />
         <HowItWorks />
         <Benefits />
-        <PricingCompare />
         <FinalCTA />
       </main>
       <TMFooter />

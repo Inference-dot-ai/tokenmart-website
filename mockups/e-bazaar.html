@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TokenMart — Bazaar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ─── DIRECTION E · BAZAAR — Pinduoduo × Apple bento ──
+     Vibrant tile mosaic, group-buy energy, candy colors.
+  */
+  :root {
+    --bg:        #0B0B11;
+    --tile-bg:   #16161E;
+    --tile-hi:   #1F1F2A;
+    --text:      #FFFFFF;
+    --text-dim:  #A8A6B8;
+    --text-mute: #5C5A6F;
+    --hair:      rgba(255,255,255,0.08);
+    --pink:      #FF2E8C;
+    --hot:       #FF4D2E;
+    --lime:      #C8FF52;
+    --cyan:      #5CE5FF;
+    --violet:    #8B5CFF;
+    --sun:       #FFD93D;
+    --display:   'Funnel Display', sans-serif;
+    --body:      'Plus Jakarta Sans', sans-serif;
+    --mono:      'DM Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--body); color: var(--text); background: var(--bg);
+    -webkit-font-smoothing: antialiased; min-height: 100vh; padding-bottom: 6rem;
+    overflow-x: hidden;
+  }
+  /* subtle radial vignette for stage feel */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(50% 40% at 80% 0%, rgba(139,92,255,0.12), transparent 70%),
+      radial-gradient(50% 40% at 20% 100%, rgba(255,46,140,0.10), transparent 70%);
+  }
+
+  .pglyph { display: inline-flex; color: currentColor; }
+  .pglyph svg { fill: currentColor; width: 100%; height: 100%; display: block; }
+
+  /* ── Top urgency strip ── */
+  .strip {
+    background: var(--lime); color: var(--bg);
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    padding: 0.55rem 0; letter-spacing: 0.04em; text-align: center;
+    overflow: hidden;
+  }
+  .strip-inner {
+    display: inline-flex; gap: 3rem; white-space: nowrap;
+    animation: scroll-strip 35s linear infinite;
+  }
+  @keyframes scroll-strip { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .strip-inner span { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .strip-inner .b { background: var(--bg); color: var(--lime); padding: 1px 6px; border-radius: 3px; font-weight: 800; }
+
+  /* ── Nav ── */
+  .nav {
+    max-width: 1400px; margin: 0 auto;
+    padding: 1.25rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 2rem;
+  }
+  .logo {
+    font-family: var(--display); font-weight: 800;
+    font-size: 24px; letter-spacing: -0.04em;
+    display: flex; align-items: center; gap: 0.55rem;
+  }
+  .logo-mark {
+    width: 26px; height: 26px;
+    background: var(--pink);
+    border-radius: 8px; transform: rotate(45deg);
+    box-shadow: 6px 0 0 0 var(--lime);
+  }
+  .nav-search {
+    flex: 1; max-width: 480px;
+    display: flex; align-items: center; gap: 0.6rem;
+    background: var(--tile-bg);
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    padding: 0.65rem 1.1rem;
+    font-size: 14px; color: var(--text-dim);
+    cursor: pointer; transition: all 200ms;
+  }
+  .nav-search:hover { border-color: var(--pink); background: var(--tile-hi); }
+  .nav-search svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .nav-search .kbd {
+    margin-left: auto; font-family: var(--mono); font-size: 11px;
+    background: var(--bg); padding: 2px 7px; border-radius: 4px;
+    border: 1px solid var(--hair); color: var(--text-mute);
+  }
+  .nav-links { display: flex; gap: 1.75rem; font-size: 14px; font-weight: 500; color: var(--text-dim); }
+  .nav-links a { color: inherit; text-decoration: none; transition: color 200ms; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    font-size: 14px; font-weight: 700;
+    background: var(--lime); color: var(--bg);
+    padding: 0.7rem 1.3rem; border-radius: 999px;
+    text-decoration: none; transition: all 200ms ease;
+  }
+  .nav-cta:hover { background: white; transform: translateY(-1px); }
+
+  /* ── Hero bento ── */
+  .hero-bento {
+    max-width: 1400px; margin: 0 auto;
+    padding: 1.5rem 2rem 0;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-auto-rows: minmax(110px, auto);
+    gap: 0.75rem;
+  }
+  .b-tile {
+    border-radius: 24px;
+    padding: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: transform 200ms ease;
+  }
+  .b-tile:hover { transform: translateY(-2px); }
+  .b-65 {
+    grid-column: span 5; grid-row: span 4;
+    background:
+      radial-gradient(80% 80% at 80% 80%, rgba(255,46,140,0.4), transparent 60%),
+      linear-gradient(135deg, var(--violet), var(--pink) 70%);
+    color: white;
+    display: flex; flex-direction: column; justify-content: space-between;
+    min-height: 480px;
+  }
+  .b-65 .tag {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(255,255,255,0.18); backdrop-filter: blur(8px);
+    padding: 0.4rem 0.85rem; border-radius: 999px;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    align-self: flex-start;
+  }
+  .b-65 .tag .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); animation: blip 1.6s infinite; }
+  @keyframes blip { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .b-65 h1 {
+    font-family: var(--display); font-weight: 800;
+    font-size: clamp(3rem, 8vw, 7.5rem);
+    line-height: 0.88; letter-spacing: -0.045em;
+    margin-top: 1rem;
+  }
+  .b-65 h1 .pct {
+    background: linear-gradient(120deg, var(--lime), var(--sun), white);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-style: italic;
+  }
+  .b-65 .lead-row {
+    margin-top: 1.5rem;
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: white; color: var(--bg);
+    padding: 0.95rem 1.4rem; border-radius: 999px;
+    font-size: 15px; font-weight: 700;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: transform 200ms;
+  }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-ghost {
+    color: white;
+    padding: 0.95rem 1.4rem; border-radius: 999px;
+    font-size: 15px; font-weight: 600;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+  .b-65 .sub {
+    margin-top: 1.5rem;
+    font-size: 17px; line-height: 1.5; max-width: 38ch;
+    color: rgba(255,255,255,0.85);
+  }
+  /* big floating tag sticker */
+  .b-65 .sticker-big {
+    position: absolute; top: 2rem; right: 2rem;
+    width: 110px; height: 110px;
+    background: var(--lime); color: var(--bg);
+    border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transform: rotate(12deg);
+    font-family: var(--display); font-weight: 800;
+    box-shadow: 0 12px 32px -8px rgba(200,255,82,0.4);
+  }
+  .b-65 .sticker-big .small { font-size: 10px; letter-spacing: 0.16em; font-family: var(--mono); }
+  .b-65 .sticker-big .big-num { font-size: 32px; line-height: 1; margin-top: 2px; }
+
+  /* live counter tile */
+  .b-counter {
+    grid-column: span 3; grid-row: span 2;
+    background: var(--tile-bg);
+    border: 1px solid var(--hair);
+    color: var(--text);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .b-counter .head {
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.14em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .b-counter .head .live {
+    color: var(--lime); font-weight: 600;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .b-counter .head .live::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--lime); animation: blip 1.6s infinite;
+  }
+  .b-counter h3 {
+    font-family: var(--display); font-weight: 600;
+    font-size: 22px; letter-spacing: -0.02em; line-height: 1.1;
+    margin-top: 0.4rem;
+  }
+  .b-counter .clock {
+    display: flex; gap: 0.5rem; margin-top: 1rem;
+  }
+  .b-counter .clock .seg {
+    flex: 1; background: var(--bg); border-radius: 12px;
+    padding: 0.7rem 0.5rem; text-align: center;
+  }
+  .b-counter .clock .num {
+    font-family: var(--mono); font-size: 28px; font-weight: 600;
+    color: var(--lime); font-variant-numeric: tabular-nums;
+  }
+  .b-counter .clock .lbl {
+    font-family: var(--mono); font-size: 9px; color: var(--text-mute);
+    letter-spacing: 0.12em; text-transform: uppercase; margin-top: 2px;
+  }
+
+  /* social tile */
+  .b-social {
+    grid-column: span 3; grid-row: span 2;
+    background: linear-gradient(135deg, var(--cyan), #2D8FFF);
+    color: var(--bg);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .b-social .head {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    font-weight: 600;
+    opacity: 0.7;
+  }
+  .b-social h3 {
+    font-family: var(--display); font-weight: 800;
+    font-size: 38px; letter-spacing: -0.03em; line-height: 1;
+    margin-top: 0.4rem;
+  }
+  .b-social .bottom {
+    display: flex; align-items: center; gap: 0.85rem;
+  }
+  .avatars { display: flex; }
+  .avatars .a {
+    width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--cyan);
+    margin-left: -10px;
+    background: var(--bg); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+  }
+  .avatars .a:nth-child(1) { background: var(--pink); margin-left: 0; }
+  .avatars .a:nth-child(2) { background: var(--violet); }
+  .avatars .a:nth-child(3) { background: var(--sun); color: var(--bg); }
+  .avatars .a:nth-child(4) { background: var(--bg); color: white; border-color: var(--bg); }
+  .b-social .text { font-size: 13px; font-weight: 500; }
+
+  /* ── Provider strip ── */
+  .providers {
+    max-width: 1400px; margin: 1.5rem auto 0;
+    padding: 1.25rem 2rem;
+    border-radius: 24px;
+    background: var(--tile-bg);
+    border: 1px solid var(--hair);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 2rem;
+    overflow: hidden;
+  }
+  .providers .label {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .providers .row {
+    display: flex; gap: 2.5rem; align-items: center;
+    flex: 1; justify-content: center;
+  }
+  .providers .row .pglyph {
+    width: 24px; height: 24px;
+    color: var(--text-dim);
+    transition: color 200ms, transform 200ms;
+  }
+  .providers .row .pglyph:hover { color: var(--text); transform: scale(1.1); }
+  .providers .count {
+    font-family: var(--display); font-weight: 700; font-size: 15px;
+    color: var(--text-dim);
+  }
+  .providers .count .n { color: var(--lime); font-size: 19px; }
+
+  /* ── Marketplace bento (varied colored tiles) ── */
+  .market-head {
+    max-width: 1400px; margin: 4rem auto 1.5rem;
+    padding: 0 2rem;
+    display: flex; justify-content: space-between; align-items: end;
+  }
+  .market-head h2 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .market-head h2 em {
+    font-style: italic; font-weight: 800;
+    color: var(--lime);
+  }
+  .market-head .filters {
+    display: flex; gap: 0.4rem;
+    background: var(--tile-bg); border: 1px solid var(--hair);
+    border-radius: 999px; padding: 0.3rem;
+  }
+  .filter-chip {
+    padding: 0.4rem 0.95rem; border-radius: 999px;
+    font-size: 13px; font-weight: 600; color: var(--text-dim);
+    cursor: pointer;
+  }
+  .filter-chip.on { background: var(--lime); color: var(--bg); }
+
+  .market {
+    max-width: 1400px; margin: 0 auto;
+    padding: 0 2rem;
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: minmax(180px, auto);
+    gap: 0.75rem;
+  }
+  .m-tile {
+    border-radius: 24px;
+    padding: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: transform 200ms ease;
+    display: flex; flex-direction: column; justify-content: space-between;
+    gap: 1rem;
+    color: var(--text);
+  }
+  .m-tile:hover { transform: translateY(-3px); }
+
+  /* lead — Grok with image */
+  .m-lead {
+    grid-column: span 3; grid-row: span 2;
+    background: linear-gradient(140deg, #2A0F1E, var(--bg));
+    border: 1px solid var(--pink);
+    box-shadow: inset 0 0 30px rgba(255,46,140,0.15);
+    min-height: 400px;
+  }
+  .m-lead .img-wrap {
+    position: absolute; top: 0; right: 0; bottom: 0;
+    width: 60%;
+    background:
+      radial-gradient(ellipse at 50% 50%, transparent 0%, rgba(0,0,0,0.7) 100%),
+      url('../public/featured-models/grok-4.1.png') center / cover;
+    -webkit-mask-image: linear-gradient(to left, black 30%, transparent 100%);
+            mask-image: linear-gradient(to left, black 30%, transparent 100%);
+  }
+  .m-lead > * { position: relative; z-index: 1; }
+  .m-lead .header {
+    display: flex; align-items: center; gap: 0.7rem;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .m-lead .pglyph { width: 16px; height: 16px; color: var(--text); }
+  .m-lead .badge {
+    background: var(--pink); color: white;
+    padding: 3px 9px; border-radius: 999px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .m-lead h3 {
+    font-family: var(--display); font-weight: 700;
+    font-size: 64px; letter-spacing: -0.04em; line-height: 0.95;
+  }
+  .m-lead h3 em { font-style: italic; color: var(--lime); }
+  .m-lead p { font-size: 14px; color: var(--text-dim); line-height: 1.5; max-width: 32ch; }
+  .m-lead .price-row {
+    display: flex; align-items: baseline; gap: 0.85rem; flex-wrap: wrap;
+  }
+  .m-lead .retail { font-family: var(--mono); font-size: 14px; color: var(--text-mute); text-decoration: line-through; }
+  .m-lead .ask {
+    font-family: var(--display); font-weight: 800; font-size: 56px;
+    background: linear-gradient(120deg, var(--lime), var(--sun));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    line-height: 1; letter-spacing: -0.03em;
+  }
+  .m-lead .unit { font-family: var(--mono); font-size: 11px; color: var(--text-mute); letter-spacing: 0.06em; }
+  .m-lead .save {
+    background: var(--lime); color: var(--bg);
+    padding: 4px 10px; border-radius: 999px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  /* group-buy mini */
+  .m-lead .group-buy {
+    margin-top: 0.5rem;
+    display: flex; align-items: center; gap: 0.7rem;
+    font-size: 12px; color: var(--text-dim);
+  }
+  .m-lead .group-buy .avatars .a {
+    width: 24px; height: 24px; font-size: 10px;
+    border-color: var(--bg);
+  }
+
+  /* category-colored tiles */
+  .m-violet {
+    grid-column: span 2;
+    background: linear-gradient(140deg, #5B2DD9, #3D1A99);
+    color: white;
+  }
+  .m-orange {
+    grid-column: span 1;
+    background: linear-gradient(140deg, var(--hot), #C2391F);
+  }
+  .m-cyan {
+    grid-column: span 2;
+    background: linear-gradient(140deg, var(--cyan), #2D8FFF);
+    color: var(--bg);
+  }
+  .m-lime {
+    grid-column: span 1;
+    background: linear-gradient(140deg, var(--lime), #8DCC2A);
+    color: var(--bg);
+  }
+  .m-sun {
+    grid-column: span 2;
+    background: linear-gradient(140deg, var(--sun), #C29F00);
+    color: var(--bg);
+  }
+  .m-tile .tile-tag {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600;
+    opacity: 0.75;
+  }
+  .m-tile .tile-tag .pglyph { width: 14px; height: 14px; }
+  .m-tile h4 {
+    font-family: var(--display); font-weight: 700;
+    font-size: 26px; letter-spacing: -0.025em; line-height: 1;
+  }
+  .m-tile .price-line {
+    display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .m-tile .price-line .retail-s { font-family: var(--mono); font-size: 12px; opacity: 0.6; text-decoration: line-through; }
+  .m-tile .price-line .ask-s {
+    font-family: var(--display); font-weight: 800; font-size: 28px;
+    line-height: 1; letter-spacing: -0.02em;
+  }
+  .m-tile .price-line .save-s {
+    margin-left: auto;
+    background: rgba(0,0,0,0.2); padding: 3px 8px; border-radius: 999px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .m-cyan .save-s, .m-lime .save-s, .m-sun .save-s {
+    background: var(--bg); color: white;
+  }
+
+  /* ── Group buy / membership tiers ── */
+  .group-section {
+    max-width: 1400px; margin: 4.5rem auto 0;
+    padding: 0 2rem;
+  }
+  .group-section h2 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+  .group-section h2 em {
+    font-style: italic; font-weight: 800;
+    background: linear-gradient(120deg, var(--lime), var(--sun));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .group-section .sub {
+    font-size: 16px; color: var(--text-dim); margin-bottom: 2.5rem; max-width: 60ch;
+  }
+
+  .tiers {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem;
+  }
+  .tier {
+    background: var(--tile-bg); border: 1px solid var(--hair);
+    border-radius: 20px; padding: 1.4rem 1.2rem;
+    transition: all 250ms;
+    position: relative; overflow: hidden;
+  }
+  .tier:hover { background: var(--tile-hi); transform: translateY(-3px); }
+  .tier.featured {
+    background: linear-gradient(160deg, rgba(255,46,140,0.15), rgba(139,92,255,0.12));
+    border-color: var(--pink);
+    box-shadow: 0 12px 32px -8px rgba(255,46,140,0.3);
+  }
+  .tier .pay {
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .tier .amt {
+    font-family: var(--display); font-weight: 700; font-size: 36px;
+    margin: 0.4rem 0 0.6rem; line-height: 1; letter-spacing: -0.03em;
+  }
+  .tier .arrow { font-size: 12px; color: var(--text-mute); margin: 0.25rem 0; }
+  .tier .get {
+    font-family: var(--display); font-weight: 800; font-size: 24px;
+    color: var(--lime); line-height: 1;
+  }
+  .tier.featured .get { color: var(--sun); }
+  .tier .bonus {
+    margin-top: 0.65rem; display: inline-block;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    color: var(--bg); background: var(--lime);
+    padding: 4px 9px; border-radius: 999px;
+    letter-spacing: 0.04em;
+  }
+  .tier.featured .bonus { background: var(--sun); }
+  .tier.featured::before {
+    content: "🔥 HOT";
+    position: absolute; top: 10px; right: 10px;
+    font-family: var(--mono); font-size: 10px;
+    background: var(--pink); color: white;
+    padding: 3px 8px; border-radius: 999px;
+    letter-spacing: 0.08em; font-weight: 700;
+  }
+
+  /* ── Why grid ── */
+  .why-grid {
+    max-width: 1400px; margin: 5rem auto 0;
+    padding: 0 2rem;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+  }
+  .why-card {
+    background: var(--tile-bg); border: 1px solid var(--hair);
+    border-radius: 24px; padding: 2rem;
+    position: relative; overflow: hidden;
+  }
+  .why-card.violet { background: linear-gradient(160deg, rgba(139,92,255,0.18), var(--tile-bg)); border-color: rgba(139,92,255,0.3); }
+  .why-card.pink { background: linear-gradient(160deg, rgba(255,46,140,0.16), var(--tile-bg)); border-color: rgba(255,46,140,0.3); }
+  .why-card.lime { background: linear-gradient(160deg, rgba(200,255,82,0.12), var(--tile-bg)); border-color: rgba(200,255,82,0.3); }
+  .why-card .ord {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--text-mute);
+  }
+  .why-card .num {
+    font-family: var(--display); font-weight: 800; font-size: 88px;
+    line-height: 0.95; margin: 0.5rem 0 1rem;
+    letter-spacing: -0.04em;
+  }
+  .why-card.violet .num { color: var(--violet); }
+  .why-card.pink .num { color: var(--pink); }
+  .why-card.lime .num { color: var(--lime); }
+  .why-card h3 {
+    font-family: var(--display); font-weight: 600; font-size: 22px;
+    letter-spacing: -0.02em; margin-bottom: 0.5rem;
+  }
+  .why-card p { font-size: 14px; line-height: 1.6; color: var(--text-dim); }
+  .why-card .icons {
+    margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .why-card .ic {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--bg); border: 1px solid var(--hair);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim);
+  }
+  .why-card .ic .pglyph { width: 18px; height: 18px; }
+
+  @media (max-width: 1100px) {
+    .hero-bento { grid-template-columns: repeat(4, 1fr); }
+    .b-65 { grid-column: span 4; grid-row: span 3; min-height: 400px; }
+    .b-counter, .b-social { grid-column: span 2; grid-row: span 2; }
+    .market { grid-template-columns: repeat(2, 1fr); }
+    .m-lead { grid-column: span 2; grid-row: span 2; }
+    .m-violet, .m-cyan, .m-sun { grid-column: span 2; }
+    .m-orange, .m-lime { grid-column: span 1; }
+    .tiers { grid-template-columns: repeat(2, 1fr); }
+    .why-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Provider sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="anthropic" viewBox="0 0 24 24"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"/></symbol>
+    <symbol id="openai" viewBox="0 0 24 24"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.05 6.05 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.998-2.9 6.056 6.056 0 0 0-.747-7.073z"/></symbol>
+    <symbol id="google" viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></symbol>
+    <symbol id="x" viewBox="0 0 24 24"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932Z"/></symbol>
+    <symbol id="meta" viewBox="0 0 24 24"><path d="M12.001 8.45c-.37 1.005-.997 2.13-1.732 2.91-.756.802-1.65 1.21-2.658 1.21-1.005 0-1.815-.41-2.404-1.213-.583-.795-.886-1.85-.886-3.069 0-1.27.31-2.38.92-3.297.57-.86 1.314-1.31 2.165-1.31.91 0 1.732.45 2.444 1.34.527.66.989 1.502 1.36 2.482z"/></symbol>
+    <symbol id="deepseek" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 11c2-2 8-2 10 0M7 14c2 2 8 2 10 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="bytedance" viewBox="0 0 24 24"><path d="M19.83 5.36L24 0v18.97c0 2.71-2.32 5.03-5.03 5.03H4.85a4.83 4.83 0 0 1-4.84-4.85V8.4l3.45-3.32V19.5c0 .67.5 1.18 1.18 1.18h13.42c.71 0 1.27-.55 1.27-1.27V5.43z"/></symbol>
+    <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
+  </defs>
+</svg>
+
+<div class="strip">
+  <div class="strip-inner">
+    <span><span class="b">FLASH</span> Grok 4.1 dropped −65% just now</span>
+    <span><span class="b">SOLD</span> 247 dev teams locked in $99 tier in last hour</span>
+    <span><span class="b">DROP</span> Gemini 3.1 Pro now at $9.60/1M</span>
+    <span><span class="b">LIVE</span> +20% bonus credits expire in 02:14:08</span>
+    <span><span class="b">FLASH</span> Grok 4.1 dropped −65% just now</span>
+    <span><span class="b">SOLD</span> 247 dev teams locked in $99 tier in last hour</span>
+    <span><span class="b">DROP</span> Gemini 3.1 Pro now at $9.60/1M</span>
+    <span><span class="b">LIVE</span> +20% bonus credits expire in 02:14:08</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="logo"><span class="logo-mark"></span>tokenmart</div>
+  <div class="nav-search">
+    <svg fill="none"><use href="#search"/></svg>
+    <span>Search 50+ models, providers, deals…</span>
+    <span class="kbd">⌘ K</span>
+  </div>
+  <div class="nav-links">
+    <a href="#">Compare</a>
+    <a href="#">Docs</a>
+  </div>
+  <a href="#" class="nav-cta">Open account</a>
+</nav>
+
+<section class="hero-bento">
+  <!-- Big 65% hero tile -->
+  <div class="b-tile b-65">
+    <div>
+      <span class="tag"><span class="dot"></span>FLASH MARKETPLACE · LIVE</span>
+      <h1>Up to<br><span class="pct">65% off</span><br>top AI models.</h1>
+      <p class="sub">Same Claude, GPT, Gemini, Grok — wholesale pricing through one API. Group rates unlock automatically as more devs join.</p>
+    </div>
+    <div class="lead-row">
+      <a href="#" class="btn-primary">Lock in pricing →</a>
+      <a href="#" class="btn-ghost">Compare models</a>
+    </div>
+    <div class="sticker-big">
+      <span class="small">UP TO</span>
+      <span class="big-num">−65%</span>
+    </div>
+  </div>
+
+  <!-- Live counter tile -->
+  <div class="b-tile b-counter">
+    <div>
+      <div class="head">
+        <span>NEXT DROP IN</span>
+        <span class="live">LIVE</span>
+      </div>
+      <h3>+20% bonus credits<br>auto-expire</h3>
+    </div>
+    <div class="clock">
+      <div class="seg"><div class="num">02</div><div class="lbl">HRS</div></div>
+      <div class="seg"><div class="num">14</div><div class="lbl">MIN</div></div>
+      <div class="seg"><div class="num">08</div><div class="lbl">SEC</div></div>
+    </div>
+  </div>
+
+  <!-- Social proof tile -->
+  <div class="b-tile b-social">
+    <div>
+      <div class="head">GROUP-BUY ACTIVE</div>
+      <h3>12,847</h3>
+      <div style="font-size: 13px; font-weight: 600; opacity: 0.7; margin-top: 0.25rem">developers locked in this rate today</div>
+    </div>
+    <div class="bottom">
+      <div class="avatars">
+        <div class="a">JK</div>
+        <div class="a">RM</div>
+        <div class="a">AY</div>
+        <div class="a">+</div>
+      </div>
+      <div class="text">+247 in the last hour</div>
+    </div>
+  </div>
+</section>
+
+<div class="providers">
+  <span class="label">Routing live across</span>
+  <div class="row">
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#openai"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#x"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#meta"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#deepseek"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#bytedance"/></svg></span>
+  </div>
+  <span class="count"><span class="n">50+</span> models</span>
+</div>
+
+<div class="market-head">
+  <h2>Today's <em>flash deals</em></h2>
+  <div class="filters">
+    <span class="filter-chip on">All</span>
+    <span class="filter-chip">LLM</span>
+    <span class="filter-chip">Image</span>
+    <span class="filter-chip">Audio</span>
+    <span class="filter-chip">Video</span>
+  </div>
+</div>
+
+<section class="market">
+  <div class="m-tile m-lead">
+    <div class="img-wrap"></div>
+    <div class="header">
+      <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#x"/></svg></span>
+      <span>xAI</span>
+      <span class="badge">★ FLAGSHIP</span>
+    </div>
+    <h3>Grok <em>4.1</em></h3>
+    <p>Latest-gen flagship reasoning model. Long-horizon planning, code-grade output, this week's deepest cut.</p>
+    <div class="price-row">
+      <span class="retail">$6.00</span>
+      <span class="ask">$2.10</span>
+      <span class="unit">/1M tok</span>
+      <span class="save">−65%</span>
+    </div>
+    <div class="group-buy">
+      <div class="avatars">
+        <div class="a" style="background: var(--violet)">JK</div>
+        <div class="a" style="background: var(--cyan); color: var(--bg)">RM</div>
+        <div class="a" style="background: var(--lime); color: var(--bg)">AY</div>
+      </div>
+      <span><strong style="color: var(--lime)">847 devs</strong> locked in this price today</span>
+    </div>
+  </div>
+
+  <div class="m-tile m-violet">
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span>ANTHROPIC · LLM</span>
+    <h4>Claude Opus 4.7</h4>
+    <div class="price-line">
+      <span class="retail-s">$25.00</span>
+      <span class="ask-s">$21.25</span>
+      <span class="save-s">−15%</span>
+    </div>
+  </div>
+
+  <div class="m-tile m-orange">
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#openai"/></svg></span>OPENAI</span>
+    <h4>GPT 5.4</h4>
+    <div class="price-line">
+      <span class="ask-s">$12.75</span>
+      <span class="save-s">−15%</span>
+    </div>
+  </div>
+
+  <div class="m-tile m-cyan">
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span>GOOGLE · LLM</span>
+    <h4>Gemini 3.1 Pro</h4>
+    <div class="price-line">
+      <span class="retail-s">$12.00</span>
+      <span class="ask-s">$9.60</span>
+      <span class="save-s">−20%</span>
+    </div>
+  </div>
+
+  <div class="m-tile m-lime">
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span>ANTHROPIC</span>
+    <h4>Sonnet 4.6</h4>
+    <div class="price-line">
+      <span class="ask-s">$12.75</span>
+      <span class="save-s">−15%</span>
+    </div>
+  </div>
+
+  <div class="m-tile m-sun">
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span>GOOGLE · IMAGE</span>
+    <h4>Nano Banana 2</h4>
+    <div class="price-line">
+      <span class="retail-s">$0.05</span>
+      <span class="ask-s">$0.04</span>
+      <span class="save-s">−20%</span>
+    </div>
+  </div>
+</section>
+
+<section class="group-section">
+  <h2>Top up <em>once</em>, save more.</h2>
+  <p class="sub">More credits unlock bigger bonuses — automatically. No subscription, no minimums. Stack with every model discount on the marketplace.</p>
+
+  <div class="tiers">
+    <div class="tier featured">
+      <div class="pay">PAY</div>
+      <div class="amt">$99</div>
+      <div class="arrow">↓ receive</div>
+      <div class="get">$118.80</div>
+      <div class="bonus">+20% bonus</div>
+    </div>
+    <div class="tier">
+      <div class="pay">PAY</div>
+      <div class="amt">$499</div>
+      <div class="arrow">↓ receive</div>
+      <div class="get">$518.96</div>
+      <div class="bonus">+4% bonus</div>
+    </div>
+    <div class="tier">
+      <div class="pay">PAY</div>
+      <div class="amt">$999</div>
+      <div class="arrow">↓ receive</div>
+      <div class="get">$1,058.94</div>
+      <div class="bonus">+6% bonus</div>
+    </div>
+    <div class="tier">
+      <div class="pay">PAY</div>
+      <div class="amt">$4,999</div>
+      <div class="arrow">↓ receive</div>
+      <div class="get">$5,398.92</div>
+      <div class="bonus">+8% bonus</div>
+    </div>
+    <div class="tier">
+      <div class="pay">PAY</div>
+      <div class="amt">$9,999</div>
+      <div class="arrow">↓ receive</div>
+      <div class="get">$10,998.90</div>
+      <div class="bonus">+10% bonus</div>
+    </div>
+    <div class="tier">
+      <div class="pay">VOLUME</div>
+      <div class="amt" style="font-size: 18px; line-height: 1.3; padding: 8px 0">Talk to sales</div>
+      <div class="arrow">↓ up to</div>
+      <div class="get">−65%</div>
+      <div class="bonus">custom</div>
+    </div>
+  </div>
+</section>
+
+<section class="why-grid">
+  <div class="why-card violet">
+    <div class="ord">01 — INVENTORY</div>
+    <div class="num">50+</div>
+    <h3>Every flagship, one endpoint.</h3>
+    <p>Anthropic, OpenAI, Google, xAI, Meta, ByteDance, DeepSeek — fifty leading models behind a single OpenAI-compatible API.</p>
+    <div class="icons">
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#openai"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#x"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#meta"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#bytedance"/></svg></span></span>
+    </div>
+  </div>
+  <div class="why-card pink">
+    <div class="ord">02 — PRICING</div>
+    <div class="num">−65%</div>
+    <h3>Always the lowest market rate.</h3>
+    <p>Smart routing finds the cheapest provider per request. No retainer. No platform fee. Pay the ask, plus a thin routing margin.</p>
+    <div class="icons" style="margin-top: 1.5rem">
+      <span class="ic" style="background: rgba(255,46,140,0.15); color: var(--pink); border-color: rgba(255,46,140,0.3); width: auto; padding: 8px 12px; font-family: var(--mono); font-size: 11px; font-weight: 600;">RETAIL $15.00</span>
+      <span class="ic" style="background: var(--lime); color: var(--bg); border: none; width: auto; padding: 8px 12px; font-family: var(--mono); font-size: 11px; font-weight: 700;">TKM $5.25</span>
+    </div>
+  </div>
+  <div class="why-card lime">
+    <div class="ord">03 — UPTIME</div>
+    <div class="num">99.9%</div>
+    <h3>Cross-provider failover.</h3>
+    <p>If a provider degrades, traffic reroutes pre-emptively. One key, one bill, one dashboard — across every model on the market.</p>
+    <div class="icons" style="margin-top: 1.5rem; align-items: center">
+      <span class="ic" style="background: rgba(200,255,82,0.12); border-color: rgba(200,255,82,0.3); color: var(--lime); width: 56px; font-family: var(--mono); font-size: 11px; font-weight: 700">128ms</span>
+      <span style="font-family: var(--mono); font-size: 11px; color: var(--text-mute); letter-spacing: 0.1em">P50</span>
+      <span class="ic" style="background: rgba(200,255,82,0.12); border-color: rgba(200,255,82,0.3); color: var(--lime); width: 56px; font-family: var(--mono); font-size: 11px; font-weight: 700">340ms</span>
+      <span style="font-family: var(--mono); font-size: 11px; color: var(--text-mute); letter-spacing: 0.1em">P95</span>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

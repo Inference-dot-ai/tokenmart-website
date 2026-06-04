@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TokenMart — Newsstand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ─── H · NEWSSTAND BAZAAR ────────────────────────────
+     Bento Bazaar mixed with vintage printed-catalog aesthetic.
+     Cream parchment tiles, ink stamps, admission tickets, editorial type.
+  */
+  :root {
+    --bg:        #0B0B11;
+    --tile:      #16161E;
+    --tile-hi:   #1F1F2A;
+    --paper:     #ECE6D5;
+    --paper-2:   #DFD7C0;
+    --ink:       #1A1612;
+    --ink-dim:   #5C544A;
+    --ink-mute:  #8E8678;
+    --stamp-red: #B33333;
+    --text:      #FFFFFF;
+    --text-dim:  #A8A6B8;
+    --text-mute: #5C5A6F;
+    --hair:      rgba(255,255,255,0.08);
+    --hair-ink:  rgba(26,22,18,0.18);
+    --pink:      #FF2E8C;
+    --hot:       #FF4D2E;
+    --lime:      #C8FF52;
+    --cyan:      #5CE5FF;
+    --violet:    #8B5CFF;
+    --sun:       #FFD93D;
+    --display:   'Funnel Display', sans-serif;
+    --serif:     'DM Serif Display', serif;
+    --body:      'Plus Jakarta Sans', sans-serif;
+    --mono:      'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--body); color: var(--text); background: var(--bg);
+    -webkit-font-smoothing: antialiased; min-height: 100vh; padding-bottom: 6rem;
+    overflow-x: hidden;
+  }
+  /* paper grain overlay (very subtle, only over cream tiles) */
+  .pglyph { display: inline-flex; color: currentColor; }
+  .pglyph svg { fill: currentColor; width: 100%; height: 100%; display: block; }
+
+  /* ── Top masthead strip — cream paper ── */
+  .masthead {
+    background: var(--paper);
+    color: var(--ink);
+    padding: 0.75rem 2rem;
+    border-bottom: 3px double var(--ink);
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    font-weight: 600;
+  }
+  .masthead .left, .masthead .right {
+    display: flex; gap: 2rem; align-items: center;
+  }
+  .masthead .vol { color: var(--stamp-red); font-weight: 700; }
+  .masthead .date { color: var(--ink-dim); font-style: italic; font-family: var(--serif); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 13px; }
+  .masthead .price-tag {
+    border: 1.5px solid var(--ink);
+    padding: 2px 8px;
+    font-weight: 700;
+  }
+
+  /* ── Top deal strip ── */
+  .strip {
+    background: var(--lime); color: var(--bg);
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    padding: 0.55rem 0; letter-spacing: 0.04em; text-align: center;
+    overflow: hidden;
+  }
+  .strip-inner {
+    display: inline-flex; gap: 3rem; white-space: nowrap;
+    animation: scroll-strip 35s linear infinite;
+  }
+  @keyframes scroll-strip { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .strip-inner span { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .strip-inner .b { background: var(--bg); color: var(--lime); padding: 1px 6px; font-weight: 800; }
+  .strip-inner .ornament { opacity: 0.6; }
+
+  /* ── Nav ── */
+  .nav {
+    max-width: 1400px; margin: 0 auto;
+    padding: 1.25rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 2rem;
+  }
+  .logo {
+    font-family: var(--serif); font-weight: 400;
+    font-size: 32px; letter-spacing: -0.02em;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .logo em { font-style: italic; color: var(--lime); }
+  .logo-mark {
+    width: 22px; height: 22px;
+    border: 1.5px solid var(--lime);
+    transform: rotate(45deg);
+    position: relative;
+  }
+  .logo-mark::after {
+    content: ""; position: absolute; inset: 3px;
+    background: var(--lime);
+  }
+  .nav-links { display: flex; gap: 1.75rem; font-size: 14px; font-weight: 500; color: var(--text-dim); }
+  .nav-links a { color: inherit; text-decoration: none; transition: color 200ms; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    font-size: 14px; font-weight: 700;
+    background: var(--lime); color: var(--bg);
+    padding: 0.7rem 1.3rem;
+    text-decoration: none; transition: all 200ms ease;
+    border: 1px solid var(--lime);
+  }
+  .nav-cta:hover { background: var(--bg); color: var(--lime); }
+
+  /* ── Hero bento ── */
+  .hero-bento {
+    max-width: 1400px; margin: 0 auto;
+    padding: 1.5rem 2rem 0;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-auto-rows: minmax(110px, auto);
+    gap: 0.75rem;
+  }
+  .b-tile {
+    padding: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: transform 200ms ease;
+  }
+  .b-tile:hover { transform: translateY(-2px); }
+
+  /* MAIN 65% TILE */
+  .b-65 {
+    grid-column: span 5; grid-row: span 4;
+    background:
+      radial-gradient(ellipse at 100% 100%, rgba(255,46,140,0.4), transparent 60%),
+      linear-gradient(135deg, var(--violet), var(--pink) 75%);
+    color: white;
+    display: flex; flex-direction: column; justify-content: space-between;
+    min-height: 480px;
+    padding: 2rem;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .b-65 .tag {
+    display: inline-flex; align-items: center; gap: 0.55rem;
+    background: rgba(255,255,255,0.18); backdrop-filter: blur(8px);
+    padding: 0.4rem 0.85rem;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    align-self: flex-start;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  .b-65 .tag .dot { width: 7px; height: 7px; background: var(--lime); animation: blip 1.6s infinite; }
+  @keyframes blip { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .b-65 h1 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: clamp(3rem, 8vw, 7.5rem);
+    line-height: 0.92; letter-spacing: -0.025em;
+    margin-top: 1rem;
+  }
+  .b-65 h1 em { font-style: italic; color: var(--lime); font-weight: 400; }
+  .b-65 h1 .pct {
+    font-family: var(--display); font-weight: 800;
+    background: linear-gradient(120deg, var(--lime), var(--sun) 80%, white);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-style: italic;
+  }
+  .b-65 .lead-row {
+    margin-top: 1.5rem;
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: white; color: var(--bg);
+    padding: 0.95rem 1.4rem;
+    font-size: 15px; font-weight: 700;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: transform 200ms;
+  }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-ghost {
+    color: white;
+    padding: 0.95rem 1.4rem;
+    font-size: 15px; font-weight: 600;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+  .b-65 .sub {
+    margin-top: 1.5rem;
+    font-size: 16px; line-height: 1.5; max-width: 38ch;
+    color: rgba(255,255,255,0.85);
+  }
+  /* INK STAMP overlay — vintage red rectangular stamp */
+  .ink-stamp {
+    position: absolute;
+    top: 1.5rem; right: 1.5rem;
+    border: 2.5px solid var(--stamp-red);
+    padding: 0.7rem 1rem;
+    transform: rotate(-7deg);
+    font-family: var(--mono); font-weight: 700;
+    font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase;
+    line-height: 1.2; text-align: center;
+    color: var(--stamp-red);
+    background: rgba(255,255,255,0.04);
+    box-shadow: inset 0 0 0 1px var(--stamp-red);
+  }
+  .ink-stamp .small { font-size: 9px; opacity: 0.85; display: block; margin-top: 2px; letter-spacing: 0.12em; }
+  .ink-stamp.on-paper { color: var(--stamp-red); border-color: var(--stamp-red); background: transparent; }
+
+  /* COUNTER TILE — paper bg with ink text */
+  .b-counter {
+    grid-column: span 3; grid-row: span 2;
+    background: var(--paper);
+    color: var(--ink);
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 1.5rem;
+    border: 1px solid var(--hair-ink);
+    position: relative;
+  }
+  /* paper texture */
+  .b-counter::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(26,22,18,0.06) 1px, transparent 0);
+    background-size: 14px 14px;
+    pointer-events: none;
+  }
+  .b-counter > * { position: relative; }
+  .b-counter .head {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-dim);
+    letter-spacing: 0.14em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 0.6rem;
+  }
+  .b-counter .head .live { color: var(--stamp-red); font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .b-counter .head .live::before {
+    content: ""; width: 7px; height: 7px; background: var(--stamp-red); border-radius: 50%; animation: blip 1.6s infinite;
+  }
+  .b-counter h3 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: 26px; letter-spacing: -0.01em; line-height: 1.05;
+    margin-top: 0.6rem;
+  }
+  .b-counter h3 em { font-style: italic; color: var(--stamp-red); }
+  .b-counter .clock { display: flex; gap: 0.5rem; margin-top: 0.85rem; }
+  .b-counter .clock .seg {
+    flex: 1; background: var(--paper-2);
+    padding: 0.7rem 0.5rem; text-align: center;
+    border: 1px solid var(--hair-ink);
+  }
+  .b-counter .clock .num {
+    font-family: var(--serif); font-size: 32px; font-weight: 400; font-style: italic;
+    color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .b-counter .clock .lbl {
+    font-family: var(--mono); font-size: 9px; color: var(--ink-mute);
+    letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px;
+  }
+
+  /* SOCIAL TILE */
+  .b-social {
+    grid-column: span 3; grid-row: span 2;
+    background: linear-gradient(135deg, var(--cyan), #2D8FFF);
+    color: var(--bg);
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .b-social .head {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    font-weight: 600; opacity: 0.7;
+  }
+  .b-social h3 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: 56px; letter-spacing: -0.02em; line-height: 0.95;
+    margin-top: 0.4rem;
+  }
+  .b-social h3 em { font-style: italic; }
+  .b-social .bottom { display: flex; align-items: center; gap: 0.85rem; }
+  .avatars { display: flex; }
+  .avatars .a {
+    width: 30px; height: 30px; border: 2px solid var(--cyan);
+    margin-left: -10px;
+    background: var(--bg); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    border-radius: 50%;
+  }
+  .avatars .a:nth-child(1) { background: var(--pink); margin-left: 0; }
+  .avatars .a:nth-child(2) { background: var(--violet); }
+  .avatars .a:nth-child(3) { background: var(--sun); color: var(--bg); }
+  .avatars .a:nth-child(4) { background: var(--bg); color: white; border-color: var(--bg); }
+  .b-social .text { font-size: 13px; font-weight: 600; }
+
+  /* ── Index strip (paper) ── */
+  .index-strip {
+    max-width: 1400px; margin: 1.5rem auto 0;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--hair-ink);
+    padding: 1.5rem 2rem;
+    display: grid; grid-template-columns: auto 1fr auto;
+    gap: 2rem; align-items: center;
+    position: relative;
+  }
+  .index-strip::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(26,22,18,0.04) 1px, transparent 0);
+    background-size: 14px 14px;
+    pointer-events: none;
+  }
+  .index-strip > * { position: relative; }
+  .index-strip .label {
+    font-family: var(--serif); font-style: italic; font-weight: 400;
+    font-size: 18px; color: var(--ink); letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .index-strip .label .small {
+    display: block;
+    font-family: var(--mono); font-size: 10px; font-style: normal;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-mute); margin-bottom: 4px;
+  }
+  .index-strip .row {
+    display: flex; gap: 2rem; align-items: center; justify-content: center;
+  }
+  .index-strip .row .pglyph {
+    width: 24px; height: 24px;
+    color: var(--ink);
+    transition: opacity 200ms;
+  }
+  .index-strip .row .pglyph:hover { opacity: 0.6; }
+  .index-strip .count {
+    font-family: var(--serif); font-size: 18px; font-style: italic;
+    color: var(--ink-dim);
+    text-align: right;
+  }
+  .index-strip .count .n {
+    color: var(--stamp-red); font-weight: 400; font-size: 32px;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Marketplace section ── */
+  .market-head {
+    max-width: 1400px; margin: 4rem auto 1.5rem;
+    padding: 0 2rem;
+    display: flex; justify-content: space-between; align-items: end;
+    border-bottom: 1px solid var(--hair); padding-bottom: 1.5rem;
+  }
+  .market-head h2 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: clamp(2.5rem, 5vw, 4rem); letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .market-head h2 em {
+    font-style: italic; color: var(--lime);
+  }
+  .market-head .ed {
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    text-align: right;
+    line-height: 1.6;
+  }
+  .market-head .ed .strong { color: var(--text); font-weight: 600; }
+
+  .market {
+    max-width: 1400px; margin: 0 auto;
+    padding: 0 2rem;
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: minmax(180px, auto);
+    gap: 0.75rem;
+  }
+  .m-tile {
+    padding: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: transform 200ms ease;
+    display: flex; flex-direction: column; justify-content: space-between;
+    gap: 1rem; color: var(--text);
+    border: 1px solid var(--hair);
+  }
+  .m-tile:hover { transform: translateY(-3px); }
+
+  /* Lead Grok */
+  .m-lead {
+    grid-column: span 3; grid-row: span 2;
+    background: linear-gradient(140deg, #2A0F1E, var(--bg));
+    border: 1px solid var(--pink);
+    box-shadow: inset 0 0 30px rgba(255,46,140,0.12);
+    min-height: 420px;
+    padding: 2rem;
+  }
+  .m-lead .img-wrap {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 55%;
+    background:
+      linear-gradient(90deg, var(--bg) 0%, transparent 35%),
+      url('../public/featured-models/grok-4.1.png') center / cover;
+    -webkit-mask-image: linear-gradient(to left, black 30%, transparent 100%);
+            mask-image: linear-gradient(to left, black 30%, transparent 100%);
+  }
+  .m-lead > * { position: relative; z-index: 1; }
+  .m-lead .header {
+    display: flex; align-items: center; gap: 0.7rem;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .m-lead .pglyph { width: 16px; height: 16px; color: var(--text); }
+  .m-lead .badge {
+    background: var(--pink); color: white;
+    padding: 3px 9px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .m-lead h3 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: 64px; letter-spacing: -0.025em; line-height: 0.95;
+  }
+  .m-lead h3 em { font-style: italic; color: var(--lime); }
+  .m-lead p { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--text-dim); line-height: 1.4; max-width: 32ch; }
+  .m-lead .price-row {
+    display: flex; align-items: baseline; gap: 0.85rem; flex-wrap: wrap;
+    border-top: 1px solid var(--hair); padding-top: 1rem;
+  }
+  .m-lead .retail { font-family: var(--mono); font-size: 14px; color: var(--text-mute); text-decoration: line-through; }
+  .m-lead .ask {
+    font-family: var(--display); font-weight: 800; font-size: 56px;
+    background: linear-gradient(120deg, var(--lime), var(--sun));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    line-height: 1; letter-spacing: -0.03em;
+  }
+  .m-lead .unit { font-family: var(--mono); font-size: 11px; color: var(--text-mute); letter-spacing: 0.06em; }
+  .m-lead .save {
+    background: var(--lime); color: var(--bg);
+    padding: 4px 10px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .m-lead .group-buy {
+    margin-top: 0.5rem;
+    display: flex; align-items: center; gap: 0.7rem;
+    font-size: 12px; color: var(--text-dim);
+  }
+  .m-lead .group-buy .avatars .a {
+    width: 24px; height: 24px; font-size: 10px;
+    border-color: var(--bg);
+  }
+
+  /* a CREAM PARCHMENT "DEAL OF THE WEEK" tile inserted into the bento */
+  .m-paper {
+    grid-column: span 2; grid-row: span 2;
+    background: var(--paper); color: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 1.5rem;
+    display: flex; flex-direction: column; justify-content: space-between;
+    position: relative;
+  }
+  .m-paper::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(26,22,18,0.06) 1px, transparent 0);
+    background-size: 14px 14px;
+    pointer-events: none;
+  }
+  .m-paper > * { position: relative; }
+  .m-paper .top-line {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--ink-dim); font-weight: 600;
+    border-bottom: 1px solid var(--ink); padding-bottom: 0.6rem;
+    display: flex; justify-content: space-between;
+  }
+  .m-paper .top-line .vol { color: var(--stamp-red); }
+  .m-paper h4 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: 38px; letter-spacing: -0.02em; line-height: 1;
+    margin: 0.85rem 0 0.4rem;
+  }
+  .m-paper h4 em { font-style: italic; color: var(--stamp-red); }
+  .m-paper .quote {
+    font-family: var(--serif); font-style: italic; font-size: 14px;
+    color: var(--ink-dim); line-height: 1.45;
+  }
+  .m-paper .price-row {
+    display: flex; align-items: baseline; gap: 0.6rem; margin-top: 1rem;
+    border-top: 2px solid var(--ink); padding-top: 0.85rem;
+  }
+  .m-paper .pp-retail { font-family: var(--mono); font-size: 13px; color: var(--ink-mute); text-decoration: line-through; }
+  .m-paper .pp-ask {
+    font-family: var(--serif); font-style: italic; font-weight: 400;
+    font-size: 38px; color: var(--stamp-red); line-height: 1; letter-spacing: -0.02em;
+  }
+  .m-paper .pp-unit { font-family: var(--mono); font-size: 10px; color: var(--ink-mute); letter-spacing: 0.06em; }
+
+  /* category-colored tiles + corner stamps */
+  .m-violet  { grid-column: span 2; background: linear-gradient(140deg, #5B2DD9, #3D1A99); }
+  .m-orange  { grid-column: span 1; background: linear-gradient(140deg, var(--hot), #C2391F); }
+  .m-cyan    { grid-column: span 2; background: linear-gradient(140deg, var(--cyan), #2D8FFF); color: var(--bg); border-color: rgba(0,0,0,0.15); }
+  .m-lime    { grid-column: span 1; background: linear-gradient(140deg, var(--lime), #8DCC2A); color: var(--bg); border-color: rgba(0,0,0,0.15); }
+
+  .m-tile .tile-tag {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600;
+    opacity: 0.75;
+  }
+  .m-tile .tile-tag .pglyph { width: 14px; height: 14px; }
+  .m-tile h4 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: 30px; letter-spacing: -0.02em; line-height: 1;
+  }
+  .m-tile h4 em { font-style: italic; }
+  .m-tile .price-line {
+    display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .m-tile .price-line .retail-s { font-family: var(--mono); font-size: 12px; opacity: 0.6; text-decoration: line-through; }
+  .m-tile .price-line .ask-s {
+    font-family: var(--display); font-weight: 800; font-size: 28px;
+    line-height: 1; letter-spacing: -0.02em;
+  }
+  .m-tile .price-line .save-s {
+    margin-left: auto;
+    background: rgba(0,0,0,0.25); padding: 3px 8px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .m-cyan .save-s, .m-lime .save-s { background: var(--bg); color: white; }
+
+  /* small ink-stamp overlay on certain tiles */
+  .stamp-mini {
+    position: absolute; top: 1rem; right: 1rem;
+    border: 1.5px solid currentColor;
+    padding: 4px 8px;
+    transform: rotate(-6deg);
+    font-family: var(--mono); font-size: 9px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    line-height: 1;
+    box-shadow: inset 0 0 0 1px currentColor;
+    opacity: 0.85;
+  }
+
+  /* ── Tier section — vintage admission tickets on cream ── */
+  .tier-section {
+    max-width: 1400px; margin: 4.5rem auto 0;
+    padding: 0 2rem;
+  }
+  .tier-section .head-row {
+    display: flex; justify-content: space-between; align-items: end;
+    margin-bottom: 2rem; border-bottom: 1px solid var(--hair); padding-bottom: 1.5rem;
+  }
+  .tier-section h2 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: clamp(2.5rem, 5vw, 4rem); letter-spacing: -0.02em; line-height: 1;
+  }
+  .tier-section h2 em {
+    font-style: italic; color: var(--stamp-red);
+  }
+  .tier-section .head-row .meta {
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    text-align: right; line-height: 1.6;
+  }
+
+  .tickets {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+  }
+  /* large vintage admission ticket */
+  .ticket {
+    background: var(--paper); color: var(--ink);
+    padding: 1.5rem 1.5rem 3rem;
+    position: relative;
+    border: 2px solid var(--ink);
+    display: grid; grid-template-columns: 1fr auto; gap: 1rem;
+    align-items: center;
+    transition: transform 250ms;
+  }
+  .ticket::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(26,22,18,0.06) 1px, transparent 0);
+    background-size: 14px 14px;
+    pointer-events: none;
+  }
+  .ticket:hover { transform: translateY(-3px); }
+  .ticket .left { position: relative; }
+  .ticket .ticket-no {
+    font-family: var(--mono); font-size: 9px; color: var(--ink-mute);
+    letter-spacing: 0.18em; text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .ticket .ticket-no .red { color: var(--stamp-red); font-weight: 700; }
+  .ticket .pay {
+    font-family: var(--serif); font-style: italic; font-weight: 400;
+    font-size: 13px; color: var(--ink-dim);
+  }
+  .ticket .amt {
+    font-family: var(--serif); font-weight: 400; font-size: 56px;
+    line-height: 1; letter-spacing: -0.02em;
+    margin: 0.4rem 0 0.5rem;
+  }
+  .ticket .arrow { font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--ink-dim); margin: 0.25rem 0; }
+  .ticket .get {
+    font-family: var(--serif); font-style: italic; font-weight: 400;
+    font-size: 32px; color: var(--stamp-red); line-height: 1;
+  }
+  .ticket .right {
+    /* perforated stub */
+    border-left: 2px dashed var(--ink);
+    padding-left: 1rem;
+    text-align: center;
+    width: 90px;
+    position: relative;
+  }
+  .ticket .right .bonus {
+    font-family: var(--display); font-weight: 800; font-size: 28px;
+    color: var(--stamp-red); line-height: 1;
+  }
+  .ticket .right .bonus-lbl {
+    font-family: var(--mono); font-size: 9px; color: var(--ink-mute);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .ticket .right .seal {
+    margin-top: 0.85rem;
+    border: 1.5px solid var(--stamp-red); color: var(--stamp-red);
+    padding: 4px 6px;
+    font-family: var(--mono); font-size: 9px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    transform: rotate(-4deg);
+    display: inline-block;
+  }
+  .ticket .stub-foot {
+    position: absolute; bottom: 0.5rem; left: 1.5rem; right: 1.5rem;
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 9px;
+    color: var(--ink-mute); letter-spacing: 0.14em; text-transform: uppercase;
+    border-top: 1px dashed var(--ink); padding-top: 0.4rem;
+  }
+  /* notches on perforation */
+  .ticket .notch-t, .ticket .notch-b {
+    position: absolute; right: 90px;
+    width: 14px; height: 14px;
+    background: var(--bg);
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+  .ticket .notch-t { top: -7px; }
+  .ticket .notch-b { bottom: -7px; }
+  .ticket.featured {
+    border-color: var(--stamp-red);
+    box-shadow: 4px 4px 0 var(--stamp-red);
+  }
+  .ticket.featured .stamp-corner {
+    position: absolute; top: -8px; left: -8px;
+    background: var(--stamp-red); color: white;
+    padding: 4px 8px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    transform: rotate(-4deg);
+  }
+
+  /* ── Why grid ── */
+  .why-grid {
+    max-width: 1400px; margin: 5rem auto 0;
+    padding: 0 2rem;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+  }
+  .why-card {
+    background: var(--tile); border: 1px solid var(--hair);
+    padding: 2rem;
+    position: relative; overflow: hidden;
+  }
+  .why-card.violet { background: linear-gradient(160deg, rgba(139,92,255,0.18), var(--tile)); border-color: rgba(139,92,255,0.3); }
+  .why-card.pink { background: linear-gradient(160deg, rgba(255,46,140,0.16), var(--tile)); border-color: rgba(255,46,140,0.3); }
+  .why-card.lime { background: linear-gradient(160deg, rgba(200,255,82,0.12), var(--tile)); border-color: rgba(200,255,82,0.3); }
+  .why-card .ord {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--text-mute);
+  }
+  .why-card .num {
+    font-family: var(--serif); font-weight: 400; font-style: italic;
+    font-size: 96px; line-height: 0.95;
+    margin: 0.5rem 0 1rem;
+    letter-spacing: -0.025em;
+  }
+  .why-card.violet .num { color: var(--violet); }
+  .why-card.pink .num { color: var(--pink); }
+  .why-card.lime .num { color: var(--lime); }
+  .why-card h3 {
+    font-family: var(--serif); font-weight: 400; font-size: 26px;
+    letter-spacing: -0.01em; margin-bottom: 0.5rem; line-height: 1.1;
+  }
+  .why-card h3 em { font-style: italic; }
+  .why-card p { font-size: 14px; line-height: 1.6; color: var(--text-dim); }
+  .why-card .icons {
+    margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .why-card .ic {
+    width: 36px; height: 36px;
+    background: var(--bg); border: 1px solid var(--hair);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim);
+  }
+  .why-card .ic .pglyph { width: 18px; height: 18px; }
+
+  @media (max-width: 1100px) {
+    .hero-bento { grid-template-columns: repeat(4, 1fr); }
+    .b-65 { grid-column: span 4; grid-row: span 3; min-height: 420px; }
+    .b-counter, .b-social { grid-column: span 2; grid-row: span 2; }
+    .market { grid-template-columns: repeat(2, 1fr); }
+    .m-lead { grid-column: span 2; grid-row: span 2; }
+    .m-paper, .m-violet, .m-cyan { grid-column: span 2; }
+    .m-orange, .m-lime { grid-column: span 1; }
+    .tickets { grid-template-columns: 1fr; }
+    .why-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="anthropic" viewBox="0 0 24 24"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"/></symbol>
+    <symbol id="openai" viewBox="0 0 24 24"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.05 6.05 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.998-2.9 6.056 6.056 0 0 0-.747-7.073z"/></symbol>
+    <symbol id="google" viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></symbol>
+    <symbol id="x" viewBox="0 0 24 24"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932Z"/></symbol>
+    <symbol id="meta" viewBox="0 0 24 24"><path d="M12.001 8.45c-.37 1.005-.997 2.13-1.732 2.91-.756.802-1.65 1.21-2.658 1.21-1.005 0-1.815-.41-2.404-1.213-.583-.795-.886-1.85-.886-3.069 0-1.27.31-2.38.92-3.297.57-.86 1.314-1.31 2.165-1.31.91 0 1.732.45 2.444 1.34.527.66.989 1.502 1.36 2.482z"/></symbol>
+    <symbol id="deepseek" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 11c2-2 8-2 10 0M7 14c2 2 8 2 10 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="bytedance" viewBox="0 0 24 24"><path d="M19.83 5.36L24 0v18.97c0 2.71-2.32 5.03-5.03 5.03H4.85a4.83 4.83 0 0 1-4.84-4.85V8.4l3.45-3.32V19.5c0 .67.5 1.18 1.18 1.18h13.42c.71 0 1.27-.55 1.27-1.27V5.43z"/></symbol>
+  </defs>
+</svg>
+
+<div class="masthead">
+  <div class="left">
+    <span class="vol">Vol. 47</span>
+    <span class="date">Sunday · May 03 · 2026</span>
+    <span>Weekly · 8 Pages</span>
+  </div>
+  <div class="right">
+    <span class="price-tag">$0.00 / Always Free</span>
+    <span>Edition E.III</span>
+  </div>
+</div>
+
+<div class="strip">
+  <div class="strip-inner">
+    <span><span class="b">FLASH</span> Grok 4.1 dropped −65%</span>
+    <span class="ornament">❦</span>
+    <span><span class="b">SOLD</span> 247 dev teams locked $99 tier</span>
+    <span class="ornament">❦</span>
+    <span><span class="b">DROP</span> Gemini 3.1 Pro at $9.60/1M</span>
+    <span class="ornament">❦</span>
+    <span><span class="b">LIVE</span> +20% bonus expires 02:14:08</span>
+    <span class="ornament">❦</span>
+    <span><span class="b">FLASH</span> Grok 4.1 dropped −65%</span>
+    <span class="ornament">❦</span>
+    <span><span class="b">SOLD</span> 247 dev teams locked $99 tier</span>
+    <span class="ornament">❦</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="logo"><span class="logo-mark"></span>Token<em>mart</em></div>
+  <div class="nav-links">
+    <a href="#">Marketplace</a>
+    <a href="#">Compare</a>
+    <a href="#">Documentation</a>
+  </div>
+  <a href="#" class="nav-cta">Open account</a>
+</nav>
+
+<section class="hero-bento">
+  <div class="b-tile b-65">
+    <div>
+      <span class="tag"><span class="dot"></span>FLASH MARKETPLACE · LIVE</span>
+      <h1>Save up <em>to</em><br><span class="pct">65% off</span><br>top AI models.</h1>
+      <p class="sub">Same Claude, GPT, Gemini, Grok — wholesale pricing through one API. Group rates unlock automatically as more devs join.</p>
+    </div>
+    <div class="lead-row">
+      <a href="#" class="btn-primary">Lock in pricing →</a>
+      <a href="#" class="btn-ghost">Compare models</a>
+    </div>
+    <div class="ink-stamp">
+      FRESH<br>STOCK
+      <span class="small">MAY · 2026</span>
+    </div>
+  </div>
+
+  <div class="b-tile b-counter">
+    <div>
+      <div class="head">
+        <span>NEXT DROP IN</span>
+        <span class="live">LIVE</span>
+      </div>
+      <h3>+20% bonus credits<br><em>auto-expire</em></h3>
+    </div>
+    <div class="clock">
+      <div class="seg"><div class="num">02</div><div class="lbl">HRS</div></div>
+      <div class="seg"><div class="num">14</div><div class="lbl">MIN</div></div>
+      <div class="seg"><div class="num">08</div><div class="lbl">SEC</div></div>
+    </div>
+  </div>
+
+  <div class="b-tile b-social">
+    <div>
+      <div class="head">GROUP-BUY · ACTIVE</div>
+      <h3><em>12,847</em></h3>
+      <div style="font-size: 13px; font-weight: 600; opacity: 0.7; margin-top: 0.25rem">developers locked in this rate today</div>
+    </div>
+    <div class="bottom">
+      <div class="avatars">
+        <div class="a">JK</div><div class="a">RM</div><div class="a">AY</div><div class="a">+</div>
+      </div>
+      <div class="text">+247 in last hour</div>
+    </div>
+  </div>
+</section>
+
+<section class="index-strip">
+  <div class="label">
+    <span class="small">— Index of Contributors —</span>
+    <em>Routing live across</em>
+  </div>
+  <div class="row">
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#openai"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#x"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#meta"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#deepseek"/></svg></span>
+    <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#bytedance"/></svg></span>
+  </div>
+  <div class="count">
+    <span class="n">50+</span><br>models
+  </div>
+</section>
+
+<div class="market-head">
+  <h2>Today's <em>flash deals</em>.</h2>
+  <div class="ed">
+    <span class="strong">SECTION II</span><br>UPDATED 14:27 UTC<br>5 LISTINGS
+  </div>
+</div>
+
+<section class="market">
+  <div class="m-tile m-lead">
+    <div class="img-wrap"></div>
+    <div class="header">
+      <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#x"/></svg></span>
+      <span>xAI · LLM</span>
+      <span class="badge">★ FLAGSHIP</span>
+    </div>
+    <h3>Grok <em>4.1</em></h3>
+    <p>"Latest-gen flagship reasoning model — long-horizon planning, code-grade output. This week's deepest cut on the marketplace."</p>
+    <div class="price-row">
+      <span class="retail">$6.00</span>
+      <span class="ask">$2.10</span>
+      <span class="unit">/1M tok</span>
+      <span class="save">−65%</span>
+    </div>
+    <div class="group-buy">
+      <div class="avatars">
+        <div class="a" style="background: var(--violet)">JK</div>
+        <div class="a" style="background: var(--cyan); color: var(--bg)">RM</div>
+        <div class="a" style="background: var(--lime); color: var(--bg)">AY</div>
+      </div>
+      <span><strong style="color: var(--lime)">847 devs</strong> locked this price today</span>
+    </div>
+  </div>
+
+  <div class="m-tile m-paper">
+    <div>
+      <div class="top-line"><span>SHELF LABEL · NO. 0042</span><span class="vol">DEAL OF THE WEEK</span></div>
+      <h4>Claude <em>Opus 4.7</em></h4>
+      <p class="quote">"Anthropic's flagship — long-horizon reasoning and code-grade output, marked down through smart routing."</p>
+    </div>
+    <div class="price-row">
+      <span class="pp-retail">$25.00</span>
+      <span class="pp-ask">$21.25</span>
+      <span class="pp-unit">/1M TOK</span>
+    </div>
+    <span class="ink-stamp on-paper" style="top: 1rem; right: 1rem">−15%<span class="small">OFF RETAIL</span></span>
+  </div>
+
+  <div class="m-tile m-violet">
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#openai"/></svg></span>OPENAI · LLM</span>
+    <h4>GPT <em>5.4</em></h4>
+    <div class="price-line">
+      <span class="retail-s">$15.00</span>
+      <span class="ask-s">$12.75</span>
+      <span class="save-s">−15%</span>
+    </div>
+  </div>
+
+  <div class="m-tile m-orange">
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span>ANTHROPIC</span>
+    <h4>Sonnet <em>4.6</em></h4>
+    <div class="price-line">
+      <span class="ask-s">$12.75</span>
+      <span class="save-s">−15%</span>
+    </div>
+  </div>
+
+  <div class="m-tile m-cyan">
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span>GOOGLE · LLM</span>
+    <h4>Gemini <em>3.1 Pro</em></h4>
+    <div class="price-line">
+      <span class="retail-s">$12.00</span>
+      <span class="ask-s">$9.60</span>
+      <span class="save-s">−20%</span>
+    </div>
+    <div class="stamp-mini">FRESH</div>
+  </div>
+
+  <div class="m-tile m-lime">
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span>GOOGLE · IMG</span>
+    <h4>Nano <em>Banana 2</em></h4>
+    <div class="price-line">
+      <span class="ask-s">$0.04</span>
+      <span class="save-s">−20%</span>
+    </div>
+  </div>
+</section>
+
+<section class="tier-section">
+  <div class="head-row">
+    <h2>Top up <em>once</em>.</h2>
+    <div class="meta">SECTION III · ADMISSIONS<br>VALID 14 DAYS · NO MINIMUMS</div>
+  </div>
+
+  <div class="tickets">
+    <div class="ticket featured">
+      <span class="stamp-corner">★ HOT</span>
+      <div class="left">
+        <div class="ticket-no"><span class="red">SERIES A · NO. 0099</span></div>
+        <div class="pay">PAY</div>
+        <div class="amt">$99</div>
+        <div class="arrow">↳ receive</div>
+        <div class="get">$118.80</div>
+      </div>
+      <div class="right">
+        <div class="bonus">+20%</div>
+        <div class="bonus-lbl">bonus<br>credits</div>
+        <span class="seal">PAID</span>
+      </div>
+      <div class="notch-t"></div>
+      <div class="notch-b"></div>
+      <div class="stub-foot"><span>Validates 14 days</span><span>★</span></div>
+    </div>
+
+    <div class="ticket">
+      <div class="left">
+        <div class="ticket-no"><span>SERIES A · NO. 0499</span></div>
+        <div class="pay">PAY</div>
+        <div class="amt">$499</div>
+        <div class="arrow">↳ receive</div>
+        <div class="get">$518.96</div>
+      </div>
+      <div class="right">
+        <div class="bonus">+4%</div>
+        <div class="bonus-lbl">bonus<br>credits</div>
+        <span class="seal">PAID</span>
+      </div>
+      <div class="notch-t"></div>
+      <div class="notch-b"></div>
+      <div class="stub-foot"><span>Validates 14 days</span><span>·</span></div>
+    </div>
+
+    <div class="ticket">
+      <div class="left">
+        <div class="ticket-no"><span>SERIES A · NO. 0999</span></div>
+        <div class="pay">PAY</div>
+        <div class="amt">$999</div>
+        <div class="arrow">↳ receive</div>
+        <div class="get">$1,058.94</div>
+      </div>
+      <div class="right">
+        <div class="bonus">+6%</div>
+        <div class="bonus-lbl">bonus<br>credits</div>
+        <span class="seal">PAID</span>
+      </div>
+      <div class="notch-t"></div>
+      <div class="notch-b"></div>
+      <div class="stub-foot"><span>Validates 14 days</span><span>·</span></div>
+    </div>
+
+    <div class="ticket">
+      <div class="left">
+        <div class="ticket-no"><span>SERIES B · NO. 4999</span></div>
+        <div class="pay">PAY</div>
+        <div class="amt">$4,999</div>
+        <div class="arrow">↳ receive</div>
+        <div class="get">$5,398.92</div>
+      </div>
+      <div class="right">
+        <div class="bonus">+8%</div>
+        <div class="bonus-lbl">bonus<br>credits</div>
+        <span class="seal">PAID</span>
+      </div>
+      <div class="notch-t"></div>
+      <div class="notch-b"></div>
+      <div class="stub-foot"><span>Validates 14 days</span><span>·</span></div>
+    </div>
+
+    <div class="ticket">
+      <div class="left">
+        <div class="ticket-no"><span>SERIES B · NO. 9999</span></div>
+        <div class="pay">PAY</div>
+        <div class="amt">$9,999</div>
+        <div class="arrow">↳ receive</div>
+        <div class="get">$10,998.90</div>
+      </div>
+      <div class="right">
+        <div class="bonus">+10%</div>
+        <div class="bonus-lbl">bonus<br>credits</div>
+        <span class="seal">PAID</span>
+      </div>
+      <div class="notch-t"></div>
+      <div class="notch-b"></div>
+      <div class="stub-foot"><span>Validates 14 days</span><span>·</span></div>
+    </div>
+
+    <div class="ticket">
+      <div class="left">
+        <div class="ticket-no"><span class="red">SERIES X · CUSTOM</span></div>
+        <div class="pay">VOLUME</div>
+        <div class="amt" style="font-size: 32px; font-style: italic">Talk to sales</div>
+        <div class="arrow">↳ up to</div>
+        <div class="get">−65%</div>
+      </div>
+      <div class="right">
+        <div class="bonus" style="font-size: 18px; font-family: var(--serif); font-style: italic">Custom</div>
+        <div class="bonus-lbl">contract</div>
+        <span class="seal">CALL</span>
+      </div>
+      <div class="notch-t"></div>
+      <div class="notch-b"></div>
+      <div class="stub-foot"><span>Negotiated</span><span>✦</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="why-grid">
+  <div class="why-card violet">
+    <div class="ord">01 — INVENTORY</div>
+    <div class="num">50+</div>
+    <h3>Every flagship, <em>one endpoint</em>.</h3>
+    <p>Anthropic, OpenAI, Google, xAI, Meta, ByteDance, DeepSeek — fifty leading models behind a single OpenAI-compatible API.</p>
+    <div class="icons">
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#openai"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#x"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#meta"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#bytedance"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#deepseek"/></svg></span></span>
+    </div>
+  </div>
+  <div class="why-card pink">
+    <div class="ord">02 — PRICING</div>
+    <div class="num">−65%</div>
+    <h3>Always at the <em>lowest</em> market rate.</h3>
+    <p>Smart routing finds the cheapest provider per request. No retainer, no platform fee. Pay the ask, plus a thin routing margin.</p>
+  </div>
+  <div class="why-card lime">
+    <div class="ord">03 — UPTIME</div>
+    <div class="num">99.9%</div>
+    <h3>Cross-provider <em>failover</em>.</h3>
+    <p>If a provider degrades, traffic reroutes pre-emptively. One key, one bill, one dashboard — across every model on the market.</p>
+  </div>
+</section>
+
+</body>
+</html>
