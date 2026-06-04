@@ -6,11 +6,14 @@ import { TM_MODELS, discountOf, type TMModel } from "./catalog";
 
 function ModelCard({ m, apiHref }: { m: TMModel; apiHref: string }) {
   const d = discountOf(m);
+  // Badge shows the family's highest discount (marketing "up to X%"); the price
+  // row's −% stays tied to the specific representative price shown.
+  const badge = m.maxDiscount ?? d;
   const lg = m.size === "lg";
   return (
     <article className={`tm-card sz-${m.size}`} style={{ ["--tint" as string]: m.tint }}>
       <Burst
-        pct={d}
+        pct={badge}
         tone="pink"
         size={lg ? 128 : 110}
         style={{ position: "absolute", top: -24, right: -20, zIndex: 6, color: m.tint }}
