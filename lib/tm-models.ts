@@ -88,16 +88,28 @@ export function groupEndpointModels(data: EndpointData, families: Family[] = FAM
     const extra = sorted.length - shown.length;
     const line = shown.join(" · ") + (extra > 0 ? ` · +${extra} more` : "");
 
+    // Headline price = the family's representative model (falls back to priciest).
     const priceId = famIds.includes(f.primaryId) ? f.primaryId : sorted[0];
     const live = outputPrices(pricing[priceId]);
+    const retail = live?.retail ?? f.fallback.retail;
+    const wholesale = live?.wholesale ?? f.fallback.wholesale;
+
+    // Badge = the highest discount across the whole group (marketing "up to X%").
+    const discounts = famIds
+      .map((id) => pricing[id]?.discount_pct)
+      .filter((d): d is number => typeof d === "number");
+    const maxDiscount = discounts.length
+      ? Math.round(Math.max(...discounts))
+      : Math.round((1 - wholesale / retail) * 100);
 
     out.push({
       id: f.key,
       name: f.name,
       provider: f.provider,
       line,
-      retail: live?.retail ?? f.fallback.retail,
-      wholesale: live?.wholesale ?? f.fallback.wholesale,
+      retail,
+      wholesale,
+      maxDiscount,
       unit: f.unit,
       blurb: f.blurb,
       tags: f.tags,

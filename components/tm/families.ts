@@ -15,6 +15,8 @@ export type TMModel = {
   line: string;
   retail: number;
   wholesale: number;
+  /** Highest discount % across the family's variants — drives the marketing badge. */
+  maxDiscount: number;
   unit: string;
   blurb: string;
   tags: string[];
@@ -128,7 +130,9 @@ const FAMILY_DEFS: FamilyDef[] = [
     tags: ["Video gen", "1080p", "Text→Video"],
     match: (id) => id.toLowerCase().includes("seedance"),
     primaryId: "dreamina-seedance-2-0-260128",
-    fallback: { retail: 0.07, wholesale: 0.035, line: "Seedance 2.0" },
+    // Video is units/bucket-priced (no per-clip number); price is illustrative,
+    // but the discount reflects the live 10%.
+    fallback: { retail: 0.07, wholesale: 0.063, line: "Seedance 2.0" },
   },
 ];
 
@@ -148,6 +152,7 @@ export const TM_MODELS: TMModel[] = FAMILIES.map((f) => ({
   line: f.fallback.line,
   retail: f.fallback.retail,
   wholesale: f.fallback.wholesale,
+  maxDiscount: discountOf({ retail: f.fallback.retail, wholesale: f.fallback.wholesale }),
   unit: f.unit,
   blurb: f.blurb,
   tags: f.tags,
