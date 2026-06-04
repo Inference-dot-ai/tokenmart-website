@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TokenMart — Mockups</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Onest', sans-serif;
+    background: #0E0E14;
+    color: #ECEDF8;
+    min-height: 100vh;
+    padding: 5rem 2rem;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #8B8DAD;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 60px; height: 1px;
+    background: linear-gradient(90deg, #C8FF52, #FF2E8C, #5CE5FF);
+    display: block;
+  }
+  h1 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 64px;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    margin-bottom: 1rem;
+    font-variation-settings: "opsz" 96;
+  }
+  h1 em {
+    font-style: italic; font-weight: 700;
+    background: linear-gradient(120deg, #C8FF52, #F5C842, #FF2E8C);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lead {
+    font-size: 15px;
+    color: #8B8DAD;
+    margin-bottom: 4rem;
+    max-width: 70ch;
+    line-height: 1.7;
+  }
+  h2.section {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 600;
+    font-size: 28px;
+    letter-spacing: -0.025em;
+    margin: 4rem 0 0.4rem;
+    display: flex; align-items: baseline; gap: 0.7rem;
+  }
+  h2.section::before {
+    content: ""; width: 8px; height: 8px;
+    display: inline-block;
+  }
+  h2.section.r3::before { background: #C8FF52; }
+  h2.section.r2::before { background: #FF2E8C; }
+  h2.section.r1::before { background: #5CE5FF; opacity: 0.6; }
+  .section-sub {
+    font-size: 13px; color: #8B8DAD;
+    margin-bottom: 2rem; padding-left: 1.4rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  .card {
+    background: #16161E;
+    border: 1px solid #25252F;
+    padding: 1.75rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 220ms ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-height: 280px;
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px -12px rgba(0,0,0,0.5);
+  }
+  .card.r3 {
+    background: linear-gradient(160deg, rgba(200,255,82,0.10), #16161E 60%);
+    border-color: rgba(200,255,82,0.25);
+  }
+  .card.r3:hover { border-color: #C8FF52; box-shadow: 0 16px 40px -12px rgba(200,255,82,0.15); }
+  .card.r2 {
+    background: linear-gradient(160deg, rgba(255,46,140,0.08), #16161E 60%);
+    border-color: rgba(255,46,140,0.2);
+  }
+  .card.r2:hover { border-color: #FF2E8C; box-shadow: 0 16px 40px -12px rgba(255,46,140,0.2); }
+  .card .ord {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #5C5A6F;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .card.r3 .ord { color: #C8FF52; }
+  .card.r2 .ord { color: #FF2E8C; }
+  .card h3 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 600;
+    font-size: 28px;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+  .card .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 600;
+    color: #8B8DAD;
+  }
+  .card.r3 .tag { color: #C8FF52; }
+  .card.r2 .tag { color: #FF2E8C; }
+  .card p {
+    font-size: 13px;
+    color: #8B8DAD;
+    line-height: 1.6;
+    flex: 1;
+  }
+  .card .arrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    margin-top: auto;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #FF2E8C;
+  }
+  .card.r3 .arrow { color: #C8FF52; }
+  .footer-note {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid #25252F;
+    font-size: 12px;
+    color: #5C5A6F;
+    line-height: 1.7;
+  }
+  .footer-note code {
+    background: #16161E;
+    padding: 2px 6px;
+    border: 1px solid #25252F;
+    color: #ECEDF8;
+    font-size: 11px;
+    border-radius: 4px;
+  }
+  @media (max-width: 800px) {
+    .grid { grid-template-columns: 1fr; }
+    h1 { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Design exploration · 9 directions · 2026.05.03</div>
+  <h1>TokenMart <em>mockups</em></h1>
+  <p class="lead">Nine self-contained HTML mockups across three rounds. Round three pushes Bento Bazaar (the favorite from round two) into three distinct visual territories — engineering blueprint, vintage newsstand, retail labels — each with wireframe geometry and tasteful spice without the AI-vibe-coded sameness. All CSS variables are at the top of every file for easy tweaking.</p>
+
+  <h2 class="section r3">Round 03 — Bento Bazaar variants</h2>
+  <p class="section-sub">Same colors, same bento, different visual languages — wireframes, stamps, tickets, tags.</p>
+  <div class="grid">
+    <a class="card r3" href="g-blueprint.html" target="_blank">
+      <div class="ord">G — Engineering</div>
+      <h3>Blueprint Bazaar</h3>
+      <span class="tag">Wireframe schematic · Iso geometry</span>
+      <p>Iso warehouse cube wireframes in the hero, dimension callouts on the 65%, faint blueprint grid background, full-width routing diagram with active-route highlight, SKU labels on every tile, admission-ticket pricing with perforation notches.</p>
+      <span class="arrow">→ open mockup</span>
+    </a>
+    <a class="card r3" href="h-newsstand.html" target="_blank">
+      <div class="ord">H — Editorial mix</div>
+      <h3>Newsstand Bazaar</h3>
+      <span class="tag">Vintage catalog · Cream + ink</span>
+      <p>Newsstand masthead with Vol. & date, cream parchment counter tile and "shelf label" deal-of-the-week tile, ink-red stamps rotated, vintage admission tickets with perforated stubs and PAID seals, DM Serif Display italic accents.</p>
+      <span class="arrow">→ open mockup</span>
+    </a>
+    <a class="card r3" href="i-label.html" target="_blank">
+      <div class="ord">I — Industrial retail</div>
+      <h3>Label Bazaar</h3>
+      <span class="tag">Hanging tags · Barcodes · Receipts</span>
+      <p>Yellow hanging price-tag dangling from string in hero, corner SKU tags on every model tile, barcode strips throughout, receipt-paper purchase summary with zigzag cut, tier section as tags hanging from a horizontal rail. Anton condensed display.</p>
+      <span class="arrow">→ open mockup</span>
+    </a>
+  </div>
+
+  <h2 class="section r2">Round 02 — AI marketplace, future-sleek</h2>
+  <p class="section-sub">Costco · Expedia · Pinduoduo DNA, executed for the AI age.</p>
+  <div class="grid">
+    <a class="card r2" href="d-aurora.html" target="_blank">
+      <div class="ord">D — Soft future</div>
+      <h3>Aurora Marketplace</h3>
+      <span class="tag">visionOS · liquid mesh</span>
+      <p>Animated gradient mesh background. Glass tiles on warm cream. Bento grid with iridescent borders on premium tiles. Live "savings calculator" card in the hero.</p>
+      <span class="arrow">→ open mockup</span>
+    </a>
+    <a class="card r2" href="e-bazaar.html" target="_blank">
+      <div class="ord">E — Marketplace (BASE)</div>
+      <h3>Bento Bazaar</h3>
+      <span class="tag">Pinduoduo × Apple keynote</span>
+      <p>The base version — aggressive bento with category-colored tiles, group-buy social proof, live drop counters, scrolling flash strip. The foundation that round 03 builds on.</p>
+      <span class="arrow">→ open mockup</span>
+    </a>
+    <a class="card r2" href="f-specimen.html" target="_blank">
+      <div class="ord">F — Premium</div>
+      <h3>Specimen Catalogue</h3>
+      <span class="tag">Vision Pro × trading cards</span>
+      <p>Midnight stage with floating "specimen cards" — model portraits with rarity badges, stat blocks, and animated holographic edges on the flagship.</p>
+      <span class="arrow">→ open mockup</span>
+    </a>
+  </div>
+
+  <h2 class="section r1">Round 01 — Aesthetic axes</h2>
+  <p class="section-sub">First explorations across distinct typographic + tonal directions.</p>
+  <div class="grid">
+    <a class="card" href="a-terminal.html" target="_blank">
+      <div class="ord">A — Differentiated</div>
+      <h3>Trading Terminal</h3>
+      <span class="tag">Bloomberg · Polymarket</span>
+      <p>Live ticker tape, dense market table, sparklines per row, IBM Plex Mono everywhere. Pink reserved for the active "ask".</p>
+      <span class="arrow">→ open mockup</span>
+    </a>
+    <a class="card" href="b-editorial.html" target="_blank">
+      <div class="ord">B — Refined</div>
+      <h3>Editorial Premium</h3>
+      <span class="tag">Magazine · Stripe-tier</span>
+      <p>Cream paper, Fraunces serif italic, drop cap on editor's note, contributors strip with provider logos.</p>
+      <span class="arrow">→ open mockup</span>
+    </a>
+    <a class="card" href="c-synthwave.html" target="_blank">
+      <div class="ord">C — Personality</div>
+      <h3>Synthwave Console</h3>
+      <span class="tag">Cyberpunk HUD · CRT</span>
+      <p>Pure black, neon pink + cyan, perspective grid floor with sun, wireframe icosahedron, ASCII bar charts.</p>
+      <span class="arrow">→ open mockup</span>
+    </a>
+  </div>
+
+  <div class="footer-note">
+    To view: <code>open mockups/index.html</code> from project root, or run <code>npx serve mockups</code> for clean localhost URLs (recommended — file:// can block model images on some browsers). Tell me which direction (or hybrid — e.g., "G's routing diagram with H's ticket section") to port into the Next.js components.
+  </div>
+</div>
+</body>
+</html>

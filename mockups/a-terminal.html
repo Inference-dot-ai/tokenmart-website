@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TokenMart — Trading Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ─── DIRECTION A · TRADING TERMINAL ──────────────────────
+     Tweak these to retheme everything.
+  */
+  :root {
+    --bg:        #08080C;
+    --panel:     #0F0F15;
+    --panel-hi:  #14141C;
+    --text:      #E8E8EC;
+    --text-dim:  #8B8B98;
+    --text-mute: #4A4A55;
+    --hair:      rgba(255,255,255,0.06);
+    --hair-hi:   rgba(255,255,255,0.12);
+    --pink:      #FF2E7E;
+    --amber:     #FFB800;
+    --green:     #00D68F;
+    --red:       #FF4D4D;
+    --display:   'IBM Plex Sans Condensed', sans-serif;
+    --mono:      'IBM Plex Mono', monospace;
+    --body:      'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: var(--body); -webkit-font-smoothing: antialiased; }
+
+  /* faint dot-grid texture, pinned to viewport so it never tiles awkwardly */
+  body {
+    padding-bottom: 6rem; min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+    background-size: 28px 28px;
+  }
+
+  /* ── Provider glyphs (inline SVG sprite) ── */
+  .pglyph {
+    display: inline-block;
+    width: 14px; height: 14px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    opacity: 0.85;
+  }
+  .pglyph svg { width: 100%; height: 100%; fill: currentColor; display: block; }
+
+  /* ── Top scrolling tape ── */
+  .tape { border-bottom: 1px solid var(--hair); background: #050508; overflow: hidden; }
+  .tape-strip {
+    display: flex; gap: 2.5rem; padding: 0.65rem 0;
+    white-space: nowrap;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
+    animation: tape-scroll 90s linear infinite;
+  }
+  @keyframes tape-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .tape-item { display: inline-flex; gap: 0.6rem; align-items: center; color: var(--text-dim); }
+  .tape-item .sym { color: var(--text); font-weight: 600; }
+  .tape-item .pct.down { color: var(--green); }
+  .tape-item .pglyph { width: 11px; height: 11px; opacity: 0.7; }
+
+  /* ── Nav ── */
+  .nav { display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 2rem; border-bottom: 1px solid var(--hair); }
+  .logo { font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; gap: 0.6rem; }
+  .logo-mark {
+    width: 18px; height: 18px;
+    background: var(--pink);
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  }
+  .logo .tkm { color: var(--pink); }
+  .nav-links { display: flex; gap: 2rem; font-family: var(--mono); font-size: 12px; color: var(--text-dim); letter-spacing: 0.06em; text-transform: uppercase; }
+  .nav-links a { color: inherit; text-decoration: none; transition: color 150ms ease; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;
+    background: var(--pink); color: #000; padding: 0.65rem 1.1rem;
+    text-decoration: none; font-weight: 600; transition: background 150ms ease;
+  }
+  .nav-cta:hover { background: #FF5A99; }
+
+  /* ── Hero ── */
+  .hero { padding: 5rem 2rem 4rem; border-bottom: 1px solid var(--hair); position: relative; overflow: hidden; }
+  /* corner crosshair */
+  .hero::before, .hero::after {
+    content: ""; position: absolute;
+    width: 22px; height: 22px;
+    border-color: var(--hair-hi);
+    pointer-events: none;
+  }
+  .hero::before { top: 1.5rem; left: 1.5rem; border-top: 1px solid; border-left: 1px solid; }
+  .hero::after { bottom: 1.5rem; right: 1.5rem; border-bottom: 1px solid; border-right: 1px solid; }
+  .hero-grid { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 360px; gap: 4rem; align-items: end; }
+  .hero-meta {
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 1.75rem;
+    display: flex; gap: 1.5rem; align-items: center;
+  }
+  .hero-meta .live { color: var(--amber); display: inline-flex; align-items: center; gap: 0.5rem; }
+  .hero-meta .live::before {
+    content: ""; width: 6px; height: 6px; background: var(--amber);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .hero h1 {
+    font-family: var(--display); font-weight: 600;
+    font-size: clamp(3rem, 9vw, 8rem); line-height: 0.92;
+    letter-spacing: -0.025em; text-transform: uppercase;
+  }
+  .hero h1 .pct { font-family: var(--mono); font-weight: 700; color: var(--pink); letter-spacing: -0.04em; }
+  .hero-sub {
+    margin-top: 1.75rem; font-family: var(--mono);
+    font-size: 13px; color: var(--text-dim); max-width: 50ch; line-height: 1.6;
+  }
+
+  /* hero side panel — chart + stats */
+  .hero-panel {
+    border-left: 1px solid var(--hair-hi);
+    padding-left: 2.5rem;
+    align-self: stretch;
+    display: flex; flex-direction: column;
+    justify-content: end;
+    gap: 2rem;
+  }
+  .panel-title {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--text-mute); letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .panel-title .right { color: var(--green); }
+  .depth-chart {
+    width: 100%; height: 80px;
+    margin-top: 0.6rem;
+  }
+  .depth-chart polyline.line { fill: none; stroke: var(--pink); stroke-width: 1.5; }
+  .depth-chart polyline.area { fill: url(#depth-gradient); stroke: none; }
+  .depth-chart .axis { stroke: var(--hair); stroke-width: 1; }
+  .depth-chart text {
+    font-family: var(--mono); font-size: 9px; fill: var(--text-mute);
+    letter-spacing: 0.1em;
+  }
+  .stat-row {
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 0.5rem; padding: 0.5rem 0;
+    border-bottom: 1px solid var(--hair);
+    align-items: baseline;
+  }
+  .stat-row:last-of-type { border-bottom: none; }
+  .stat-row .lab { font-family: var(--mono); font-size: 10px; color: var(--text-mute); letter-spacing: 0.16em; text-transform: uppercase; }
+  .stat-row .val { font-family: var(--mono); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat-row .delta { color: var(--green); font-size: 11px; margin-left: 6px; }
+
+  /* ── Section heading ── */
+  .sec-head {
+    max-width: 1400px; margin: 0 auto;
+    padding: 3rem 2rem 1.25rem;
+    display: flex; justify-content: space-between; align-items: end;
+  }
+  .sec-head h2 {
+    font-family: var(--display); font-size: 28px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    display: flex; align-items: center; gap: 0.8rem;
+  }
+  .sec-head h2::before {
+    content: ""; display: inline-block; width: 8px; height: 8px;
+    background: var(--pink);
+  }
+  .sec-head .meta {
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+
+  /* ── Market table ── */
+  .market { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+  .market-table {
+    display: grid;
+    grid-template-columns: 96px 1fr 110px 120px 110px 110px 90px 50px;
+    font-family: var(--mono); font-size: 13px;
+    border-top: 1px solid var(--hair-hi);
+  }
+  .mh, .mr { padding: 1rem; border-bottom: 1px solid var(--hair); display: flex; align-items: center; }
+  .mh { font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--text-mute); background: #050508; }
+  .mr { font-variant-numeric: tabular-nums; transition: background 150ms ease; }
+  .mr:hover { background: var(--panel-hi); }
+  .mr .sym { color: var(--text); font-weight: 600; letter-spacing: 0.04em; }
+  .name-cell { gap: 0.7rem; }
+  .name-cell .pglyph {
+    width: 16px; height: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text);
+    border: 1px solid var(--hair-hi);
+    padding: 2px;
+  }
+  .mr .name { color: var(--text); font-family: var(--body); font-weight: 500; }
+  .mr .name .provider { color: var(--text-mute); font-size: 11px; margin-left: 0.5rem; font-family: var(--mono); }
+  .mr .retail { color: var(--text-mute); text-decoration: line-through; }
+  .mr .ask { color: var(--pink); font-weight: 600; }
+  .mr .delta { color: var(--green); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+  .mr .delta::before { content: "▼"; font-size: 9px; }
+  .mr .badge {
+    display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+    background: rgba(255,46,126,0.10); color: var(--pink);
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+  }
+  .mr .badge.img { background: rgba(255,184,0,0.10); color: var(--amber); }
+  .mr .go { color: var(--pink); font-weight: 700; }
+  /* row sparkline */
+  .spark { width: 84px; height: 18px; }
+  .spark polyline { fill: none; stroke: var(--green); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+  .spark .area { fill: rgba(0,214,143,0.12); stroke: none; }
+  .spark .end-dot { fill: var(--green); }
+
+  /* ── Pricing strip ── */
+  .pricing { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+  .price-table { display: grid; grid-template-columns: repeat(6, 1fr); border-top: 1px solid var(--hair-hi); border-left: 1px solid var(--hair); }
+  .price-cell { padding: 1.6rem 1.25rem; border-bottom: 1px solid var(--hair); border-right: 1px solid var(--hair); position: relative; }
+  .price-cell.featured { background: linear-gradient(180deg, rgba(255,46,126,0.07), transparent 70%); }
+  .price-cell.featured::before {
+    content: "▶ MOST FILLED";
+    position: absolute; top: 12px; right: 12px;
+    font-family: var(--mono); font-size: 9px; color: var(--amber); letter-spacing: 0.16em;
+  }
+  .price-cell .pay { font-family: var(--mono); font-size: 11px; color: var(--text-mute); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 8px; }
+  .price-cell .amt { font-family: var(--mono); font-size: 30px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .price-cell .arrow { color: var(--text-mute); margin: 0.6rem 0; font-family: var(--mono); font-size: 11px; }
+  .price-cell .get { font-family: var(--mono); font-size: 18px; color: var(--pink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .price-cell .bonus { font-family: var(--mono); font-size: 11px; color: var(--green); margin-top: 6px; letter-spacing: 0.06em; }
+  /* tier yield bars at bottom of cell */
+  .yield-bar {
+    margin-top: 0.75rem;
+    height: 4px; background: var(--hair); position: relative;
+  }
+  .yield-bar::after {
+    content: ""; position: absolute; left: 0; top: 0; height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--pink));
+  }
+  .yield-bar.b20::after { width: 20%; }
+  .yield-bar.b4::after  { width: 6%; }
+  .yield-bar.b6::after  { width: 10%; }
+  .yield-bar.b8::after  { width: 14%; }
+  .yield-bar.b10::after { width: 18%; }
+  .yield-bar.b65::after { width: 100%; }
+
+  /* ── Stats ribbon ── */
+  .stats { max-width: 1400px; margin: 4rem auto 0; padding: 0 2rem; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--hair); }
+  .stat-block { padding: 2.5rem 2rem; border-right: 1px solid var(--hair); position: relative; overflow: hidden; }
+  .stat-block:last-child { border-right: none; }
+  .stat-block .ord { font-family: var(--mono); font-size: 10px; color: var(--text-mute); letter-spacing: 0.2em; }
+  .stat-block .big {
+    font-family: var(--mono); font-size: 64px; font-weight: 700; line-height: 1;
+    color: var(--text); margin: 0.6rem 0 1.25rem; font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+  }
+  .stat-block .big .accent { color: var(--pink); }
+  .stat-block .desc { font-family: var(--body); color: var(--text-dim); font-size: 14px; line-height: 1.6; max-width: 32ch; }
+  /* mini visual per stat */
+  .stat-block .viz {
+    margin-top: 1.5rem;
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.08em;
+  }
+  .stat-block .viz .bar {
+    display: inline-block; height: 8px;
+    background: var(--pink);
+    vertical-align: middle;
+    margin-right: 8px;
+    box-shadow: 0 0 12px rgba(255,46,126,0.4);
+  }
+  .stat-block .viz .bar.faded { background: var(--hair-hi); box-shadow: none; }
+  .stat-block .ascii-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 3px;
+    margin-top: 1.5rem;
+  }
+  .stat-block .cell {
+    aspect-ratio: 1; background: var(--hair);
+  }
+  .stat-block .cell.on { background: var(--pink); box-shadow: 0 0 6px rgba(255,46,126,0.4); }
+  .stat-block .cell.warm { background: var(--amber); }
+  .stat-block .cell.dim { background: rgba(255,46,126,0.25); }
+
+  /* ── Background watermark on hero ── */
+  .crosshatch {
+    position: absolute;
+    width: 240px; height: 240px;
+    border: 1px solid var(--hair);
+    pointer-events: none;
+    opacity: 0.6;
+  }
+  .crosshatch.right { right: -80px; top: 0; transform: rotate(45deg); }
+  .crosshatch.right::before, .crosshatch.right::after {
+    content: ""; position: absolute; background: var(--hair);
+  }
+  .crosshatch.right::before { width: 100%; height: 1px; top: 50%; }
+  .crosshatch.right::after { width: 1px; height: 100%; left: 50%; }
+</style>
+</head>
+<body>
+
+<!-- Inline SVG sprite for provider glyphs (license: simpleicons.org) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="anthropic" viewBox="0 0 24 24"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"/></symbol>
+    <symbol id="openai" viewBox="0 0 24 24"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.05 6.05 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.998-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.142-.08 4.778-2.758a.795.795 0 0 0 .393-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.495 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.758a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.499 4.499 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.677l5.815 3.354-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.787A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855L13.104 8.36 15.12 7.2a.076.076 0 0 1 .07 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.104V12.42a.79.79 0 0 0-.407-.668zm2.011-3.024-.142-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.499 4.499 0 0 1 6.681 4.66zM8.307 12.863l-2.02-1.164a.08.08 0 0 1-.038-.057V6.074a4.499 4.499 0 0 1 7.376-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.366 2.602-1.5 2.607 1.5v3l-2.598 1.5-2.607-1.5z"/></symbol>
+    <symbol id="google" viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></symbol>
+    <symbol id="x" viewBox="0 0 24 24"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></symbol>
+  </defs>
+</svg>
+
+<div class="tape">
+  <div class="tape-strip">
+    <span class="tape-item"><span class="pglyph"><svg><use href="#x"/></svg></span><span class="sym">GROK-4.1</span><span>$2.10</span><span class="pct down">-65.0%</span></span>
+    <span class="tape-item"><span class="pglyph"><svg><use href="#anthropic"/></svg></span><span class="sym">CLAUDE-OPUS-4.7</span><span>$21.25</span><span class="pct down">-15.0%</span></span>
+    <span class="tape-item"><span class="pglyph"><svg><use href="#openai"/></svg></span><span class="sym">GPT-5.4</span><span>$12.75</span><span class="pct down">-15.0%</span></span>
+    <span class="tape-item"><span class="pglyph"><svg><use href="#google"/></svg></span><span class="sym">GEMINI-3.1-PRO</span><span>$9.60</span><span class="pct down">-20.0%</span></span>
+    <span class="tape-item"><span class="pglyph"><svg><use href="#google"/></svg></span><span class="sym">NANO-BANANA-2</span><span>$0.04</span><span class="pct down">-20.0%</span></span>
+    <span class="tape-item"><span class="pglyph"><svg><use href="#anthropic"/></svg></span><span class="sym">CLAUDE-SONNET-4.6</span><span>$12.75</span><span class="pct down">-15.0%</span></span>
+    <span class="tape-item"><span class="pglyph"><svg><use href="#x"/></svg></span><span class="sym">GROK-4.1</span><span>$2.10</span><span class="pct down">-65.0%</span></span>
+    <span class="tape-item"><span class="pglyph"><svg><use href="#anthropic"/></svg></span><span class="sym">CLAUDE-OPUS-4.7</span><span>$21.25</span><span class="pct down">-15.0%</span></span>
+    <span class="tape-item"><span class="pglyph"><svg><use href="#openai"/></svg></span><span class="sym">GPT-5.4</span><span>$12.75</span><span class="pct down">-15.0%</span></span>
+    <span class="tape-item"><span class="pglyph"><svg><use href="#google"/></svg></span><span class="sym">GEMINI-3.1-PRO</span><span>$9.60</span><span class="pct down">-20.0%</span></span>
+    <span class="tape-item"><span class="pglyph"><svg><use href="#google"/></svg></span><span class="sym">NANO-BANANA-2</span><span>$0.04</span><span class="pct down">-20.0%</span></span>
+    <span class="tape-item"><span class="pglyph"><svg><use href="#anthropic"/></svg></span><span class="sym">CLAUDE-SONNET-4.6</span><span>$12.75</span><span class="pct down">-15.0%</span></span>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="logo"><span class="logo-mark"></span>TOKEN<span class="tkm">MART</span></div>
+  <div class="nav-links">
+    <a href="#">Market</a>
+    <a href="#">Pricing</a>
+    <a href="#">Docs</a>
+    <a href="#">Console</a>
+  </div>
+  <a class="nav-cta" href="#">Open Account →</a>
+</nav>
+
+<section class="hero">
+  <div class="crosshatch right"></div>
+  <div class="hero-grid">
+    <div>
+      <div class="hero-meta">
+        <span class="live">MARKET OPEN</span>
+        <span>SESSION 2026.05.03</span>
+        <span>52 INSTRUMENTS LISTED</span>
+      </div>
+      <h1>Save up to<br><span class="pct">65%</span><br>on Top AI Models</h1>
+      <p class="hero-sub">One API. Best ask across every provider. Settled at the lowest market rate, every request — no platform fee, no retainer.</p>
+    </div>
+
+    <aside class="hero-panel">
+      <div>
+        <div class="panel-title">
+          <span>AVG SAVING · 30D</span>
+          <span class="right">▲ +6.4%</span>
+        </div>
+        <svg class="depth-chart" viewBox="0 0 320 80" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="depth-gradient" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#FF2E7E" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#FF2E7E" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <line class="axis" x1="0" y1="79" x2="320" y2="79"/>
+          <polyline class="area" points="0,80 0,52 32,46 64,50 96,38 128,44 160,30 192,36 224,22 256,28 288,18 320,14 320,80"/>
+          <polyline class="line" points="0,52 32,46 64,50 96,38 128,44 160,30 192,36 224,22 256,28 288,18 320,14"/>
+          <text x="0" y="76">May 03</text>
+          <text x="282" y="76">Today</text>
+        </svg>
+      </div>
+      <div>
+        <div class="stat-row">
+          <span class="lab">Models Listed</span>
+          <span class="val">52<span class="delta">+3</span></span>
+        </div>
+        <div class="stat-row">
+          <span class="lab">24h Routed</span>
+          <span class="val">8.4M</span>
+        </div>
+        <div class="stat-row">
+          <span class="lab">Avg Saving</span>
+          <span class="val">42.7%</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<div class="sec-head">
+  <h2>Featured Tape</h2>
+  <div class="meta">REFRESHED 14:27:08 UTC · 7D TREND</div>
+</div>
+
+<section class="market">
+  <div class="market-table">
+    <div class="mh">SYMBOL</div>
+    <div class="mh">NAME / PROVIDER</div>
+    <div class="mh">RETAIL</div>
+    <div class="mh">TKM ASK</div>
+    <div class="mh">7D TREND</div>
+    <div class="mh">DELTA</div>
+    <div class="mh">CLASS</div>
+    <div class="mh"></div>
+
+    <div class="mr"><span class="sym">GRK-4.1</span></div>
+    <div class="mr name-cell"><span class="pglyph"><svg><use href="#x"/></svg></span><span class="name">Grok 4.1<span class="provider">xAI</span></span></div>
+    <div class="mr"><span class="retail">$6.00</span></div>
+    <div class="mr"><span class="ask">$2.10</span></div>
+    <div class="mr"><svg class="spark" viewBox="0 0 84 18" preserveAspectRatio="none"><polyline class="area" points="0,18 0,3 14,4 28,5 42,8 56,10 70,13 84,15 84,18"/><polyline points="0,3 14,4 28,5 42,8 56,10 70,13 84,15"/><circle class="end-dot" cx="84" cy="15" r="2"/></svg></div>
+    <div class="mr"><span class="delta">−65.0%</span></div>
+    <div class="mr"><span class="badge">LLM</span></div>
+    <div class="mr"><span class="go">→</span></div>
+
+    <div class="mr"><span class="sym">CLD-O-4.7</span></div>
+    <div class="mr name-cell"><span class="pglyph"><svg><use href="#anthropic"/></svg></span><span class="name">Claude Opus 4.7<span class="provider">Anthropic</span></span></div>
+    <div class="mr"><span class="retail">$25.00</span></div>
+    <div class="mr"><span class="ask">$21.25</span></div>
+    <div class="mr"><svg class="spark" viewBox="0 0 84 18" preserveAspectRatio="none"><polyline class="area" points="0,18 0,5 14,6 28,4 42,7 56,9 70,8 84,11 84,18"/><polyline points="0,5 14,6 28,4 42,7 56,9 70,8 84,11"/><circle class="end-dot" cx="84" cy="11" r="2"/></svg></div>
+    <div class="mr"><span class="delta">−15.0%</span></div>
+    <div class="mr"><span class="badge">LLM</span></div>
+    <div class="mr"><span class="go">→</span></div>
+
+    <div class="mr"><span class="sym">GPT-5.4</span></div>
+    <div class="mr name-cell"><span class="pglyph"><svg><use href="#openai"/></svg></span><span class="name">GPT 5.4<span class="provider">OpenAI</span></span></div>
+    <div class="mr"><span class="retail">$15.00</span></div>
+    <div class="mr"><span class="ask">$12.75</span></div>
+    <div class="mr"><svg class="spark" viewBox="0 0 84 18" preserveAspectRatio="none"><polyline class="area" points="0,18 0,4 14,7 28,6 42,8 56,7 70,10 84,12 84,18"/><polyline points="0,4 14,7 28,6 42,8 56,7 70,10 84,12"/><circle class="end-dot" cx="84" cy="12" r="2"/></svg></div>
+    <div class="mr"><span class="delta">−15.0%</span></div>
+    <div class="mr"><span class="badge">LLM</span></div>
+    <div class="mr"><span class="go">→</span></div>
+
+    <div class="mr"><span class="sym">GMN-3.1-P</span></div>
+    <div class="mr name-cell"><span class="pglyph"><svg><use href="#google"/></svg></span><span class="name">Gemini 3.1 Pro<span class="provider">Google</span></span></div>
+    <div class="mr"><span class="retail">$12.00</span></div>
+    <div class="mr"><span class="ask">$9.60</span></div>
+    <div class="mr"><svg class="spark" viewBox="0 0 84 18" preserveAspectRatio="none"><polyline class="area" points="0,18 0,4 14,5 28,7 42,6 56,9 70,11 84,13 84,18"/><polyline points="0,4 14,5 28,7 42,6 56,9 70,11 84,13"/><circle class="end-dot" cx="84" cy="13" r="2"/></svg></div>
+    <div class="mr"><span class="delta">−20.0%</span></div>
+    <div class="mr"><span class="badge">LLM</span></div>
+    <div class="mr"><span class="go">→</span></div>
+
+    <div class="mr"><span class="sym">NB-2</span></div>
+    <div class="mr name-cell"><span class="pglyph"><svg><use href="#google"/></svg></span><span class="name">Nano Banana 2<span class="provider">Google</span></span></div>
+    <div class="mr"><span class="retail">$0.05</span></div>
+    <div class="mr"><span class="ask">$0.04</span></div>
+    <div class="mr"><svg class="spark" viewBox="0 0 84 18" preserveAspectRatio="none"><polyline class="area" points="0,18 0,5 14,4 28,6 42,7 56,9 70,11 84,12 84,18"/><polyline points="0,5 14,4 28,6 42,7 56,9 70,11 84,12"/><circle class="end-dot" cx="84" cy="12" r="2"/></svg></div>
+    <div class="mr"><span class="delta">−20.0%</span></div>
+    <div class="mr"><span class="badge img">IMG</span></div>
+    <div class="mr"><span class="go">→</span></div>
+
+    <div class="mr"><span class="sym">CLD-S-4.6</span></div>
+    <div class="mr name-cell"><span class="pglyph"><svg><use href="#anthropic"/></svg></span><span class="name">Claude Sonnet 4.6<span class="provider">Anthropic</span></span></div>
+    <div class="mr"><span class="retail">$15.00</span></div>
+    <div class="mr"><span class="ask">$12.75</span></div>
+    <div class="mr"><svg class="spark" viewBox="0 0 84 18" preserveAspectRatio="none"><polyline class="area" points="0,18 0,5 14,7 28,6 42,8 56,7 70,9 84,11 84,18"/><polyline points="0,5 14,7 28,6 42,8 56,7 70,9 84,11"/><circle class="end-dot" cx="84" cy="11" r="2"/></svg></div>
+    <div class="mr"><span class="delta">−15.0%</span></div>
+    <div class="mr"><span class="badge">LLM</span></div>
+    <div class="mr"><span class="go">→</span></div>
+  </div>
+</section>
+
+<div class="sec-head">
+  <h2>Top-Up Schedule</h2>
+  <div class="meta">YIELD INCREASES W/ ORDER SIZE</div>
+</div>
+
+<section class="pricing">
+  <div class="price-table">
+    <div class="price-cell featured">
+      <div class="pay">PAY</div>
+      <div class="amt">$99</div>
+      <div class="arrow">↓ RECEIVE</div>
+      <div class="get">$118.80</div>
+      <div class="bonus">+20.00% YIELD</div>
+      <div class="yield-bar b20"></div>
+    </div>
+    <div class="price-cell">
+      <div class="pay">PAY</div>
+      <div class="amt">$499</div>
+      <div class="arrow">↓ RECEIVE</div>
+      <div class="get">$518.96</div>
+      <div class="bonus">+4.00% YIELD</div>
+      <div class="yield-bar b4"></div>
+    </div>
+    <div class="price-cell">
+      <div class="pay">PAY</div>
+      <div class="amt">$999</div>
+      <div class="arrow">↓ RECEIVE</div>
+      <div class="get">$1,058.94</div>
+      <div class="bonus">+6.00% YIELD</div>
+      <div class="yield-bar b6"></div>
+    </div>
+    <div class="price-cell">
+      <div class="pay">PAY</div>
+      <div class="amt">$4,999</div>
+      <div class="arrow">↓ RECEIVE</div>
+      <div class="get">$5,398.92</div>
+      <div class="bonus">+8.00% YIELD</div>
+      <div class="yield-bar b8"></div>
+    </div>
+    <div class="price-cell">
+      <div class="pay">PAY</div>
+      <div class="amt">$9,999</div>
+      <div class="arrow">↓ RECEIVE</div>
+      <div class="get">$10,998.90</div>
+      <div class="bonus">+10.00% YIELD</div>
+      <div class="yield-bar b10"></div>
+    </div>
+    <div class="price-cell">
+      <div class="pay">VOLUME</div>
+      <div class="amt" style="font-size: 20px; line-height: 1.6">Talk to Sales</div>
+      <div class="arrow">↓ UP TO</div>
+      <div class="get">−65%</div>
+      <div class="bonus">CUSTOM CONTRACT</div>
+      <div class="yield-bar b65"></div>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stats-grid">
+    <div class="stat-block">
+      <div class="ord">01 — INVENTORY</div>
+      <div class="big"><span class="accent">50+</span></div>
+      <div class="desc">Models routed: every flagship from Anthropic, OpenAI, Google, Meta, xAI through one OpenAI-compatible endpoint.</div>
+      <div class="ascii-grid" aria-hidden="true">
+        <span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span>
+        <span class="cell on"></span><span class="cell on"></span><span class="cell dim"></span><span class="cell dim"></span><span class="cell dim"></span>
+        <span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span>
+        <span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell dim"></span><span class="cell dim"></span>
+        <span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span>
+      </div>
+    </div>
+    <div class="stat-block">
+      <div class="ord">02 — EXECUTION</div>
+      <div class="big"><span class="accent">−65%</span></div>
+      <div class="desc">Smart routing finds the lowest market rate per request. No retainer. No platform fee. Settled at ask.</div>
+      <div class="viz" style="display: flex; flex-direction: column; gap: 6px; margin-top: 1.5rem">
+        <div><span class="bar faded" style="width: 100%"></span><span style="position:absolute; margin-left: -52px; color:var(--text-mute)">RETAIL</span></div>
+        <div><span class="bar" style="width: 35%"></span><span style="margin-left: -100px; color: var(--pink); font-weight:600">TKM ASK</span></div>
+      </div>
+      <div style="margin-top: 0.75rem; font-family: var(--mono); font-size: 11px; color: var(--green); letter-spacing: 0.08em;">▼ −65.00% SETTLED</div>
+    </div>
+    <div class="stat-block">
+      <div class="ord">03 — UPTIME</div>
+      <div class="big">99.9<span class="accent">%</span></div>
+      <div class="desc">Cross-provider failover. If a provider degrades, requests reroute pre-emptively. One key, one bill.</div>
+      <div class="ascii-grid" aria-hidden="true">
+        <span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span>
+        <span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell warm"></span>
+        <span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span>
+        <span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span>
+        <span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span><span class="cell on"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

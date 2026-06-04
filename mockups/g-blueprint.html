@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TokenMart — Blueprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ─── G · BLUEPRINT BAZAAR ────────────────────────────
+     Bento Bazaar with engineering-schematic overlay.
+     Wireframe iso geometry, dimension callouts, routing diagram.
+  */
+  :root {
+    --bg:        #0B0B11;
+    --tile:      #16161E;
+    --tile-hi:   #1F1F2A;
+    --paper:     #ECE6D5; /* cream parchment for one accent moment */
+    --paper-ink: #1A1612;
+    --text:      #FFFFFF;
+    --text-dim:  #A8A6B8;
+    --text-mute: #5C5A6F;
+    --hair:      rgba(255,255,255,0.08);
+    --hair-hi:   rgba(255,255,255,0.16);
+    --pink:      #FF2E8C;
+    --hot:       #FF4D2E;
+    --lime:      #C8FF52;
+    --cyan:      #5CE5FF;
+    --violet:    #8B5CFF;
+    --sun:       #FFD93D;
+    --display:   'Funnel Display', sans-serif;
+    --body:      'Plus Jakarta Sans', sans-serif;
+    --mono:      'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--body); color: var(--text); background: var(--bg);
+    -webkit-font-smoothing: antialiased; min-height: 100vh; padding-bottom: 6rem;
+    overflow-x: hidden;
+  }
+  /* faint isometric blueprint grid — engineering paper */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      linear-gradient(60deg, transparent 49.7%, rgba(92,229,255,0.05) 49.7%, rgba(92,229,255,0.05) 50.3%, transparent 50.3%),
+      linear-gradient(-60deg, transparent 49.7%, rgba(92,229,255,0.05) 49.7%, rgba(92,229,255,0.05) 50.3%, transparent 50.3%),
+      linear-gradient(0deg, transparent 49.7%, rgba(92,229,255,0.04) 49.7%, rgba(92,229,255,0.04) 50.3%, transparent 50.3%);
+    background-size: 56px 96px, 56px 96px, 56px 96px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 100%);
+  }
+
+  .pglyph { display: inline-flex; color: currentColor; }
+  .pglyph svg { fill: currentColor; width: 100%; height: 100%; display: block; }
+
+  /* ── Top strip ── */
+  .strip {
+    background: var(--lime); color: var(--bg);
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    padding: 0.55rem 0; letter-spacing: 0.04em; text-align: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--bg);
+  }
+  .strip-inner {
+    display: inline-flex; gap: 3rem; white-space: nowrap;
+    animation: scroll-strip 35s linear infinite;
+  }
+  @keyframes scroll-strip { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .strip-inner span { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .strip-inner .b { background: var(--bg); color: var(--lime); padding: 1px 6px; font-weight: 800; }
+  .strip-inner .sku { font-family: var(--mono); opacity: 0.65; }
+
+  /* ── Nav ── */
+  .nav {
+    max-width: 1400px; margin: 0 auto;
+    padding: 1.25rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 2rem;
+  }
+  .logo {
+    font-family: var(--display); font-weight: 800;
+    font-size: 22px; letter-spacing: -0.04em;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .logo-mark {
+    width: 22px; height: 22px;
+    border: 1.5px solid var(--lime);
+    transform: rotate(45deg);
+    position: relative;
+  }
+  .logo-mark::after {
+    content: ""; position: absolute; inset: 3px;
+    background: var(--lime);
+  }
+  .logo .meta {
+    font-family: var(--mono); font-size: 9px; font-weight: 500;
+    color: var(--text-mute); letter-spacing: 0.16em;
+    text-transform: uppercase; margin-left: 4px;
+    border-left: 1px solid var(--hair); padding-left: 0.7rem;
+  }
+  .nav-search {
+    flex: 1; max-width: 480px;
+    display: flex; align-items: center; gap: 0.6rem;
+    background: var(--tile);
+    border: 1px solid var(--hair);
+    padding: 0.65rem 1.1rem;
+    font-size: 14px; color: var(--text-dim);
+    cursor: pointer; transition: all 200ms;
+    position: relative;
+  }
+  .nav-search:hover { border-color: var(--cyan); background: var(--tile-hi); }
+  .nav-search svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .nav-search .kbd {
+    margin-left: auto; font-family: var(--mono); font-size: 11px;
+    background: var(--bg); padding: 2px 7px;
+    border: 1px solid var(--hair); color: var(--text-mute);
+  }
+  /* small crosshair anchors on nav search corners */
+  .nav-search::before, .nav-search::after {
+    content: "+"; position: absolute;
+    font-family: var(--mono); font-size: 10px; color: var(--text-mute);
+    top: -8px;
+  }
+  .nav-search::before { left: -4px; }
+  .nav-search::after { right: -4px; }
+  .nav-links { display: flex; gap: 1.75rem; font-size: 14px; font-weight: 500; color: var(--text-dim); }
+  .nav-links a { color: inherit; text-decoration: none; transition: color 200ms; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    font-size: 14px; font-weight: 700;
+    background: var(--lime); color: var(--bg);
+    padding: 0.7rem 1.3rem;
+    text-decoration: none; transition: all 200ms ease;
+    border: 1px solid var(--lime);
+  }
+  .nav-cta:hover { background: var(--bg); color: var(--lime); }
+
+  /* ── Hero bento ── */
+  .hero-bento {
+    max-width: 1400px; margin: 0 auto;
+    padding: 1.5rem 2rem 0;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-auto-rows: minmax(110px, auto);
+    gap: 0.75rem;
+    position: relative;
+  }
+  /* corner crosshair anchors — engineering paper feel */
+  .hero-bento::before, .hero-bento::after {
+    content: "+"; position: absolute;
+    font-family: var(--mono); font-size: 14px; color: var(--text-mute);
+    z-index: 5;
+  }
+  .hero-bento::before { top: -6px; left: 1.5rem; }
+  .hero-bento::after { top: -6px; right: 1.5rem; }
+
+  .b-tile {
+    padding: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: transform 200ms ease;
+  }
+  .b-tile:hover { transform: translateY(-2px); }
+
+  /* MAIN 65% TILE — with iso wireframe + dimension callouts */
+  .b-65 {
+    grid-column: span 5; grid-row: span 4;
+    background:
+      radial-gradient(ellipse at 100% 100%, rgba(255,46,140,0.4), transparent 60%),
+      linear-gradient(135deg, var(--violet), var(--pink) 75%);
+    color: white;
+    display: flex; flex-direction: column; justify-content: space-between;
+    min-height: 480px;
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 2rem;
+  }
+  /* iso cube cluster background */
+  .b-65 .iso-bg {
+    position: absolute;
+    bottom: -40px; right: -40px;
+    width: 360px; height: 360px;
+    color: rgba(255,255,255,0.18);
+    pointer-events: none;
+  }
+  .b-65 .iso-bg svg { width: 100%; height: 100%; }
+  /* tag */
+  .b-65 .tag {
+    display: inline-flex; align-items: center; gap: 0.55rem;
+    background: rgba(255,255,255,0.18); backdrop-filter: blur(8px);
+    padding: 0.4rem 0.85rem;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    align-self: flex-start;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  .b-65 .tag .dot { width: 7px; height: 7px; background: var(--lime); animation: blip 1.6s infinite; }
+  @keyframes blip { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* hero h1 with dimension callouts */
+  .b-65 .head-block {
+    position: relative;
+    display: inline-block;
+    margin-top: 1.2rem;
+  }
+  .b-65 h1 {
+    font-family: var(--display); font-weight: 800;
+    font-size: clamp(3rem, 8vw, 7rem);
+    line-height: 0.88; letter-spacing: -0.045em;
+    position: relative; z-index: 2;
+  }
+  .b-65 h1 .pct {
+    background: linear-gradient(120deg, var(--lime), var(--sun) 80%, white);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-style: italic;
+  }
+  /* dimension callouts: top horizontal bracket + side ticks */
+  .b-65 .dim-top {
+    position: absolute; top: -28px; left: 0; right: 0;
+    height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .b-65 .dim-top::before, .b-65 .dim-top::after {
+    content: ""; flex: 1; height: 1px; background: rgba(255,255,255,0.45);
+  }
+  .b-65 .dim-top::before { margin-right: 0.5rem; box-shadow: 0 -3px 0 -2px rgba(255,255,255,0.45); }
+  .b-65 .dim-top::after { margin-left: 0.5rem; box-shadow: 0 -3px 0 -2px rgba(255,255,255,0.45); }
+  .b-65 .dim-top .label {
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    color: rgba(255,255,255,0.85); letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .b-65 .lead-row {
+    margin-top: 1.5rem;
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+    position: relative; z-index: 2;
+  }
+  .btn-primary {
+    background: white; color: var(--bg);
+    padding: 0.95rem 1.4rem;
+    font-size: 15px; font-weight: 700;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: transform 200ms;
+    border: 1px solid white;
+  }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-ghost {
+    color: white;
+    padding: 0.95rem 1.4rem;
+    font-size: 15px; font-weight: 600;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+  .b-65 .sub {
+    margin-top: 1.5rem;
+    font-size: 16px; line-height: 1.5; max-width: 38ch;
+    color: rgba(255,255,255,0.85);
+    position: relative; z-index: 2;
+  }
+  /* corner stamp */
+  .stamp {
+    position: absolute;
+    top: 1.5rem; right: 1.5rem;
+    border: 2px solid currentColor;
+    padding: 0.6rem 0.9rem;
+    transform: rotate(-6deg);
+    font-family: var(--mono); font-weight: 700;
+    font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase;
+    line-height: 1.2; text-align: center;
+    box-shadow: inset 0 0 0 1px currentColor;
+    color: white;
+  }
+  .stamp .small { font-size: 9px; opacity: 0.85; display: block; margin-top: 2px; letter-spacing: 0.12em; }
+  /* SKU label bottom-left */
+  .sku-label {
+    position: absolute; bottom: 1rem; left: 1.5rem;
+    font-family: var(--mono); font-size: 10px;
+    color: rgba(255,255,255,0.55); letter-spacing: 0.12em;
+  }
+
+  /* COUNTER TILE w/ wireframe gauge */
+  .b-counter {
+    grid-column: span 3; grid-row: span 2;
+    background: var(--tile);
+    border: 1px solid var(--hair);
+    color: var(--text);
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 1.5rem;
+  }
+  .b-counter .head {
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.14em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .b-counter .head .live { color: var(--lime); font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .b-counter .head .live::before {
+    content: ""; width: 7px; height: 7px; background: var(--lime); animation: blip 1.6s infinite;
+  }
+  .b-counter .body { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; flex: 1; }
+  .b-counter h3 {
+    font-family: var(--display); font-weight: 600;
+    font-size: 20px; letter-spacing: -0.02em; line-height: 1.1;
+  }
+  .b-counter .clock {
+    display: flex; gap: 0.4rem;
+  }
+  .b-counter .clock .seg {
+    background: var(--bg);
+    padding: 0.6rem 0.5rem; text-align: center; min-width: 50px;
+    border: 1px solid var(--hair);
+  }
+  .b-counter .clock .num {
+    font-family: var(--mono); font-size: 22px; font-weight: 600;
+    color: var(--lime); font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .b-counter .clock .lbl {
+    font-family: var(--mono); font-size: 9px; color: var(--text-mute);
+    letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px;
+  }
+  /* wireframe gauge */
+  .gauge {
+    width: 96px; height: 96px;
+    color: var(--cyan);
+    flex-shrink: 0;
+  }
+  .gauge svg { width: 100%; height: 100%; }
+
+  /* SOCIAL TILE w/ constellation */
+  .b-social {
+    grid-column: span 3; grid-row: span 2;
+    background: linear-gradient(135deg, var(--cyan), #2D8FFF);
+    color: var(--bg);
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.15);
+    position: relative;
+    overflow: hidden;
+  }
+  .b-social .const-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.22;
+  }
+  .b-social .const-bg svg { width: 100%; height: 100%; }
+  .b-social .head {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    font-weight: 600; opacity: 0.7;
+    position: relative;
+  }
+  .b-social h3 {
+    font-family: var(--display); font-weight: 800;
+    font-size: 38px; letter-spacing: -0.03em; line-height: 1;
+    margin-top: 0.4rem; position: relative;
+  }
+  .b-social .bottom {
+    display: flex; align-items: center; gap: 0.85rem;
+    position: relative;
+  }
+  .avatars { display: flex; }
+  .avatars .a {
+    width: 30px; height: 30px; border: 2px solid var(--cyan);
+    margin-left: -10px;
+    background: var(--bg); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    border-radius: 50%;
+  }
+  .avatars .a:nth-child(1) { background: var(--pink); margin-left: 0; }
+  .avatars .a:nth-child(2) { background: var(--violet); }
+  .avatars .a:nth-child(3) { background: var(--sun); color: var(--bg); }
+  .avatars .a:nth-child(4) { background: var(--bg); color: white; border-color: var(--bg); }
+  .b-social .text { font-size: 13px; font-weight: 600; }
+
+  /* ── Routing diagram (full width) ── */
+  .routing {
+    max-width: 1400px; margin: 1.5rem auto 0;
+    padding: 2rem;
+    background: var(--tile);
+    border: 1px solid var(--hair);
+    position: relative;
+  }
+  .routing-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .routing-head .lab {
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .routing-head .lab::before {
+    content: "FIG.01 —";
+    color: var(--cyan); font-weight: 600;
+  }
+  .routing-head h3 {
+    font-family: var(--display); font-weight: 600;
+    font-size: 20px; letter-spacing: -0.02em;
+  }
+  .routing-head h3 em { color: var(--lime); font-style: italic; font-weight: 700; }
+  .routing-head .stats {
+    display: flex; gap: 2rem;
+    font-family: var(--mono); font-size: 11px;
+  }
+  .routing-head .stats .stat .v { color: var(--text); font-size: 16px; font-weight: 600; font-family: var(--display); }
+  .routing-head .stats .stat .l { color: var(--text-mute); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px; }
+  .routing-net {
+    width: 100%; height: 200px;
+    color: var(--text-dim);
+  }
+  .routing-net svg { width: 100%; height: 100%; }
+
+  /* ── Marketplace section ── */
+  .market-head {
+    max-width: 1400px; margin: 4rem auto 1.5rem;
+    padding: 0 2rem;
+    display: flex; justify-content: space-between; align-items: end;
+  }
+  .market-head h2 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -0.04em;
+    line-height: 1;
+    display: flex; align-items: baseline; gap: 0.7rem;
+  }
+  .market-head h2::before {
+    content: "§";
+    color: var(--cyan); font-style: italic; font-size: 0.6em;
+  }
+  .market-head h2 em { font-style: italic; font-weight: 800; color: var(--lime); }
+  .market-head .filters {
+    display: flex; gap: 0.4rem;
+    background: var(--tile); border: 1px solid var(--hair);
+    padding: 0.3rem;
+  }
+  .filter-chip {
+    padding: 0.4rem 0.95rem;
+    font-size: 13px; font-weight: 600; color: var(--text-dim);
+    cursor: pointer;
+  }
+  .filter-chip.on { background: var(--lime); color: var(--bg); }
+
+  .market {
+    max-width: 1400px; margin: 0 auto;
+    padding: 0 2rem;
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: minmax(180px, auto);
+    gap: 0.75rem;
+  }
+  .m-tile {
+    padding: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: transform 200ms ease;
+    display: flex; flex-direction: column; justify-content: space-between;
+    gap: 1rem; color: var(--text);
+    border: 1px solid var(--hair);
+  }
+  .m-tile:hover { transform: translateY(-3px); }
+
+  /* Lead Grok with imagery + schematic dimension brackets */
+  .m-lead {
+    grid-column: span 3; grid-row: span 2;
+    background: linear-gradient(140deg, #2A0F1E, var(--bg));
+    border: 1px solid var(--pink);
+    box-shadow: inset 0 0 30px rgba(255,46,140,0.12);
+    min-height: 420px;
+    padding: 2rem;
+  }
+  .m-lead .img-wrap {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 55%;
+    background:
+      linear-gradient(90deg, var(--bg) 0%, transparent 35%),
+      url('../public/featured-models/grok-4.1.png') center / cover;
+    -webkit-mask-image: linear-gradient(to left, black 30%, transparent 100%);
+            mask-image: linear-gradient(to left, black 30%, transparent 100%);
+  }
+  .m-lead > * { position: relative; z-index: 1; }
+  .m-lead .header {
+    display: flex; align-items: center; gap: 0.7rem;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .m-lead .pglyph { width: 16px; height: 16px; color: var(--text); }
+  .m-lead .badge {
+    background: var(--pink); color: white;
+    padding: 3px 9px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em;
+    border: 1px solid var(--pink);
+  }
+  .m-lead h3 {
+    font-family: var(--display); font-weight: 700;
+    font-size: 60px; letter-spacing: -0.04em; line-height: 0.95;
+  }
+  .m-lead h3 em { font-style: italic; color: var(--lime); }
+  .m-lead p { font-size: 14px; color: var(--text-dim); line-height: 1.5; max-width: 32ch; }
+
+  /* schematic price block w/ dimension brackets */
+  .m-lead .price-block {
+    position: relative;
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
+  }
+  .m-lead .dim-bracket {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: rgba(200,255,82,0.4);
+  }
+  .m-lead .dim-bracket::before, .m-lead .dim-bracket::after {
+    content: ""; position: absolute;
+    width: 6px; height: 1px;
+    background: rgba(200,255,82,0.4);
+  }
+  .m-lead .dim-bracket::before { top: 0; }
+  .m-lead .dim-bracket::after { bottom: 0; }
+  .m-lead .dim-bracket.l { left: -10px; }
+  .m-lead .dim-bracket.l::before, .m-lead .dim-bracket.l::after { left: 0; }
+  .m-lead .dim-bracket.r { right: -10px; }
+  .m-lead .dim-bracket.r::before, .m-lead .dim-bracket.r::after { right: 0; }
+  .m-lead .dim-label {
+    position: absolute; left: -38px; top: 50%;
+    transform: translateY(-50%) rotate(-90deg) translateX(50%);
+    transform-origin: right center;
+    font-family: var(--mono); font-size: 9px;
+    color: var(--lime); letter-spacing: 0.16em; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .m-lead .price-row {
+    display: flex; align-items: baseline; gap: 0.85rem; flex-wrap: wrap;
+  }
+  .m-lead .retail { font-family: var(--mono); font-size: 14px; color: var(--text-mute); text-decoration: line-through; }
+  .m-lead .ask {
+    font-family: var(--display); font-weight: 800; font-size: 56px;
+    background: linear-gradient(120deg, var(--lime), var(--sun));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    line-height: 1; letter-spacing: -0.03em;
+  }
+  .m-lead .unit { font-family: var(--mono); font-size: 11px; color: var(--text-mute); letter-spacing: 0.06em; }
+  .m-lead .save {
+    background: var(--lime); color: var(--bg);
+    padding: 4px 10px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .m-lead .group-buy {
+    margin-top: 0.5rem;
+    display: flex; align-items: center; gap: 0.7rem;
+    font-size: 12px; color: var(--text-dim);
+  }
+  .m-lead .group-buy .avatars .a {
+    width: 24px; height: 24px; font-size: 10px;
+    border-color: var(--bg);
+  }
+  .m-lead .sku-label {
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* category-colored tiles + wireframe corner gadgets */
+  .m-violet  { grid-column: span 2; background: linear-gradient(140deg, #5B2DD9, #3D1A99); }
+  .m-orange  { grid-column: span 1; background: linear-gradient(140deg, var(--hot), #C2391F); }
+  .m-cyan    { grid-column: span 2; background: linear-gradient(140deg, var(--cyan), #2D8FFF); color: var(--bg); border-color: rgba(0,0,0,0.15); }
+  .m-lime    { grid-column: span 1; background: linear-gradient(140deg, var(--lime), #8DCC2A); color: var(--bg); border-color: rgba(0,0,0,0.15); }
+  .m-sun     { grid-column: span 2; background: linear-gradient(140deg, var(--sun), #C29F00); color: var(--bg); border-color: rgba(0,0,0,0.15); }
+
+  .m-tile .tile-tag {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600;
+    opacity: 0.75;
+  }
+  .m-tile .tile-tag .pglyph { width: 14px; height: 14px; }
+  .m-tile h4 {
+    font-family: var(--display); font-weight: 700;
+    font-size: 26px; letter-spacing: -0.025em; line-height: 1;
+  }
+  .m-tile .price-line {
+    display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .m-tile .price-line .retail-s { font-family: var(--mono); font-size: 12px; opacity: 0.6; text-decoration: line-through; }
+  .m-tile .price-line .ask-s {
+    font-family: var(--display); font-weight: 800; font-size: 28px;
+    line-height: 1; letter-spacing: -0.02em;
+  }
+  .m-tile .price-line .save-s {
+    margin-left: auto;
+    background: rgba(0,0,0,0.25); padding: 3px 8px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .m-cyan .save-s, .m-lime .save-s, .m-sun .save-s { background: var(--bg); color: white; }
+  /* wireframe corner gadget */
+  .m-tile .wf-corner {
+    position: absolute; top: 1rem; right: 1rem;
+    width: 36px; height: 36px;
+    color: rgba(255,255,255,0.35);
+    pointer-events: none;
+  }
+  .m-cyan .wf-corner, .m-lime .wf-corner, .m-sun .wf-corner { color: rgba(0,0,0,0.3); }
+  .m-tile .wf-corner svg { width: 100%; height: 100%; }
+  /* SKU bottom-right */
+  .m-tile .sku {
+    position: absolute; bottom: 0.65rem; right: 1rem;
+    font-family: var(--mono); font-size: 9px;
+    letter-spacing: 0.14em;
+    opacity: 0.5;
+  }
+
+  /* ── Tier section — admission ticket aesthetic ── */
+  .group-section {
+    max-width: 1400px; margin: 4.5rem auto 0;
+    padding: 0 2rem;
+  }
+  .group-section h2 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+    display: flex; align-items: baseline; gap: 0.7rem;
+  }
+  .group-section h2::before {
+    content: "§";
+    color: var(--cyan); font-style: italic; font-size: 0.6em;
+  }
+  .group-section h2 em {
+    font-style: italic; font-weight: 800;
+    background: linear-gradient(120deg, var(--lime), var(--sun));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .group-section .sub {
+    font-size: 16px; color: var(--text-dim); margin-bottom: 2.5rem; max-width: 60ch;
+  }
+
+  .tickets {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem;
+  }
+  .ticket {
+    background: var(--tile);
+    padding: 1.4rem 1.2rem 2.6rem;
+    transition: all 250ms;
+    position: relative;
+    border: 1px solid var(--hair);
+    /* perforation cut on bottom */
+    --notch: 8px;
+  }
+  .ticket:hover { background: var(--tile-hi); transform: translateY(-3px); }
+  .ticket.featured {
+    background: linear-gradient(160deg, rgba(255,46,140,0.15), rgba(139,92,255,0.08));
+    border-color: var(--pink);
+  }
+  /* perforation row */
+  .ticket::after {
+    content: "· · · · · · · · · · · · · · · · · · ·";
+    position: absolute; left: 0; right: 0; bottom: 1.4rem;
+    text-align: center;
+    font-family: var(--mono); color: var(--text-mute);
+    letter-spacing: 0.12em; font-size: 11px; opacity: 0.6;
+  }
+  .ticket .ticket-no {
+    font-family: var(--mono); font-size: 9px; color: var(--text-mute);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    margin-bottom: 0.6rem;
+    display: flex; justify-content: space-between;
+  }
+  .ticket .pay {
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .ticket .amt {
+    font-family: var(--display); font-weight: 700; font-size: 36px;
+    margin: 0.4rem 0 0.6rem; line-height: 1; letter-spacing: -0.03em;
+  }
+  .ticket .arrow { font-size: 12px; color: var(--text-mute); margin: 0.25rem 0; }
+  .ticket .get {
+    font-family: var(--display); font-weight: 800; font-size: 22px;
+    color: var(--lime); line-height: 1;
+  }
+  .ticket.featured .get { color: var(--sun); }
+  .ticket .bonus {
+    margin-top: 0.65rem; display: inline-block;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    color: var(--bg); background: var(--lime);
+    padding: 4px 9px;
+    letter-spacing: 0.04em;
+  }
+  .ticket.featured .bonus { background: var(--sun); }
+  .ticket-stub {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 1.4rem;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 1.2rem;
+    font-family: var(--mono); font-size: 9px;
+    color: var(--text-mute);
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .ticket-stub .stamp-mini {
+    border: 1px solid var(--text-mute);
+    padding: 1px 5px;
+    font-weight: 700;
+  }
+  /* notches at the perforation line — left/right circular cutouts */
+  .ticket .notch-l, .ticket .notch-r {
+    position: absolute; bottom: 1.4rem;
+    width: 14px; height: 14px;
+    background: var(--bg);
+    border-radius: 50%;
+  }
+  .ticket .notch-l { left: -7px; }
+  .ticket .notch-r { right: -7px; }
+  .ticket.featured .notch-l, .ticket.featured .notch-r {
+    background: var(--bg);
+  }
+  .ticket.featured::before {
+    content: "★ HOT";
+    position: absolute; top: 10px; right: 10px;
+    font-family: var(--mono); font-size: 10px;
+    background: var(--pink); color: white;
+    padding: 3px 8px;
+    letter-spacing: 0.08em; font-weight: 700;
+  }
+
+  /* ── Why grid w/ schematic callouts ── */
+  .why-grid {
+    max-width: 1400px; margin: 5rem auto 0;
+    padding: 0 2rem;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+  }
+  .why-card {
+    background: var(--tile); border: 1px solid var(--hair);
+    padding: 2rem;
+    position: relative; overflow: hidden;
+  }
+  .why-card.violet { background: linear-gradient(160deg, rgba(139,92,255,0.18), var(--tile)); border-color: rgba(139,92,255,0.3); }
+  .why-card.pink { background: linear-gradient(160deg, rgba(255,46,140,0.16), var(--tile)); border-color: rgba(255,46,140,0.3); }
+  .why-card.lime { background: linear-gradient(160deg, rgba(200,255,82,0.12), var(--tile)); border-color: rgba(200,255,82,0.3); }
+  .why-card .ord {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--text-mute);
+    display: flex; justify-content: space-between;
+  }
+  .why-card .ord .meta { color: var(--text-mute); opacity: 0.7; }
+  .why-card .num {
+    font-family: var(--display); font-weight: 800; font-size: 88px;
+    line-height: 0.95; margin: 0.5rem 0 1rem;
+    letter-spacing: -0.04em;
+    position: relative; display: inline-block;
+  }
+  .why-card.violet .num { color: var(--violet); }
+  .why-card.pink .num { color: var(--pink); }
+  .why-card.lime .num { color: var(--lime); }
+  /* annotation on first num */
+  .why-card .num .annot {
+    position: absolute;
+    top: 18px; right: -150px;
+    font-family: var(--mono); font-size: 10px;
+    color: var(--text-mute); letter-spacing: 0.08em; text-transform: uppercase;
+    line-height: 1.4;
+    width: 130px;
+    pointer-events: none;
+  }
+  .why-card .num .annot::before {
+    content: "";
+    position: absolute;
+    left: -24px; top: 14px;
+    width: 20px; height: 1px;
+    background: var(--text-mute);
+  }
+  .why-card .num .annot::after {
+    content: "←";
+    position: absolute;
+    left: -28px; top: 8px;
+    color: var(--text-mute); font-size: 12px;
+  }
+  .why-card h3 {
+    font-family: var(--display); font-weight: 600; font-size: 22px;
+    letter-spacing: -0.02em; margin-bottom: 0.5rem;
+  }
+  .why-card p { font-size: 14px; line-height: 1.6; color: var(--text-dim); }
+  .why-card .icons {
+    margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .why-card .ic {
+    width: 36px; height: 36px;
+    background: var(--bg); border: 1px solid var(--hair);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim);
+  }
+  .why-card .ic .pglyph { width: 18px; height: 18px; }
+
+  @media (max-width: 1100px) {
+    .hero-bento { grid-template-columns: repeat(4, 1fr); }
+    .b-65 { grid-column: span 4; grid-row: span 3; min-height: 420px; }
+    .b-counter, .b-social { grid-column: span 2; grid-row: span 2; }
+    .market { grid-template-columns: repeat(2, 1fr); }
+    .m-lead { grid-column: span 2; grid-row: span 2; }
+    .m-violet, .m-cyan, .m-sun { grid-column: span 2; }
+    .m-orange, .m-lime { grid-column: span 1; }
+    .tickets { grid-template-columns: repeat(2, 1fr); }
+    .why-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Provider + wireframe sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="anthropic" viewBox="0 0 24 24"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"/></symbol>
+    <symbol id="openai" viewBox="0 0 24 24"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.05 6.05 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.998-2.9 6.056 6.056 0 0 0-.747-7.073z"/></symbol>
+    <symbol id="google" viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></symbol>
+    <symbol id="x" viewBox="0 0 24 24"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932Z"/></symbol>
+    <symbol id="meta" viewBox="0 0 24 24"><path d="M12.001 8.45c-.37 1.005-.997 2.13-1.732 2.91-.756.802-1.65 1.21-2.658 1.21-1.005 0-1.815-.41-2.404-1.213-.583-.795-.886-1.85-.886-3.069 0-1.27.31-2.38.92-3.297.57-.86 1.314-1.31 2.165-1.31.91 0 1.732.45 2.444 1.34.527.66.989 1.502 1.36 2.482z"/></symbol>
+    <symbol id="deepseek" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 11c2-2 8-2 10 0M7 14c2 2 8 2 10 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="bytedance" viewBox="0 0 24 24"><path d="M19.83 5.36L24 0v18.97c0 2.71-2.32 5.03-5.03 5.03H4.85a4.83 4.83 0 0 1-4.84-4.85V8.4l3.45-3.32V19.5c0 .67.5 1.18 1.18 1.18h13.42c.71 0 1.27-.55 1.27-1.27V5.43z"/></symbol>
+    <symbol id="search" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+
+    <!-- WIREFRAME SHAPES -->
+    <!-- Iso warehouse (3 cubes stacked) -->
+    <symbol id="iso-warehouse" viewBox="0 0 360 360">
+      <g fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round">
+        <!-- Bottom cube -->
+        <path d="M 60 240 L 180 290 L 300 240 L 180 190 Z"/>
+        <path d="M 300 240 L 300 320 L 180 360 L 180 290 Z"/>
+        <path d="M 60 240 L 60 320 L 180 360 L 180 290 Z"/>
+        <!-- Mid cube (offset right) -->
+        <path d="M 130 150 L 230 195 L 330 150 L 230 105 Z" stroke-opacity="0.85"/>
+        <path d="M 330 150 L 330 215 L 230 260 L 230 195 Z" stroke-opacity="0.85"/>
+        <path d="M 130 150 L 130 215 L 230 260 L 230 195 Z" stroke-opacity="0.85"/>
+        <!-- Top small cube (offset left) -->
+        <path d="M 50 80 L 130 115 L 210 80 L 130 45 Z" stroke-opacity="0.7"/>
+        <path d="M 210 80 L 210 135 L 130 170 L 130 115 Z" stroke-opacity="0.7"/>
+        <path d="M 50 80 L 50 135 L 130 170 L 130 115 Z" stroke-opacity="0.7"/>
+        <!-- internal divider lines for depth -->
+        <line x1="180" y1="190" x2="180" y2="290" stroke-dasharray="3 3" stroke-width="0.8"/>
+        <line x1="230" y1="105" x2="230" y2="195" stroke-dasharray="3 3" stroke-width="0.8"/>
+        <line x1="130" y1="45" x2="130" y2="115" stroke-dasharray="3 3" stroke-width="0.8"/>
+        <!-- dimension ticks bottom-right -->
+        <g stroke-width="0.8">
+          <line x1="320" y1="240" x2="340" y2="240"/>
+          <line x1="320" y1="320" x2="340" y2="320"/>
+          <line x1="335" y1="240" x2="335" y2="320"/>
+        </g>
+      </g>
+      <text x="346" y="285" font-family="JetBrains Mono" font-size="9" fill="currentColor" letter-spacing="0.16em" opacity="0.7">50+</text>
+    </symbol>
+
+    <!-- Routing network -->
+    <symbol id="routing-net" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid meet">
+      <g fill="none" stroke-linejoin="round">
+        <!-- providers (left column) -->
+        <g stroke="currentColor" stroke-width="1">
+          <circle cx="60" cy="30" r="14"/>
+          <circle cx="60" cy="68" r="14"/>
+          <circle cx="60" cy="106" r="14"/>
+          <circle cx="60" cy="144" r="14"/>
+          <circle cx="60" cy="182" r="14"/>
+        </g>
+        <!-- TKM hub -->
+        <g stroke="#5CE5FF" stroke-width="1.5">
+          <circle cx="400" cy="100" r="36"/>
+          <circle cx="400" cy="100" r="50" stroke-dasharray="3 4" opacity="0.5"/>
+        </g>
+        <!-- output -->
+        <g stroke="#C8FF52" stroke-width="2">
+          <circle cx="740" cy="100" r="18"/>
+        </g>
+        <!-- left lines (provider → hub), all dashed except active -->
+        <g stroke="currentColor" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.5">
+          <line x1="74" y1="30" x2="365" y2="92"/>
+          <line x1="74" y1="68" x2="365" y2="96"/>
+          <line x1="74" y1="144" x2="365" y2="106"/>
+          <line x1="74" y1="182" x2="365" y2="112"/>
+        </g>
+        <!-- ACTIVE route (provider 3 → hub) -->
+        <line x1="74" y1="106" x2="365" y2="100" stroke="#C8FF52" stroke-width="2"/>
+        <!-- hub → output -->
+        <line x1="436" y1="100" x2="722" y2="100" stroke="#C8FF52" stroke-width="2"/>
+        <path d="M 712 92 L 724 100 L 712 108" stroke="#C8FF52" stroke-width="2" fill="none"/>
+        <!-- ticks/labels -->
+      </g>
+      <!-- Provider labels -->
+      <g font-family="JetBrains Mono" font-size="10" fill="currentColor" letter-spacing="0.1em">
+        <text x="90" y="34">ANTHROPIC</text>
+        <text x="90" y="72">OPENAI</text>
+        <text x="90" y="110" fill="#C8FF52" font-weight="600">GOOGLE → ROUTED</text>
+        <text x="90" y="148">xAI</text>
+        <text x="90" y="186">DEEPSEEK</text>
+      </g>
+      <!-- hub label -->
+      <g font-family="JetBrains Mono" font-size="11" fill="#5CE5FF" font-weight="600" letter-spacing="0.12em" text-anchor="middle">
+        <text x="400" y="96">TKM</text>
+        <text x="400" y="110" font-size="8" opacity="0.7">ROUTER</text>
+      </g>
+      <!-- pricing labels along active path -->
+      <g font-family="JetBrains Mono" font-size="9" letter-spacing="0.08em">
+        <text x="200" y="98" fill="#C8FF52">$9.60 ✓</text>
+        <text x="200" y="46" fill="currentColor" opacity="0.5">$25.00</text>
+        <text x="200" y="84" fill="currentColor" opacity="0.5">$15.00</text>
+        <text x="200" y="160" fill="currentColor" opacity="0.5">$6.00</text>
+        <text x="200" y="198" fill="currentColor" opacity="0.5">$0.42</text>
+        <!-- right side -->
+        <text x="540" y="92" fill="#C8FF52" font-weight="600">SETTLED AT $9.60</text>
+        <text x="540" y="106" fill="currentColor" opacity="0.6" font-size="8">−20% VS RETAIL · 128MS LATENCY</text>
+      </g>
+      <!-- top-left fig label -->
+      <text x="30" y="200" font-family="JetBrains Mono" font-size="8" fill="currentColor" opacity="0.5" letter-spacing="0.16em">FIG.01 — LIVE ROUTE</text>
+    </symbol>
+
+    <!-- Wireframe gauge -->
+    <symbol id="gauge" viewBox="0 0 96 96">
+      <g fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="48" cy="48" r="42"/>
+        <circle cx="48" cy="48" r="32" stroke-dasharray="2 2" opacity="0.5"/>
+        <!-- ticks -->
+        <g stroke-width="1">
+          <line x1="48" y1="6" x2="48" y2="14"/>
+          <line x1="48" y1="82" x2="48" y2="90"/>
+          <line x1="6" y1="48" x2="14" y2="48"/>
+          <line x1="82" y1="48" x2="90" y2="48"/>
+          <line x1="18" y1="18" x2="23" y2="23" opacity="0.5"/>
+          <line x1="78" y1="18" x2="73" y2="23" opacity="0.5"/>
+          <line x1="18" y1="78" x2="23" y2="73" opacity="0.5"/>
+          <line x1="78" y1="78" x2="73" y2="73" opacity="0.5"/>
+        </g>
+        <!-- needle -->
+        <line x1="48" y1="48" x2="78" y2="22" stroke="#C8FF52" stroke-width="1.8"/>
+        <circle cx="48" cy="48" r="3" fill="#C8FF52" stroke="none"/>
+      </g>
+    </symbol>
+
+    <!-- Constellation -->
+    <symbol id="constellation" viewBox="0 0 300 200">
+      <g fill="currentColor">
+        <circle cx="40" cy="40" r="2.5"/>
+        <circle cx="100" cy="65" r="2"/>
+        <circle cx="160" cy="35" r="2.5"/>
+        <circle cx="220" cy="80" r="2"/>
+        <circle cx="270" cy="55" r="2.5"/>
+        <circle cx="80" cy="120" r="2"/>
+        <circle cx="140" cy="140" r="2.5"/>
+        <circle cx="200" cy="120" r="2"/>
+        <circle cx="260" cy="160" r="2"/>
+        <circle cx="50" cy="170" r="2.5"/>
+      </g>
+      <g fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.6">
+        <line x1="40" y1="40" x2="100" y2="65"/>
+        <line x1="100" y1="65" x2="160" y2="35"/>
+        <line x1="160" y1="35" x2="220" y2="80"/>
+        <line x1="220" y1="80" x2="270" y2="55"/>
+        <line x1="100" y1="65" x2="80" y2="120"/>
+        <line x1="80" y1="120" x2="140" y2="140"/>
+        <line x1="140" y1="140" x2="200" y2="120"/>
+        <line x1="200" y1="120" x2="260" y2="160"/>
+        <line x1="80" y1="120" x2="50" y2="170"/>
+      </g>
+    </symbol>
+
+    <!-- Wireframe corner gadgets -->
+    <symbol id="wf-cube" viewBox="0 0 36 36"><g fill="none" stroke="currentColor" stroke-width="1"><path d="M 6 14 L 18 8 L 30 14 L 18 20 Z"/><path d="M 30 14 L 30 26 L 18 32 L 18 20 Z"/><path d="M 6 14 L 6 26 L 18 32 L 18 20 Z"/></g></symbol>
+    <symbol id="wf-gear" viewBox="0 0 36 36"><g fill="none" stroke="currentColor" stroke-width="1"><circle cx="18" cy="18" r="10"/><circle cx="18" cy="18" r="4"/><g stroke-width="1.2"><line x1="18" y1="4" x2="18" y2="8"/><line x1="18" y1="28" x2="18" y2="32"/><line x1="4" y1="18" x2="8" y2="18"/><line x1="28" y1="18" x2="32" y2="18"/><line x1="8" y1="8" x2="11" y2="11"/><line x1="25" y1="25" x2="28" y2="28"/><line x1="28" y1="8" x2="25" y2="11"/><line x1="11" y1="25" x2="8" y2="28"/></g></g></symbol>
+    <symbol id="wf-target" viewBox="0 0 36 36"><g fill="none" stroke="currentColor" stroke-width="1"><circle cx="18" cy="18" r="14"/><circle cx="18" cy="18" r="9"/><circle cx="18" cy="18" r="4"/><circle cx="18" cy="18" r="1.5" fill="currentColor"/></g></symbol>
+    <symbol id="wf-prism" viewBox="0 0 36 36"><g fill="none" stroke="currentColor" stroke-width="1"><path d="M 18 4 L 32 28 L 4 28 Z"/><path d="M 18 4 L 18 28" stroke-dasharray="2 2"/><path d="M 4 28 L 18 22 L 32 28"/></g></symbol>
+    <symbol id="wf-rings" viewBox="0 0 36 36"><g fill="none" stroke="currentColor" stroke-width="1"><ellipse cx="18" cy="18" rx="14" ry="6"/><ellipse cx="18" cy="18" rx="14" ry="6" transform="rotate(60 18 18)"/><ellipse cx="18" cy="18" rx="14" ry="6" transform="rotate(120 18 18)"/></g></symbol>
+  </defs>
+</svg>
+
+<div class="strip">
+  <div class="strip-inner">
+    <span><span class="b">FLASH</span> Grok 4.1 dropped −65%</span>
+    <span class="sku">SKU TKM-GRK-4.1</span>
+    <span><span class="b">SOLD</span> 247 dev teams locked $99 tier</span>
+    <span class="sku">SKU TKM-T01</span>
+    <span><span class="b">DROP</span> Gemini 3.1 Pro at $9.60/1M</span>
+    <span class="sku">SKU TKM-GMN-3.1P</span>
+    <span><span class="b">LIVE</span> +20% bonus expires in 02:14:08</span>
+    <span><span class="b">FLASH</span> Grok 4.1 dropped −65%</span>
+    <span class="sku">SKU TKM-GRK-4.1</span>
+    <span><span class="b">SOLD</span> 247 dev teams locked $99 tier</span>
+    <span class="sku">SKU TKM-T01</span>
+    <span><span class="b">DROP</span> Gemini 3.1 Pro at $9.60/1M</span>
+    <span class="sku">SKU TKM-GMN-3.1P</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="logo">
+    <span class="logo-mark"></span>tokenmart
+    <span class="meta">EST. 2026 · ED.47</span>
+  </div>
+  <div class="nav-search">
+    <svg><use href="#search"/></svg>
+    <span>Search 50+ models, providers, deals…</span>
+    <span class="kbd">⌘ K</span>
+  </div>
+  <div class="nav-links">
+    <a href="#">Compare</a>
+    <a href="#">Docs</a>
+  </div>
+  <a href="#" class="nav-cta">Open account</a>
+</nav>
+
+<section class="hero-bento">
+  <div class="b-tile b-65">
+    <div class="iso-bg"><svg><use href="#iso-warehouse"/></svg></div>
+    <div>
+      <span class="tag"><span class="dot"></span>FLASH MARKETPLACE · LIVE</span>
+      <div class="head-block">
+        <div class="dim-top"><span class="label">SAVE UP TO</span></div>
+        <h1><span class="pct">65% off</span><br>top AI<br>models.</h1>
+      </div>
+      <p class="sub">Same Claude, GPT, Gemini, Grok — wholesale pricing through one API. Group rates unlock automatically as more devs join.</p>
+    </div>
+    <div class="lead-row">
+      <a href="#" class="btn-primary">Lock in pricing →</a>
+      <a href="#" class="btn-ghost">Compare models</a>
+    </div>
+    <div class="stamp">
+      FRESH<br>STOCK
+      <span class="small">MAY · 2026</span>
+    </div>
+    <div class="sku-label">LOT NO. 0047 · TKM-65-FLASH</div>
+  </div>
+
+  <div class="b-tile b-counter">
+    <div class="head">
+      <span>NEXT DROP IN</span>
+      <span class="live">LIVE</span>
+    </div>
+    <div class="body">
+      <div>
+        <h3>+20% bonus credits<br>auto-expire</h3>
+        <div class="clock" style="margin-top: 0.85rem">
+          <div class="seg"><div class="num">02</div><div class="lbl">HRS</div></div>
+          <div class="seg"><div class="num">14</div><div class="lbl">MIN</div></div>
+          <div class="seg"><div class="num">08</div><div class="lbl">SEC</div></div>
+        </div>
+      </div>
+      <div class="gauge"><svg><use href="#gauge"/></svg></div>
+    </div>
+  </div>
+
+  <div class="b-tile b-social">
+    <div class="const-bg" style="color: var(--bg)"><svg preserveAspectRatio="xMidYMid slice"><use href="#constellation"/></svg></div>
+    <div class="head">GROUP-BUY · ACTIVE NETWORK</div>
+    <h3>12,847</h3>
+    <div style="font-size: 13px; font-weight: 600; opacity: 0.7; margin-top: 0.25rem; position: relative">developers locked in this rate today</div>
+    <div class="bottom" style="margin-top: auto">
+      <div class="avatars">
+        <div class="a">JK</div><div class="a">RM</div><div class="a">AY</div><div class="a">+</div>
+      </div>
+      <div class="text">+247 in last hour</div>
+    </div>
+  </div>
+</section>
+
+<section class="routing">
+  <div class="routing-head">
+    <div>
+      <div class="lab">SMART ROUTING · LIVE TOPOLOGY</div>
+      <h3 style="margin-top: 0.4rem">Every request, the <em>cheapest provider</em>.</h3>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">8.4M</div><div class="l">routed · 1h</div></div>
+      <div class="stat"><div class="v">128ms</div><div class="l">P50 hop</div></div>
+      <div class="stat"><div class="v" style="color: var(--lime)">−42.7%</div><div class="l">avg saved</div></div>
+    </div>
+  </div>
+  <div class="routing-net"><svg><use href="#routing-net"/></svg></div>
+</section>
+
+<div class="market-head">
+  <h2>Today's <em>flash deals</em></h2>
+  <div class="filters">
+    <span class="filter-chip on">All</span>
+    <span class="filter-chip">LLM</span>
+    <span class="filter-chip">Image</span>
+    <span class="filter-chip">Audio</span>
+    <span class="filter-chip">Video</span>
+  </div>
+</div>
+
+<section class="market">
+  <div class="m-tile m-lead">
+    <div class="img-wrap"></div>
+    <div class="header">
+      <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#x"/></svg></span>
+      <span>xAI · LLM</span>
+      <span class="badge">★ FLAGSHIP</span>
+    </div>
+    <h3>Grok <em>4.1</em></h3>
+    <p>Latest-gen flagship reasoning model. Long-horizon planning, code-grade output, this week's deepest cut.</p>
+    <div class="price-block">
+      <div class="dim-bracket l"></div>
+      <div class="dim-label">DELTA</div>
+      <div class="price-row">
+        <span class="retail">$6.00</span>
+        <span class="ask">$2.10</span>
+        <span class="unit">/1M tok</span>
+        <span class="save">−65%</span>
+      </div>
+    </div>
+    <div class="group-buy">
+      <div class="avatars">
+        <div class="a" style="background: var(--violet)">JK</div>
+        <div class="a" style="background: var(--cyan); color: var(--bg)">RM</div>
+        <div class="a" style="background: var(--lime); color: var(--bg)">AY</div>
+      </div>
+      <span><strong style="color: var(--lime)">847 devs</strong> locked this price today</span>
+    </div>
+    <div class="sku-label">SKU TKM-GRK-4.1 · LOT 0047</div>
+  </div>
+
+  <div class="m-tile m-violet">
+    <div class="wf-corner"><svg><use href="#wf-cube"/></svg></div>
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span>ANTHROPIC · LLM</span>
+    <h4>Claude Opus 4.7</h4>
+    <div class="price-line">
+      <span class="retail-s">$25.00</span>
+      <span class="ask-s">$21.25</span>
+      <span class="save-s">−15%</span>
+    </div>
+    <span class="sku">SKU TKM-CLD-O47</span>
+  </div>
+
+  <div class="m-tile m-orange">
+    <div class="wf-corner"><svg><use href="#wf-target"/></svg></div>
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#openai"/></svg></span>OPENAI</span>
+    <h4>GPT 5.4</h4>
+    <div class="price-line">
+      <span class="ask-s">$12.75</span>
+      <span class="save-s">−15%</span>
+    </div>
+    <span class="sku">SKU TKM-GPT-54</span>
+  </div>
+
+  <div class="m-tile m-cyan">
+    <div class="wf-corner"><svg><use href="#wf-rings"/></svg></div>
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span>GOOGLE · LLM</span>
+    <h4>Gemini 3.1 Pro</h4>
+    <div class="price-line">
+      <span class="retail-s">$12.00</span>
+      <span class="ask-s">$9.60</span>
+      <span class="save-s">−20%</span>
+    </div>
+    <span class="sku">SKU TKM-GMN-31P</span>
+  </div>
+
+  <div class="m-tile m-lime">
+    <div class="wf-corner"><svg><use href="#wf-gear"/></svg></div>
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span>ANTHROPIC</span>
+    <h4>Sonnet 4.6</h4>
+    <div class="price-line">
+      <span class="ask-s">$12.75</span>
+      <span class="save-s">−15%</span>
+    </div>
+    <span class="sku">SKU TKM-CLD-S46</span>
+  </div>
+
+  <div class="m-tile m-sun">
+    <div class="wf-corner"><svg><use href="#wf-prism"/></svg></div>
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span>GOOGLE · IMAGE</span>
+    <h4>Nano Banana 2</h4>
+    <div class="price-line">
+      <span class="retail-s">$0.05</span>
+      <span class="ask-s">$0.04</span>
+      <span class="save-s">−20%</span>
+    </div>
+    <span class="sku">SKU TKM-NB-2</span>
+  </div>
+</section>
+
+<section class="group-section">
+  <h2>Top up <em>once</em>, save more.</h2>
+  <p class="sub">More credits unlock bigger bonuses — automatically. No subscription, no minimums. Stack with every model discount on the marketplace.</p>
+
+  <div class="tickets">
+    <div class="ticket featured">
+      <div class="ticket-no"><span>SERIES A · NO. 0099</span><span>★</span></div>
+      <div class="pay">PAY</div>
+      <div class="amt">$99</div>
+      <div class="arrow">↓ receive</div>
+      <div class="get">$118.80</div>
+      <div class="bonus">+20% bonus</div>
+      <div class="notch-l"></div>
+      <div class="notch-r"></div>
+      <div class="ticket-stub"><span>VALID 14 DAYS</span><span class="stamp-mini">PAID</span></div>
+    </div>
+    <div class="ticket">
+      <div class="ticket-no"><span>SERIES A · NO. 0499</span><span>·</span></div>
+      <div class="pay">PAY</div>
+      <div class="amt">$499</div>
+      <div class="arrow">↓ receive</div>
+      <div class="get">$518.96</div>
+      <div class="bonus">+4% bonus</div>
+      <div class="notch-l"></div>
+      <div class="notch-r"></div>
+      <div class="ticket-stub"><span>VALID 14 DAYS</span><span class="stamp-mini">PAID</span></div>
+    </div>
+    <div class="ticket">
+      <div class="ticket-no"><span>SERIES A · NO. 0999</span><span>·</span></div>
+      <div class="pay">PAY</div>
+      <div class="amt">$999</div>
+      <div class="arrow">↓ receive</div>
+      <div class="get">$1,058.94</div>
+      <div class="bonus">+6% bonus</div>
+      <div class="notch-l"></div>
+      <div class="notch-r"></div>
+      <div class="ticket-stub"><span>VALID 14 DAYS</span><span class="stamp-mini">PAID</span></div>
+    </div>
+    <div class="ticket">
+      <div class="ticket-no"><span>SERIES B · NO. 4999</span><span>·</span></div>
+      <div class="pay">PAY</div>
+      <div class="amt">$4,999</div>
+      <div class="arrow">↓ receive</div>
+      <div class="get">$5,398.92</div>
+      <div class="bonus">+8% bonus</div>
+      <div class="notch-l"></div>
+      <div class="notch-r"></div>
+      <div class="ticket-stub"><span>VALID 14 DAYS</span><span class="stamp-mini">PAID</span></div>
+    </div>
+    <div class="ticket">
+      <div class="ticket-no"><span>SERIES B · NO. 9999</span><span>·</span></div>
+      <div class="pay">PAY</div>
+      <div class="amt">$9,999</div>
+      <div class="arrow">↓ receive</div>
+      <div class="get">$10,998.90</div>
+      <div class="bonus">+10% bonus</div>
+      <div class="notch-l"></div>
+      <div class="notch-r"></div>
+      <div class="ticket-stub"><span>VALID 14 DAYS</span><span class="stamp-mini">PAID</span></div>
+    </div>
+    <div class="ticket">
+      <div class="ticket-no"><span>SERIES X · CUSTOM</span><span>✦</span></div>
+      <div class="pay">VOLUME</div>
+      <div class="amt" style="font-size: 18px; line-height: 1.3; padding: 8px 0">Talk to sales</div>
+      <div class="arrow">↓ up to</div>
+      <div class="get">−65%</div>
+      <div class="bonus">custom</div>
+      <div class="notch-l"></div>
+      <div class="notch-r"></div>
+      <div class="ticket-stub"><span>NEGOTIATED</span><span class="stamp-mini">CALL</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="why-grid">
+  <div class="why-card violet">
+    <div class="ord"><span>01 — INVENTORY</span><span class="meta">FIG.A</span></div>
+    <div class="num">50+<span class="annot">FLAGSHIP MODELS, 8 PROVIDERS, 1 ENDPOINT</span></div>
+    <h3>Every flagship, one endpoint.</h3>
+    <p>Anthropic, OpenAI, Google, xAI, Meta, ByteDance, DeepSeek — fifty leading models behind a single OpenAI-compatible API.</p>
+    <div class="icons">
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#openai"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#x"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#meta"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#bytedance"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#deepseek"/></svg></span></span>
+    </div>
+  </div>
+  <div class="why-card pink">
+    <div class="ord"><span>02 — PRICING</span><span class="meta">FIG.B</span></div>
+    <div class="num">−65%<span class="annot">SETTLED AT LOWEST MARKET ASK, EVERY REQUEST</span></div>
+    <h3>Always the lowest market rate.</h3>
+    <p>Smart routing finds the cheapest provider per request. No retainer. No platform fee. Pay the ask, plus a thin routing margin.</p>
+  </div>
+  <div class="why-card lime">
+    <div class="ord"><span>03 — UPTIME</span><span class="meta">FIG.C</span></div>
+    <div class="num">99.9%<span class="annot">CROSS-PROVIDER FAILOVER · ZERO DOWNTIME</span></div>
+    <h3>Cross-provider failover.</h3>
+    <p>If a provider degrades, traffic reroutes pre-emptively. One key, one bill, one dashboard — across every model on the market.</p>
+  </div>
+</section>
+
+</body>
+</html>

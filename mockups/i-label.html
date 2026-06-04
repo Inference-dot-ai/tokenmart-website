@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TokenMart — Label</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300;400;500;600;700;800&family=Anton&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ─── I · LABEL BAZAAR ────────────────────────────────
+     Bento Bazaar where every model is a hanging price tag.
+     Industrial retail aesthetic — barcode strips, ticket cuts,
+     a Costco-meets-Japanese-wholesale-district feel.
+  */
+  :root {
+    --bg:        #0B0B11;
+    --tile:      #16161E;
+    --tile-hi:   #1F1F2A;
+    --text:      #FFFFFF;
+    --text-dim:  #A8A6B8;
+    --text-mute: #5C5A6F;
+    --hair:      rgba(255,255,255,0.08);
+    --hair-hi:   rgba(255,255,255,0.16);
+    --pink:      #FF2E8C;
+    --hot:       #FF4D2E;
+    --lime:      #C8FF52;
+    --cyan:      #5CE5FF;
+    --violet:    #8B5CFF;
+    --sun:       #FFD93D;
+    --tag-yellow:#F5C842;
+    --tag-ink:   #1A1612;
+    --string:    #6B6760;
+    --display:   'Funnel Display', sans-serif;
+    --tag-disp:  'Anton', sans-serif;
+    --body:      'Plus Jakarta Sans', sans-serif;
+    --mono:      'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--body); color: var(--text); background: var(--bg);
+    -webkit-font-smoothing: antialiased; min-height: 100vh; padding-bottom: 6rem;
+    overflow-x: hidden;
+  }
+
+  .pglyph { display: inline-flex; color: currentColor; }
+  .pglyph svg { fill: currentColor; width: 100%; height: 100%; display: block; }
+
+  /* ── Top strip — yellow tag-tape with barcode pattern ── */
+  .strip {
+    background: var(--tag-yellow);
+    color: var(--tag-ink);
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    padding: 0.55rem 0; letter-spacing: 0.04em; text-align: center;
+    overflow: hidden;
+    border-top: 2px solid var(--tag-ink);
+    border-bottom: 2px solid var(--tag-ink);
+    position: relative;
+  }
+  /* barcode-style edge accent */
+  .strip::before, .strip::after {
+    content: ""; position: absolute;
+    top: 0; bottom: 0; width: 80px;
+    background: repeating-linear-gradient(90deg,
+      var(--tag-ink) 0 1px, transparent 1px 3px,
+      var(--tag-ink) 3px 4px, transparent 4px 7px,
+      var(--tag-ink) 7px 9px, transparent 9px 12px);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .strip::before { left: 0; }
+  .strip::after { right: 0; transform: scaleX(-1); }
+  .strip-inner {
+    display: inline-flex; gap: 3rem; white-space: nowrap;
+    animation: scroll-strip 35s linear infinite;
+  }
+  @keyframes scroll-strip { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .strip-inner span { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .strip-inner .b { background: var(--tag-ink); color: var(--tag-yellow); padding: 1px 6px; font-weight: 800; }
+
+  /* ── Nav ── */
+  .nav {
+    max-width: 1400px; margin: 0 auto;
+    padding: 1.25rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 2rem;
+  }
+  .logo {
+    font-family: var(--display); font-weight: 800;
+    font-size: 24px; letter-spacing: -0.04em;
+    display: flex; align-items: center; gap: 0.55rem;
+  }
+  .logo-mark {
+    width: 26px; height: 18px;
+    background: var(--tag-yellow); color: var(--tag-ink);
+    position: relative;
+    /* tag shape: notch on left side */
+    clip-path: polygon(8% 0, 100% 0, 100% 100%, 8% 100%, 0 50%);
+  }
+  .logo-mark::after {
+    content: ""; position: absolute;
+    left: 5px; top: 50%; width: 4px; height: 4px;
+    background: var(--bg); border-radius: 50%;
+    transform: translateY(-50%);
+  }
+  .nav-search {
+    flex: 1; max-width: 480px;
+    display: flex; align-items: center; gap: 0.6rem;
+    background: var(--tile);
+    border: 1px solid var(--hair);
+    padding: 0.65rem 1.1rem;
+    font-size: 14px; color: var(--text-dim);
+    cursor: pointer; transition: all 200ms;
+  }
+  .nav-search:hover { border-color: var(--tag-yellow); background: var(--tile-hi); }
+  .nav-search svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .nav-search .kbd {
+    margin-left: auto; font-family: var(--mono); font-size: 11px;
+    background: var(--bg); padding: 2px 7px;
+    border: 1px solid var(--hair); color: var(--text-mute);
+  }
+  .nav-links { display: flex; gap: 1.75rem; font-size: 14px; font-weight: 500; color: var(--text-dim); }
+  .nav-links a { color: inherit; text-decoration: none; transition: color 200ms; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    font-size: 14px; font-weight: 700;
+    background: var(--tag-yellow); color: var(--tag-ink);
+    padding: 0.7rem 1.3rem;
+    text-decoration: none; transition: all 200ms ease;
+    border: 1px solid var(--tag-yellow);
+  }
+  .nav-cta:hover { background: var(--bg); color: var(--tag-yellow); }
+
+  /* ── Hero bento ── */
+  .hero-bento {
+    max-width: 1400px; margin: 0 auto;
+    padding: 1.5rem 2rem 0;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-auto-rows: minmax(110px, auto);
+    gap: 0.75rem;
+    position: relative;
+  }
+
+  .b-tile {
+    padding: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: transform 200ms ease;
+  }
+  .b-tile:hover { transform: translateY(-2px); }
+
+  /* MAIN 65% TILE — "DOORBUSTER" tag */
+  .b-65 {
+    grid-column: span 5; grid-row: span 4;
+    background:
+      radial-gradient(ellipse at 100% 100%, rgba(255,46,140,0.4), transparent 60%),
+      linear-gradient(135deg, var(--violet), var(--pink) 75%);
+    color: white;
+    display: flex; flex-direction: column; justify-content: space-between;
+    min-height: 480px;
+    padding: 2rem;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .b-65 .tag {
+    display: inline-flex; align-items: center; gap: 0.55rem;
+    background: rgba(255,255,255,0.18); backdrop-filter: blur(8px);
+    padding: 0.4rem 0.85rem;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    align-self: flex-start;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  .b-65 .tag .dot { width: 7px; height: 7px; background: var(--lime); animation: blip 1.6s infinite; }
+  @keyframes blip { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .b-65 h1 {
+    font-family: var(--display); font-weight: 800;
+    font-size: clamp(3rem, 8vw, 7.5rem);
+    line-height: 0.88; letter-spacing: -0.045em;
+    margin-top: 1rem;
+  }
+  .b-65 h1 .pct {
+    background: linear-gradient(120deg, var(--lime), var(--sun) 80%, white);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-style: italic;
+  }
+  .b-65 .lead-row {
+    margin-top: 1.5rem;
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: white; color: var(--bg);
+    padding: 0.95rem 1.4rem;
+    font-size: 15px; font-weight: 700;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: transform 200ms;
+  }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-ghost {
+    color: white;
+    padding: 0.95rem 1.4rem;
+    font-size: 15px; font-weight: 600;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+  .b-65 .sub {
+    margin-top: 1.5rem;
+    font-size: 16px; line-height: 1.5; max-width: 38ch;
+    color: rgba(255,255,255,0.85);
+  }
+
+  /* HANGING TAG hero element — a yellow price tag dangling from a string at the corner */
+  .hanging-tag {
+    position: absolute;
+    top: 0; right: 3rem;
+    width: 140px;
+    text-align: center;
+    z-index: 4;
+  }
+  .hanging-tag .string {
+    width: 1px; height: 40px;
+    margin: 0 auto;
+    background: var(--string);
+  }
+  .hanging-tag .label {
+    background: var(--tag-yellow); color: var(--tag-ink);
+    border: 2px solid var(--tag-ink);
+    padding: 0.85rem 0.5rem 0.65rem;
+    position: relative;
+    transform: rotate(-3deg);
+    transform-origin: top center;
+    box-shadow: 4px 6px 0 rgba(0,0,0,0.35);
+    /* notch via clip-path on top */
+    clip-path: polygon(0 14px, 50% 0, 100% 14px, 100% 100%, 0 100%);
+  }
+  .hanging-tag .label::before {
+    content: "";
+    position: absolute;
+    top: 8px; left: 50%; transform: translateX(-50%);
+    width: 8px; height: 8px;
+    border-radius: 50%; background: var(--bg);
+    border: 1px solid var(--tag-ink);
+  }
+  .hanging-tag .label .upper {
+    font-family: var(--mono); font-size: 9px; font-weight: 700;
+    letter-spacing: 0.18em; padding-top: 8px;
+  }
+  .hanging-tag .label .big {
+    font-family: var(--tag-disp); font-size: 44px;
+    line-height: 0.95; margin: 4px 0;
+    letter-spacing: -0.01em;
+  }
+  .hanging-tag .label .lower {
+    font-family: var(--mono); font-size: 9px; font-weight: 700;
+    letter-spacing: 0.16em;
+  }
+  /* SKU bottom-left */
+  .sku-label {
+    position: absolute; bottom: 1rem; left: 1.5rem;
+    font-family: var(--mono); font-size: 10px;
+    color: rgba(255,255,255,0.55); letter-spacing: 0.12em;
+  }
+  /* hero barcode strip */
+  .hero-barcode {
+    position: absolute; bottom: 1rem; right: 1.5rem;
+    width: 140px; height: 32px;
+    background: repeating-linear-gradient(90deg,
+      rgba(255,255,255,0.7) 0 1px, transparent 1px 3px,
+      rgba(255,255,255,0.7) 3px 4px, transparent 4px 6px,
+      rgba(255,255,255,0.7) 6px 9px, transparent 9px 11px,
+      rgba(255,255,255,0.7) 11px 12px, transparent 12px 16px);
+    opacity: 0.55;
+  }
+
+  /* COUNTER TILE */
+  .b-counter {
+    grid-column: span 3; grid-row: span 2;
+    background: var(--tile);
+    border: 1px solid var(--hair);
+    color: var(--text);
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 1.5rem;
+    position: relative;
+  }
+  .b-counter .head {
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.14em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .b-counter .head .live { color: var(--tag-yellow); font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .b-counter .head .live::before {
+    content: ""; width: 7px; height: 7px; background: var(--tag-yellow); animation: blip 1.6s infinite;
+  }
+  .b-counter h3 {
+    font-family: var(--display); font-weight: 600;
+    font-size: 22px; letter-spacing: -0.02em; line-height: 1.1;
+    margin-top: 0.4rem;
+  }
+  .b-counter .clock {
+    display: flex; gap: 0.5rem; margin-top: 1rem;
+  }
+  .b-counter .clock .seg {
+    flex: 1; background: var(--tag-yellow); color: var(--tag-ink);
+    padding: 0.7rem 0.5rem; text-align: center;
+    border: 2px solid var(--tag-ink);
+  }
+  .b-counter .clock .num {
+    font-family: var(--tag-disp); font-size: 32px;
+    font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .b-counter .clock .lbl {
+    font-family: var(--mono); font-size: 9px;
+    letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px;
+    font-weight: 700;
+  }
+
+  /* SOCIAL TILE — with barcode strip */
+  .b-social {
+    grid-column: span 3; grid-row: span 2;
+    background: linear-gradient(135deg, var(--cyan), #2D8FFF);
+    color: var(--bg);
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.15);
+    position: relative;
+    overflow: hidden;
+  }
+  .b-social .head {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    font-weight: 600; opacity: 0.7;
+  }
+  .b-social h3 {
+    font-family: var(--tag-disp); font-size: 64px;
+    letter-spacing: -0.02em; line-height: 0.92;
+    margin-top: 0.4rem;
+  }
+  .b-social .bottom { display: flex; align-items: center; gap: 0.85rem; }
+  .avatars { display: flex; }
+  .avatars .a {
+    width: 30px; height: 30px; border: 2px solid var(--cyan);
+    margin-left: -10px;
+    background: var(--bg); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    border-radius: 50%;
+  }
+  .avatars .a:nth-child(1) { background: var(--pink); margin-left: 0; }
+  .avatars .a:nth-child(2) { background: var(--violet); }
+  .avatars .a:nth-child(3) { background: var(--sun); color: var(--bg); }
+  .avatars .a:nth-child(4) { background: var(--bg); color: white; border-color: var(--bg); }
+  .b-social .text { font-size: 13px; font-weight: 600; }
+  /* corner barcode */
+  .barcode-corner {
+    position: absolute; top: 0.85rem; right: 0.85rem;
+    width: 80px; height: 24px;
+    background: repeating-linear-gradient(90deg,
+      var(--tag-ink) 0 1px, transparent 1px 3px,
+      var(--tag-ink) 3px 4px, transparent 4px 6px,
+      var(--tag-ink) 6px 8px, transparent 8px 11px);
+    opacity: 0.6;
+  }
+
+  /* ── Receipt-style routing ── */
+  .receipt {
+    max-width: 1400px; margin: 1.5rem auto 0;
+    padding: 0 2rem;
+    display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem;
+  }
+  .receipt-paper {
+    background: #FBF7E8;
+    color: var(--tag-ink);
+    padding: 1.5rem 1.5rem 2.5rem;
+    font-family: var(--mono); font-size: 12px;
+    line-height: 1.55;
+    position: relative;
+    /* bottom zigzag cut */
+    --c: var(--bg);
+    -webkit-mask:
+      linear-gradient(#000 0 0) padding-box,
+      conic-gradient(from -45deg at bottom, transparent 25%, #000 25.1% 75%, transparent 75.1%) bottom/16px 8px repeat-x border-box;
+            mask:
+      linear-gradient(#000 0 0) padding-box,
+      conic-gradient(from -45deg at bottom, transparent 25%, #000 25.1% 75%, transparent 75.1%) bottom/16px 8px repeat-x border-box;
+    -webkit-mask-composite: source-over;
+    padding-bottom: 2rem;
+  }
+  .receipt-paper .h {
+    text-align: center; font-weight: 700;
+    border-bottom: 2px dashed var(--tag-ink); padding-bottom: 0.6rem;
+    margin-bottom: 0.85rem;
+    letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .receipt-paper .row {
+    display: flex; justify-content: space-between;
+    padding: 2px 0;
+  }
+  .receipt-paper .row.sub {
+    color: var(--ink-dim); font-size: 11px;
+    border-bottom: 1px dotted rgba(26,22,18,0.3);
+    padding-bottom: 4px; margin-bottom: 4px;
+  }
+  .receipt-paper .row .v { font-weight: 700; }
+  .receipt-paper .row.total {
+    border-top: 2px dashed var(--tag-ink);
+    margin-top: 0.85rem; padding-top: 0.5rem;
+    font-size: 14px; font-weight: 800;
+  }
+  .receipt-paper .footer {
+    text-align: center; margin-top: 1rem;
+    font-size: 10px; opacity: 0.7;
+    letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .receipt-paper .barcode {
+    margin-top: 0.85rem; height: 32px;
+    background: repeating-linear-gradient(90deg,
+      var(--tag-ink) 0 1px, transparent 1px 3px,
+      var(--tag-ink) 3px 4px, transparent 4px 7px,
+      var(--tag-ink) 7px 9px, transparent 9px 12px);
+  }
+
+  .routing-tile {
+    background: var(--tile); border: 1px solid var(--hair);
+    padding: 1.75rem;
+    position: relative;
+    display: flex; flex-direction: column; gap: 1rem;
+  }
+  .routing-tile .head {
+    display: flex; justify-content: space-between; align-items: end;
+  }
+  .routing-tile .h-lab {
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .routing-tile h3 {
+    font-family: var(--display); font-weight: 700;
+    font-size: 24px; letter-spacing: -0.02em;
+    margin-top: 0.4rem;
+  }
+  .routing-tile h3 em { color: var(--tag-yellow); font-style: italic; font-weight: 800; }
+  .routing-tile .stats {
+    display: flex; gap: 2rem;
+    font-family: var(--mono); font-size: 11px;
+  }
+  .routing-tile .stats .stat .v { color: var(--text); font-size: 18px; font-weight: 700; font-family: var(--display); }
+  .routing-tile .stats .stat .l { color: var(--text-mute); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px; }
+  .routing-tile .nodes {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem; align-items: center;
+    margin-top: 0.4rem;
+  }
+  .routing-tile .nodes .n {
+    aspect-ratio: 1;
+    border: 1px solid var(--hair-hi);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-mute);
+    background: var(--bg);
+    position: relative;
+  }
+  .routing-tile .nodes .n.routed {
+    background: var(--tag-yellow); color: var(--tag-ink);
+    border-color: var(--tag-yellow);
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--tag-yellow);
+  }
+  .routing-tile .nodes .n.routed::after {
+    content: "✓";
+    position: absolute; top: -8px; right: -8px;
+    width: 16px; height: 16px;
+    border-radius: 50%; background: var(--lime); color: var(--bg);
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .routing-tile .nodes .n .pglyph { width: 18px; height: 18px; }
+  .routing-tile .nodes .n-label {
+    font-family: var(--mono); font-size: 8px;
+    color: var(--text-mute); letter-spacing: 0.08em;
+    text-transform: uppercase; text-align: center;
+    margin-top: 6px;
+  }
+  .routing-tile .nodes .nwrap { display: flex; flex-direction: column; align-items: stretch; }
+  .routing-tile .nodes .nwrap.routed .n-label { color: var(--tag-yellow); font-weight: 600; }
+  .routing-tile .footer-line {
+    margin-top: auto;
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 11px; color: var(--text-mute);
+    letter-spacing: 0.1em;
+    border-top: 1px dashed var(--hair); padding-top: 0.85rem;
+  }
+  .routing-tile .footer-line .v { color: var(--lime); font-weight: 600; }
+
+  /* ── Marketplace section ── */
+  .market-head {
+    max-width: 1400px; margin: 4rem auto 1.5rem;
+    padding: 0 2rem;
+    display: flex; justify-content: space-between; align-items: end;
+  }
+  .market-head h2 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -0.04em;
+    line-height: 1;
+    display: flex; align-items: baseline; gap: 0.7rem;
+  }
+  .market-head h2::before {
+    content: "";
+    display: inline-block; width: 16px; height: 16px;
+    background: var(--tag-yellow);
+    clip-path: polygon(15% 0, 100% 0, 100% 100%, 15% 100%, 0 50%);
+  }
+  .market-head h2 em { font-style: italic; font-weight: 800; color: var(--tag-yellow); }
+  .market-head .filters {
+    display: flex; gap: 0.4rem;
+    background: var(--tile); border: 1px solid var(--hair);
+    padding: 0.3rem;
+  }
+  .filter-chip {
+    padding: 0.4rem 0.95rem;
+    font-size: 13px; font-weight: 600; color: var(--text-dim);
+    cursor: pointer;
+  }
+  .filter-chip.on { background: var(--tag-yellow); color: var(--tag-ink); }
+
+  .market {
+    max-width: 1400px; margin: 0 auto;
+    padding: 0 2rem;
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: minmax(180px, auto);
+    gap: 0.75rem;
+  }
+  .m-tile {
+    padding: 1.5rem;
+    position: relative; overflow: visible;
+    transition: transform 200ms ease;
+    display: flex; flex-direction: column; justify-content: space-between;
+    gap: 1rem; color: var(--text);
+    border: 1px solid var(--hair);
+  }
+  .m-tile:hover { transform: translateY(-3px); }
+  /* TAG corner — small hanging price tag on each model tile */
+  .corner-tag {
+    position: absolute; top: -8px; right: 1.5rem;
+    background: var(--tag-yellow); color: var(--tag-ink);
+    padding: 4px 10px 4px 16px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.14em;
+    border: 1.5px solid var(--tag-ink);
+    z-index: 2;
+    /* tag notch on left */
+    clip-path: polygon(8px 0, 100% 0, 100% 100%, 8px 100%, 0 50%);
+  }
+  .corner-tag::before {
+    content: ""; position: absolute;
+    left: 4px; top: 50%; transform: translateY(-50%);
+    width: 4px; height: 4px;
+    background: var(--bg); border-radius: 50%;
+  }
+
+  /* Lead Grok */
+  .m-lead {
+    grid-column: span 3; grid-row: span 2;
+    background: linear-gradient(140deg, #2A0F1E, var(--bg));
+    border: 1px solid var(--pink);
+    box-shadow: inset 0 0 30px rgba(255,46,140,0.12);
+    min-height: 420px;
+    padding: 2rem;
+  }
+  .m-lead .img-wrap {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 55%;
+    background:
+      linear-gradient(90deg, var(--bg) 0%, transparent 35%),
+      url('../public/featured-models/grok-4.1.png') center / cover;
+    -webkit-mask-image: linear-gradient(to left, black 30%, transparent 100%);
+            mask-image: linear-gradient(to left, black 30%, transparent 100%);
+  }
+  .m-lead > * { position: relative; z-index: 1; }
+  .m-lead .header {
+    display: flex; align-items: center; gap: 0.7rem;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .m-lead .pglyph { width: 16px; height: 16px; color: var(--text); }
+  .m-lead .badge {
+    background: var(--pink); color: white;
+    padding: 3px 9px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .m-lead h3 {
+    font-family: var(--display); font-weight: 700;
+    font-size: 60px; letter-spacing: -0.04em; line-height: 0.95;
+  }
+  .m-lead h3 em { font-style: italic; color: var(--tag-yellow); }
+  .m-lead p { font-size: 14px; color: var(--text-dim); line-height: 1.5; max-width: 32ch; }
+  .m-lead .price-row {
+    display: flex; align-items: baseline; gap: 0.85rem; flex-wrap: wrap;
+  }
+  .m-lead .retail { font-family: var(--mono); font-size: 14px; color: var(--text-mute); text-decoration: line-through; }
+  .m-lead .ask {
+    font-family: var(--tag-disp); font-size: 64px;
+    color: var(--tag-yellow);
+    line-height: 1; letter-spacing: -0.02em;
+  }
+  .m-lead .unit { font-family: var(--mono); font-size: 11px; color: var(--text-mute); letter-spacing: 0.06em; }
+  .m-lead .save {
+    background: var(--tag-yellow); color: var(--tag-ink);
+    padding: 4px 10px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .m-lead .group-buy {
+    margin-top: 0.5rem;
+    display: flex; align-items: center; gap: 0.7rem;
+    font-size: 12px; color: var(--text-dim);
+  }
+  .m-lead .group-buy .avatars .a {
+    width: 24px; height: 24px; font-size: 10px;
+    border-color: var(--bg);
+  }
+  .m-lead .barcode-bottom {
+    position: absolute; bottom: 1.25rem; left: 2rem;
+    width: 120px; height: 24px;
+    background: repeating-linear-gradient(90deg,
+      rgba(255,255,255,0.6) 0 1px, transparent 1px 3px,
+      rgba(255,255,255,0.6) 3px 4px, transparent 4px 7px,
+      rgba(255,255,255,0.6) 7px 9px, transparent 9px 12px);
+    opacity: 0.5;
+  }
+
+  /* a YELLOW-TAG TILE — "DOORBUSTER" */
+  .m-yellow {
+    grid-column: span 2; grid-row: span 2;
+    background: var(--tag-yellow);
+    color: var(--tag-ink);
+    border: 2px solid var(--tag-ink);
+    padding: 1.5rem;
+    position: relative;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .m-yellow::before {
+    content: "";
+    position: absolute;
+    top: 50%; right: -10px; transform: translateY(-50%);
+    width: 20px; height: 20px;
+    background: var(--bg); border-radius: 50%;
+    border: 2px solid var(--tag-ink);
+  }
+  .m-yellow .doorbuster {
+    font-family: var(--tag-disp); font-size: 14px;
+    letter-spacing: 0.16em;
+    border-bottom: 2px solid var(--tag-ink); padding-bottom: 0.4rem;
+    display: flex; justify-content: space-between;
+  }
+  .m-yellow h4 {
+    font-family: var(--tag-disp); font-size: 38px;
+    line-height: 0.95; letter-spacing: -0.01em;
+    margin-top: 0.85rem;
+  }
+  .m-yellow .pmeta {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    margin-top: 0.4rem;
+  }
+  .m-yellow .price-line {
+    display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;
+    border-top: 2px dashed var(--tag-ink); padding-top: 0.85rem;
+    margin-top: auto;
+  }
+  .m-yellow .pp-retail { font-family: var(--mono); font-size: 13px; opacity: 0.6; text-decoration: line-through; }
+  .m-yellow .pp-ask {
+    font-family: var(--tag-disp); font-size: 56px;
+    line-height: 1; letter-spacing: -0.02em;
+  }
+  .m-yellow .pp-save {
+    margin-left: auto;
+    background: var(--tag-ink); color: var(--tag-yellow);
+    padding: 4px 10px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .m-yellow .barcode {
+    margin-top: 0.75rem; height: 24px;
+    background: repeating-linear-gradient(90deg,
+      var(--tag-ink) 0 1px, transparent 1px 3px,
+      var(--tag-ink) 3px 4px, transparent 4px 7px,
+      var(--tag-ink) 7px 9px, transparent 9px 12px);
+  }
+  .m-yellow .sku-bottom {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.16em;
+    text-transform: uppercase; font-weight: 700;
+    text-align: center; margin-top: 4px;
+  }
+
+  /* category-colored tiles */
+  .m-violet  { grid-column: span 2; background: linear-gradient(140deg, #5B2DD9, #3D1A99); }
+  .m-orange  { grid-column: span 1; background: linear-gradient(140deg, var(--hot), #C2391F); }
+  .m-cyan    { grid-column: span 2; background: linear-gradient(140deg, var(--cyan), #2D8FFF); color: var(--bg); border-color: rgba(0,0,0,0.15); }
+  .m-lime    { grid-column: span 1; background: linear-gradient(140deg, var(--lime), #8DCC2A); color: var(--bg); border-color: rgba(0,0,0,0.15); }
+
+  .m-tile .tile-tag {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600;
+    opacity: 0.75;
+  }
+  .m-tile .tile-tag .pglyph { width: 14px; height: 14px; }
+  .m-tile h4 {
+    font-family: var(--display); font-weight: 700;
+    font-size: 26px; letter-spacing: -0.025em; line-height: 1;
+  }
+  .m-tile .price-line {
+    display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .m-tile .price-line .retail-s { font-family: var(--mono); font-size: 12px; opacity: 0.6; text-decoration: line-through; }
+  .m-tile .price-line .ask-s {
+    font-family: var(--tag-disp); font-size: 32px;
+    line-height: 1; letter-spacing: -0.01em;
+  }
+  .m-tile .price-line .save-s {
+    margin-left: auto;
+    background: rgba(0,0,0,0.25); padding: 3px 8px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .m-cyan .save-s, .m-lime .save-s { background: var(--bg); color: white; }
+  /* SKU bottom-right */
+  .m-tile .sku {
+    position: absolute; bottom: 0.65rem; right: 1rem;
+    font-family: var(--mono); font-size: 9px;
+    letter-spacing: 0.14em;
+    opacity: 0.5;
+  }
+  /* mini barcode bottom-left */
+  .m-tile .mini-barcode {
+    position: absolute; bottom: 0.85rem; left: 1rem;
+    width: 60px; height: 14px;
+    background: repeating-linear-gradient(90deg,
+      currentColor 0 1px, transparent 1px 2px,
+      currentColor 2px 3px, transparent 3px 5px,
+      currentColor 5px 6px, transparent 6px 9px);
+    opacity: 0.35;
+  }
+
+  /* ── Tier section — tags hanging from a rail ── */
+  .tier-section {
+    max-width: 1400px; margin: 4.5rem auto 0;
+    padding: 0 2rem;
+  }
+  .tier-section h2 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+  .tier-section h2 em {
+    font-style: italic; font-weight: 800; color: var(--tag-yellow);
+  }
+  .tier-section .sub {
+    font-size: 16px; color: var(--text-dim); margin-bottom: 2rem; max-width: 60ch;
+  }
+  .rail-wrap {
+    position: relative;
+    padding-top: 1.5rem;
+  }
+  .rail {
+    position: absolute; top: 1.5rem; left: 1rem; right: 1rem;
+    height: 2px; background: var(--text-mute);
+  }
+  /* tag pegs */
+  .rail::before, .rail::after {
+    content: ""; position: absolute;
+    width: 14px; height: 14px;
+    border-radius: 50%; background: var(--tile);
+    border: 2px solid var(--text-mute);
+    top: -7px;
+  }
+  .rail::before { left: -7px; }
+  .rail::after { right: -7px; }
+  .tags {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem;
+    padding-top: 1.5rem;
+  }
+  .tag-card {
+    background: var(--tag-yellow); color: var(--tag-ink);
+    border: 2px solid var(--tag-ink);
+    padding: 1.4rem 1.2rem 1rem;
+    position: relative;
+    transition: transform 250ms;
+    /* tag shape: notch on top */
+    clip-path: polygon(0 18px, 50% 0, 100% 18px, 100% 100%, 0 100%);
+  }
+  .tag-card::before {
+    /* string */
+    content: "";
+    position: absolute;
+    top: -22px; left: 50%; transform: translateX(-50%);
+    width: 1px; height: 22px;
+    background: var(--text-mute);
+  }
+  .tag-card::after {
+    /* hole */
+    content: "";
+    position: absolute;
+    top: 12px; left: 50%; transform: translateX(-50%);
+    width: 8px; height: 8px;
+    border-radius: 50%; background: var(--bg);
+    border: 1px solid var(--tag-ink);
+  }
+  .tag-card:hover { transform: translateY(3px); }
+  .tag-card .tier-no {
+    font-family: var(--mono); font-size: 9px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    font-weight: 700; opacity: 0.7;
+    text-align: center; padding-top: 0.85rem;
+    margin-bottom: 0.75rem;
+  }
+  .tag-card .pay {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;
+    opacity: 0.7;
+  }
+  .tag-card .amt {
+    font-family: var(--tag-disp); font-size: 38px;
+    margin: 0.2rem 0 0.5rem; line-height: 1; letter-spacing: -0.02em;
+  }
+  .tag-card .arrow { font-size: 11px; font-family: var(--mono); margin: 0.25rem 0; opacity: 0.7; }
+  .tag-card .get {
+    font-family: var(--tag-disp); font-size: 24px;
+    line-height: 1; color: var(--bg);
+  }
+  .tag-card .bonus {
+    margin-top: 0.6rem; display: inline-block;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    color: var(--tag-yellow); background: var(--tag-ink);
+    padding: 4px 9px;
+    letter-spacing: 0.04em;
+  }
+  .tag-card .barcode-mini {
+    margin-top: 0.65rem; height: 14px;
+    background: repeating-linear-gradient(90deg,
+      var(--tag-ink) 0 1px, transparent 1px 3px,
+      var(--tag-ink) 3px 4px, transparent 4px 6px);
+    opacity: 0.7;
+  }
+  .tag-card.featured {
+    background: var(--pink); color: white;
+    box-shadow: 4px 4px 0 var(--tag-yellow);
+  }
+  .tag-card.featured::after {
+    background: var(--pink);
+  }
+  .tag-card.featured .get { color: var(--tag-yellow); }
+  .tag-card.featured .bonus { background: var(--tag-yellow); color: var(--tag-ink); }
+  .tag-card.featured .barcode-mini {
+    background: repeating-linear-gradient(90deg,
+      white 0 1px, transparent 1px 3px,
+      white 3px 4px, transparent 4px 6px);
+  }
+  .tag-card.featured .stamp-hot {
+    position: absolute;
+    top: 28px; right: -8px;
+    background: var(--tag-yellow); color: var(--tag-ink);
+    padding: 3px 8px;
+    font-family: var(--mono); font-size: 9px; font-weight: 700;
+    letter-spacing: 0.14em;
+    transform: rotate(8deg);
+    border: 1.5px solid var(--tag-ink);
+  }
+  /* alternative custom (sales) tag */
+  .tag-card.custom {
+    background: var(--tile); color: var(--text);
+    border-color: var(--tag-yellow);
+    border-style: dashed;
+  }
+  .tag-card.custom::after { background: var(--tile); border-color: var(--tag-yellow); }
+  .tag-card.custom .get { color: var(--tag-yellow); }
+  .tag-card.custom .bonus { background: var(--tag-yellow); color: var(--tag-ink); }
+  .tag-card.custom .barcode-mini {
+    background: repeating-linear-gradient(90deg,
+      var(--tag-yellow) 0 1px, transparent 1px 3px,
+      var(--tag-yellow) 3px 4px, transparent 4px 6px);
+  }
+
+  /* ── Why grid ── */
+  .why-grid {
+    max-width: 1400px; margin: 5rem auto 0;
+    padding: 0 2rem;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+  }
+  .why-card {
+    background: var(--tile); border: 1px solid var(--hair);
+    padding: 2rem;
+    position: relative; overflow: hidden;
+  }
+  .why-card.violet { background: linear-gradient(160deg, rgba(139,92,255,0.18), var(--tile)); border-color: rgba(139,92,255,0.3); }
+  .why-card.pink { background: linear-gradient(160deg, rgba(255,46,140,0.16), var(--tile)); border-color: rgba(255,46,140,0.3); }
+  .why-card.lime { background: linear-gradient(160deg, rgba(245,200,66,0.14), var(--tile)); border-color: rgba(245,200,66,0.4); }
+  .why-card .ord {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--text-mute);
+  }
+  .why-card .num {
+    font-family: var(--tag-disp); font-size: 96px;
+    line-height: 0.92; margin: 0.5rem 0 1rem;
+    letter-spacing: -0.02em;
+  }
+  .why-card.violet .num { color: var(--violet); }
+  .why-card.pink .num { color: var(--pink); }
+  .why-card.lime .num { color: var(--tag-yellow); }
+  .why-card h3 {
+    font-family: var(--display); font-weight: 600; font-size: 22px;
+    letter-spacing: -0.02em; margin-bottom: 0.5rem;
+  }
+  .why-card p { font-size: 14px; line-height: 1.6; color: var(--text-dim); }
+  .why-card .icons {
+    margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .why-card .ic {
+    width: 36px; height: 36px;
+    background: var(--bg); border: 1px solid var(--hair);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim);
+  }
+  .why-card .ic .pglyph { width: 18px; height: 18px; }
+  /* barcode footer per why card */
+  .why-card .barcode-footer {
+    margin-top: 1.5rem; height: 18px;
+    background: repeating-linear-gradient(90deg,
+      currentColor 0 1px, transparent 1px 3px,
+      currentColor 3px 4px, transparent 4px 6px,
+      currentColor 6px 8px, transparent 8px 11px);
+    opacity: 0.25;
+  }
+
+  @media (max-width: 1100px) {
+    .hero-bento { grid-template-columns: repeat(4, 1fr); }
+    .b-65 { grid-column: span 4; grid-row: span 3; min-height: 420px; }
+    .b-counter, .b-social { grid-column: span 2; grid-row: span 2; }
+    .receipt { grid-template-columns: 1fr; }
+    .market { grid-template-columns: repeat(2, 1fr); }
+    .m-lead { grid-column: span 2; grid-row: span 2; }
+    .m-yellow, .m-violet, .m-cyan { grid-column: span 2; }
+    .m-orange, .m-lime { grid-column: span 1; }
+    .tags { grid-template-columns: repeat(2, 1fr); }
+    .why-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="anthropic" viewBox="0 0 24 24"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"/></symbol>
+    <symbol id="openai" viewBox="0 0 24 24"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.05 6.05 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.998-2.9 6.056 6.056 0 0 0-.747-7.073z"/></symbol>
+    <symbol id="google" viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></symbol>
+    <symbol id="x" viewBox="0 0 24 24"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932Z"/></symbol>
+    <symbol id="meta" viewBox="0 0 24 24"><path d="M12.001 8.45c-.37 1.005-.997 2.13-1.732 2.91-.756.802-1.65 1.21-2.658 1.21-1.005 0-1.815-.41-2.404-1.213-.583-.795-.886-1.85-.886-3.069 0-1.27.31-2.38.92-3.297.57-.86 1.314-1.31 2.165-1.31.91 0 1.732.45 2.444 1.34.527.66.989 1.502 1.36 2.482z"/></symbol>
+    <symbol id="deepseek" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 11c2-2 8-2 10 0M7 14c2 2 8 2 10 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="bytedance" viewBox="0 0 24 24"><path d="M19.83 5.36L24 0v18.97c0 2.71-2.32 5.03-5.03 5.03H4.85a4.83 4.83 0 0 1-4.84-4.85V8.4l3.45-3.32V19.5c0 .67.5 1.18 1.18 1.18h13.42c.71 0 1.27-.55 1.27-1.27V5.43z"/></symbol>
+    <symbol id="search" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="strip">
+  <div class="strip-inner">
+    <span><span class="b">FLASH</span> Grok 4.1 · <span class="b">−65%</span> · SKU TKM-GRK-4.1</span>
+    <span><span class="b">SOLD</span> 247 dev teams locked $99 tier</span>
+    <span><span class="b">DROP</span> Gemini 3.1 Pro · $9.60/1M · SKU TKM-GMN-3.1P</span>
+    <span><span class="b">LIVE</span> +20% bonus expires 02:14:08</span>
+    <span><span class="b">FLASH</span> Grok 4.1 · <span class="b">−65%</span> · SKU TKM-GRK-4.1</span>
+    <span><span class="b">SOLD</span> 247 dev teams locked $99 tier</span>
+    <span><span class="b">DROP</span> Gemini 3.1 Pro · $9.60/1M · SKU TKM-GMN-3.1P</span>
+    <span><span class="b">LIVE</span> +20% bonus expires 02:14:08</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="logo"><span class="logo-mark"></span>tokenmart</div>
+  <div class="nav-search">
+    <svg><use href="#search"/></svg>
+    <span>Search 50+ models, providers, deals…</span>
+    <span class="kbd">⌘ K</span>
+  </div>
+  <div class="nav-links">
+    <a href="#">Compare</a>
+    <a href="#">Docs</a>
+  </div>
+  <a href="#" class="nav-cta">Open account</a>
+</nav>
+
+<section class="hero-bento">
+  <div class="b-tile b-65">
+    <!-- Hanging price tag -->
+    <div class="hanging-tag">
+      <div class="string"></div>
+      <div class="label">
+        <div class="upper">UP TO</div>
+        <div class="big">−65%</div>
+        <div class="lower">OFF RETAIL</div>
+      </div>
+    </div>
+
+    <div>
+      <span class="tag"><span class="dot"></span>FLASH MARKETPLACE · LIVE</span>
+      <h1>Up to<br><span class="pct">65% off</span><br>top AI models.</h1>
+      <p class="sub">Same Claude, GPT, Gemini, Grok — wholesale pricing through one API. Group rates unlock automatically as more devs join.</p>
+    </div>
+    <div class="lead-row">
+      <a href="#" class="btn-primary">Lock in pricing →</a>
+      <a href="#" class="btn-ghost">Compare models</a>
+    </div>
+    <div class="sku-label">SKU TKM-65-FLASH · LOT 0047</div>
+    <div class="hero-barcode"></div>
+  </div>
+
+  <div class="b-tile b-counter">
+    <div>
+      <div class="head">
+        <span>NEXT DROP IN</span>
+        <span class="live">LIVE</span>
+      </div>
+      <h3>+20% bonus credits<br>auto-expire</h3>
+    </div>
+    <div class="clock">
+      <div class="seg"><div class="num">02</div><div class="lbl">HRS</div></div>
+      <div class="seg"><div class="num">14</div><div class="lbl">MIN</div></div>
+      <div class="seg"><div class="num">08</div><div class="lbl">SEC</div></div>
+    </div>
+  </div>
+
+  <div class="b-tile b-social">
+    <div class="barcode-corner"></div>
+    <div>
+      <div class="head">GROUP-BUY · ACTIVE</div>
+      <h3>12,847</h3>
+      <div style="font-size: 13px; font-weight: 600; opacity: 0.7; margin-top: 0.25rem">developers locked in this rate today</div>
+    </div>
+    <div class="bottom">
+      <div class="avatars">
+        <div class="a">JK</div><div class="a">RM</div><div class="a">AY</div><div class="a">+</div>
+      </div>
+      <div class="text">+247 in last hour</div>
+    </div>
+  </div>
+</section>
+
+<!-- Receipt + routing tile -->
+<section class="receipt">
+  <div class="receipt-paper">
+    <div class="h">— TokenMart Receipt —</div>
+    <div class="row sub"><span>Order</span><span class="v">#TKM-2026-0473821</span></div>
+    <div class="row"><span>1× Grok 4.1 / 1M tok</span><span class="v">$2.10</span></div>
+    <div class="row sub"><span>retail $6.00 · saved $3.90</span><span></span></div>
+    <div class="row"><span>1× GPT 5.4 / 1M tok</span><span class="v">$12.75</span></div>
+    <div class="row sub"><span>retail $15.00 · saved $2.25</span><span></span></div>
+    <div class="row"><span>1× Gemini 3.1P / 1M tok</span><span class="v">$9.60</span></div>
+    <div class="row sub"><span>retail $12.00 · saved $2.40</span><span></span></div>
+    <div class="row total"><span>Total saved</span><span class="v">$8.55</span></div>
+    <div class="footer">Paid via TKM router · Auto-failover</div>
+    <div class="barcode"></div>
+  </div>
+  <div class="routing-tile">
+    <div class="head">
+      <div>
+        <div class="h-lab">SMART ROUTING · LIVE</div>
+        <h3>Every request, the <em>cheapest provider</em>.</h3>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="v">8.4M</div><div class="l">routed · 1h</div></div>
+        <div class="stat"><div class="v">128ms</div><div class="l">P50 hop</div></div>
+        <div class="stat"><div class="v" style="color: var(--tag-yellow)">−42.7%</div><div class="l">avg saved</div></div>
+      </div>
+    </div>
+    <div class="nodes">
+      <div class="nwrap">
+        <div class="n"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span></div>
+        <span class="n-label">$25.00</span>
+      </div>
+      <div class="nwrap">
+        <div class="n"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#openai"/></svg></span></div>
+        <span class="n-label">$15.00</span>
+      </div>
+      <div class="nwrap routed">
+        <div class="n routed"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span></div>
+        <span class="n-label">$9.60 ✓</span>
+      </div>
+      <div class="nwrap">
+        <div class="n"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#x"/></svg></span></div>
+        <span class="n-label">$6.00</span>
+      </div>
+      <div class="nwrap">
+        <div class="n"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#meta"/></svg></span></div>
+        <span class="n-label">$3.20</span>
+      </div>
+      <div class="nwrap">
+        <div class="n"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#deepseek"/></svg></span></div>
+        <span class="n-label">$0.42</span>
+      </div>
+      <div class="nwrap">
+        <div class="n"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#bytedance"/></svg></span></div>
+        <span class="n-label">$0.85</span>
+      </div>
+    </div>
+    <div class="footer-line">
+      <span>FIG.01 — LIVE ROUTE 14:27:08 UTC</span>
+      <span class="v">SETTLED AT $9.60 · −20% RETAIL · 128MS</span>
+    </div>
+  </div>
+</section>
+
+<div class="market-head">
+  <h2>Today's <em>flash deals</em></h2>
+  <div class="filters">
+    <span class="filter-chip on">All</span>
+    <span class="filter-chip">LLM</span>
+    <span class="filter-chip">Image</span>
+    <span class="filter-chip">Audio</span>
+    <span class="filter-chip">Video</span>
+  </div>
+</div>
+
+<section class="market">
+  <div class="m-tile m-lead">
+    <div class="img-wrap"></div>
+    <span class="corner-tag">SKU TKM-GRK-4.1</span>
+    <div class="header">
+      <span class="pglyph"><svg viewBox="0 0 24 24"><use href="#x"/></svg></span>
+      <span>xAI · LLM</span>
+      <span class="badge">★ FLAGSHIP</span>
+    </div>
+    <h3>Grok <em>4.1</em></h3>
+    <p>Latest-gen flagship reasoning model. Long-horizon planning, code-grade output, this week's deepest cut.</p>
+    <div class="price-row">
+      <span class="retail">$6.00</span>
+      <span class="ask">$2.10</span>
+      <span class="unit">/1M tok</span>
+      <span class="save">−65%</span>
+    </div>
+    <div class="group-buy">
+      <div class="avatars">
+        <div class="a" style="background: var(--violet)">JK</div>
+        <div class="a" style="background: var(--cyan); color: var(--bg)">RM</div>
+        <div class="a" style="background: var(--tag-yellow); color: var(--bg)">AY</div>
+      </div>
+      <span><strong style="color: var(--tag-yellow)">847 devs</strong> locked this price today</span>
+    </div>
+    <div class="barcode-bottom"></div>
+  </div>
+
+  <div class="m-tile m-yellow">
+    <div class="doorbuster">
+      <span>★ DOORBUSTER</span>
+      <span>NO. 0042</span>
+    </div>
+    <div>
+      <h4>CLAUDE<br>OPUS 4.7</h4>
+      <div class="pmeta">ANTHROPIC · LLM · 200K CTX</div>
+    </div>
+    <div>
+      <div class="price-line">
+        <span class="pp-retail">$25.00</span>
+        <span class="pp-ask">$21<span style="font-size:32px">.25</span></span>
+        <span class="pp-save">−15%</span>
+      </div>
+      <div class="barcode"></div>
+      <div class="sku-bottom">SKU TKM-CLD-O47 · /1M TOK</div>
+    </div>
+  </div>
+
+  <div class="m-tile m-violet">
+    <span class="corner-tag">SKU TKM-GPT-54</span>
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#openai"/></svg></span>OPENAI · LLM</span>
+    <h4>GPT 5.4</h4>
+    <div class="price-line">
+      <span class="retail-s">$15.00</span>
+      <span class="ask-s">$12.75</span>
+      <span class="save-s">−15%</span>
+    </div>
+    <div class="mini-barcode"></div>
+  </div>
+
+  <div class="m-tile m-orange">
+    <span class="corner-tag">TKM-CLD-S46</span>
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span>ANTHROPIC</span>
+    <h4>Sonnet 4.6</h4>
+    <div class="price-line">
+      <span class="ask-s">$12.75</span>
+      <span class="save-s">−15%</span>
+    </div>
+    <div class="mini-barcode"></div>
+  </div>
+
+  <div class="m-tile m-cyan">
+    <span class="corner-tag">SKU TKM-GMN-31P</span>
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span>GOOGLE · LLM</span>
+    <h4>Gemini 3.1 Pro</h4>
+    <div class="price-line">
+      <span class="retail-s">$12.00</span>
+      <span class="ask-s">$9.60</span>
+      <span class="save-s">−20%</span>
+    </div>
+    <div class="mini-barcode"></div>
+  </div>
+
+  <div class="m-tile m-lime">
+    <span class="corner-tag">TKM-NB-2</span>
+    <span class="tile-tag"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span>GOOGLE · IMG</span>
+    <h4>Nano Banana 2</h4>
+    <div class="price-line">
+      <span class="ask-s">$0.04</span>
+      <span class="save-s">−20%</span>
+    </div>
+    <div class="mini-barcode"></div>
+  </div>
+</section>
+
+<section class="tier-section">
+  <h2>Top up <em>once</em>, save more.</h2>
+  <p class="sub">Six tags, six bonuses. Higher denominations unlock bigger bonuses — automatically. No subscription, no minimums.</p>
+
+  <div class="rail-wrap">
+    <div class="rail"></div>
+    <div class="tags">
+      <div class="tag-card featured">
+        <span class="stamp-hot">★ HOT</span>
+        <div class="tier-no">Tier 01</div>
+        <div class="pay">PAY</div>
+        <div class="amt">$99</div>
+        <div class="arrow">↳ receive</div>
+        <div class="get">$118.80</div>
+        <span class="bonus">+20% bonus</span>
+        <div class="barcode-mini"></div>
+      </div>
+      <div class="tag-card">
+        <div class="tier-no">Tier 02</div>
+        <div class="pay">PAY</div>
+        <div class="amt">$499</div>
+        <div class="arrow">↳ receive</div>
+        <div class="get">$518.96</div>
+        <span class="bonus">+4% bonus</span>
+        <div class="barcode-mini"></div>
+      </div>
+      <div class="tag-card">
+        <div class="tier-no">Tier 03</div>
+        <div class="pay">PAY</div>
+        <div class="amt">$999</div>
+        <div class="arrow">↳ receive</div>
+        <div class="get">$1,058.94</div>
+        <span class="bonus">+6% bonus</span>
+        <div class="barcode-mini"></div>
+      </div>
+      <div class="tag-card">
+        <div class="tier-no">Tier 04</div>
+        <div class="pay">PAY</div>
+        <div class="amt">$4,999</div>
+        <div class="arrow">↳ receive</div>
+        <div class="get">$5,398.92</div>
+        <span class="bonus">+8% bonus</span>
+        <div class="barcode-mini"></div>
+      </div>
+      <div class="tag-card">
+        <div class="tier-no">Tier 05</div>
+        <div class="pay">PAY</div>
+        <div class="amt">$9,999</div>
+        <div class="arrow">↳ receive</div>
+        <div class="get">$10,998.90</div>
+        <span class="bonus">+10% bonus</span>
+        <div class="barcode-mini"></div>
+      </div>
+      <div class="tag-card custom">
+        <div class="tier-no">Custom</div>
+        <div class="pay">VOLUME</div>
+        <div class="amt" style="font-size: 22px; padding-top: 8px">Talk to sales</div>
+        <div class="arrow">↳ up to</div>
+        <div class="get">−65%</div>
+        <span class="bonus">custom rate</span>
+        <div class="barcode-mini"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="why-grid">
+  <div class="why-card violet">
+    <div class="ord">01 — INVENTORY</div>
+    <div class="num">50+</div>
+    <h3>Every flagship, one endpoint.</h3>
+    <p>Anthropic, OpenAI, Google, xAI, Meta, ByteDance, DeepSeek — fifty leading models behind a single OpenAI-compatible API.</p>
+    <div class="icons">
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#anthropic"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#openai"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#google"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#x"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#meta"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#bytedance"/></svg></span></span>
+      <span class="ic"><span class="pglyph"><svg viewBox="0 0 24 24"><use href="#deepseek"/></svg></span></span>
+    </div>
+    <div class="barcode-footer" style="color: var(--violet)"></div>
+  </div>
+  <div class="why-card pink">
+    <div class="ord">02 — PRICING</div>
+    <div class="num">−65%</div>
+    <h3>Always at the lowest market rate.</h3>
+    <p>Smart routing finds the cheapest provider per request. No retainer. No platform fee. Pay the ask, plus a thin routing margin.</p>
+    <div class="barcode-footer" style="color: var(--pink); margin-top: 3rem"></div>
+  </div>
+  <div class="why-card lime">
+    <div class="ord">03 — UPTIME</div>
+    <div class="num">99.9%</div>
+    <h3>Cross-provider failover.</h3>
+    <p>If a provider degrades, traffic reroutes pre-emptively. One key, one bill, one dashboard — across every model on the market.</p>
+    <div class="barcode-footer" style="color: var(--tag-yellow); margin-top: 3rem"></div>
+  </div>
+</section>
+
+</body>
+</html>
