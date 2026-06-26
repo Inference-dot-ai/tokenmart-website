@@ -1,0 +1,136 @@
+---
+title: "AI API Credits vs Per-Token Billing: Which Costs You More"
+description: "Prepaid credits look like savings until 40% of them expire unused at month 12. Here's the decision framework for credits vs metered LLM billing."
+publishedAt: 2026-06-24
+updatedAt: 2026-06-24
+author: "client"
+tags: ["pricing", "costs", "playbook"]
+coverImage: "/blog/covers/chart-screen.jpg"
+ogImage: "/blog/og/chart-screen.jpg"
+faq:
+  - q: "What is the difference between prepaid credits and per-token billing for LLM APIs?"
+    a: "Prepaid credits require you to load money in advance (e.g., $999) and draw it down as you make API calls, often with a bonus and an expiration date. Per-token billing meters your actual usage and invoices you at the end of the period with no upfront commitment. Credits trade cash-flow flexibility for a discount; metered billing trades the discount for the right to pay only for what you use."
+  - q: "Do prepaid AI API credits expire?"
+    a: "Often, yes. A 12-month expiry is the most common term across major providers, though some range from 6 to 24 months and a few do not expire at all. Bonus or promotional credits frequently expire faster than purchased credits. Always read the specific expiry clause before topping up, because expired credits are a total loss with no refund."
+  - q: "When do prepaid credits save money versus cost money?"
+    a: "Credits win when your usage is stable and predictable enough that you will consume the full balance before it expires, letting you keep the top-up bonus. On a $999 top-up with a 6% bonus, that is $59.94 of free credit. Credits cost you money when you over-buy and let any portion expire, since the lost principal usually dwarfs the bonus you earned."
+  - q: "Which LLM providers use credits versus metered billing?"
+    a: "OpenAI and Anthropic primarily use prepaid credits (auto-recharge) for self-serve accounts, with metered invoicing reserved for enterprise contracts. Google Vertex AI bills metered against a cloud account. Aggregators vary: some are credit-only, while others including TokenMart offer prepaid credit with a bonus on top of an already-discounted per-token rate, so the credit choice is about cash flow rather than unlocking the discount."
+  - q: "Is the prepaid credit bonus worth the expiry risk?"
+    a: "Compare the bonus percentage against the probability and size of expiry loss. A 6-10% bonus is attractive if you are confident you will spend the balance; it is a bad trade if there is a meaningful chance you leave 20% or more on the table. The breakeven is simple: if expected unused credit times its value exceeds the bonus, buy smaller top-ups or stay metered."
+  - q: "How can I avoid the credit-expiry trap?"
+    a: "Size each top-up to roughly one to three months of measured spend rather than buying the largest bonus tier. Track your burn rate weekly, set a calendar alert 60 days before any expiry date, and prefer providers whose credits either do not expire or roll over. If your traffic is spiky or seasonal, metered billing or small frequent top-ups protect you better than a single large prepaid balance."
+---
+
+A team loads $9,999 of API credit in January to lock in a 10% bonus, then ships a feature pivot in March that cuts their inference volume by half. Twelve months later, $3,800 of that balance expires unused. The 10% bonus they chased — $999.90 — was erased four times over by the principal they never spent. This article answers one question: for your traffic pattern and cash-flow situation, does prepaid credit or metered per-token billing actually cost you less?
+
+## The two billing models, precisely
+
+Almost every LLM API resolves to one of two payment mechanics, and the marketing rarely makes the distinction clear.
+
+**Per-token (metered) billing** charges your actual consumption at the end of a billing period. You define a payment method, you make calls, you get an invoice. There is no upfront commitment and nothing to lose if usage drops to zero. The price is the rack rate.
+
+**Prepaid credit billing** requires you to load a balance in advance. You draw it down per request until it runs out, at which point calls fail or auto-recharge kicks in. The incentives that make credits attractive are a **top-up bonus** (extra spendable credit) and sometimes a lower per-token rate. The catch is almost always an **expiry date** on the unused balance.
+
+The mechanics matter because they push risk in opposite directions. Metered billing puts the risk on the provider (you might churn before paying much). Prepaid credit puts the risk on you (you might pay before using much).
+
+## What the bonus is actually worth
+
+Here is a representative prepaid bonus schedule. The bonus is real spendable credit, not a discount on list price — it stacks on top of whatever per-token rate you already pay.
+
+| Top-up | Credit received | Bonus | Effective bonus rate |
+|--------|----------------|-------|----------------------|
+| $99 | $118.80 | $19.80 | +20.0% |
+| $499 | $518.96 | $19.96 | +4.0% |
+| $999 | $1,058.94 | $59.94 | +6.0% |
+| $4,999 | $5,398.92 | $399.92 | +8.0% |
+| $9,999 | $10,998.90 | $999.90 | +10.0% |
+
+Two things jump out. First, the smallest tier carries the richest bonus (+20%), which inverts the usual "buy more, save more" intuition — a $99 top-up returns proportionally more free credit than a $999 one. Second, the absolute dollars climb with tier size: the $9,999 top-up hands you $999.90, nearly the value of an entire $999 top-up. That is genuinely good money **if** you spend it. The expiry clause is the entire reason that "if" is load-bearing.
+
+## The expiry trap, quantified
+
+The single most expensive mistake in LLM billing is over-buying credit that expires. A 12-month expiry is the industry-common default; some providers run 6 months, a few 24, and a handful never expire. Bonus and promotional credit frequently expires faster than purchased principal.
+
+The math is unforgiving because the bonus and the loss are asymmetric. Suppose you take the $9,999 tier for its 10% bonus, then leave 30% of the balance unspent at expiry:
+
+| Line item | Amount |
+|-----------|--------|
+| Cash paid | $9,999.00 |
+| Credit received | $10,998.90 |
+| Bonus earned | +$999.90 |
+| Unspent at 12-mo expiry (30%) | $3,299.67 |
+| Net position vs. metered | **−$2,299.77** |
+
+You chased $999.90 and lost $2,299.77. The break-even is blunt: if the fraction of credit you let expire exceeds the bonus percentage, the prepaid deal cost you money. With a 10% bonus, expiring more than ~9.1% of the balance puts you underwater. Most teams that over-buy expire far more than that.
+
+The corollary is that the bonus is only ever worth the expiry risk when your consumption is predictable enough to drain the balance well before the clock runs out.
+
+## A decision framework: three questions
+
+Whether credits or metered billing wins comes down to three variables. Score each honestly.
+
+### 1. Is your traffic stable?
+
+If your monthly token volume varies by less than roughly 20% month-over-month, you can size a top-up confidently and capture the bonus. If it swings wider — seasonal SaaS, a startup mid-pivot, a usage-based product with lumpy customers — every prepaid dollar is a guess about the future, and guesses expire.
+
+### 2. How tight is your cash flow?
+
+Prepaid credit is a loan you make to your vendor. A $4,999 top-up is $4,999 of working capital you cannot deploy elsewhere for up to a year. For a well-funded team that bonus is free yield; for a cash-constrained one, the same dollars might be better kept liquid even at the cost of forgoing an 8% bonus.
+
+### 3. How locked-in are you?
+
+Credits are non-portable and almost never refundable. If you might switch models or providers — and in a market where a new frontier model ships every few months, you might — a large prepaid balance is a switching-cost anchor. Metered billing lets you walk away owing only what you used.
+
+| Your situation | Better fit |
+|----------------|-----------|
+| Stable traffic, healthy cash, committed stack | Prepaid credit (capture the bonus) |
+| Spiky or seasonal traffic | Metered, or small frequent top-ups |
+| Tight runway, capital better deployed elsewhere | Metered |
+| Likely to switch models/providers soon | Metered |
+| Predictable spend, want the 6-10% bonus | Prepaid, sized to 1-3 months |
+
+## A worked example where each model wins
+
+Consider a production summarization workload running on `gemini-3.1-pro`, billed at a discounted $1.40 / $8.40 per 1M tokens (input / output). The job processes 50M input and 10M output tokens per month: `50 × $1.40 + 10 × $8.40 = $70 + $84 = $154/month`, about $1,848/year.
+
+**Where prepaid wins.** This volume is steady — a recurring nightly batch. A $999 top-up covers roughly 6.5 months of spend and returns a $59.94 bonus (+6%). The team takes two $999 top-ups a year, drains both before the 12-month clock matters, and pockets ~$120 of free credit. Stable traffic plus full consumption makes the bonus pure upside.
+
+**Where metered wins.** Now the same team is an early-stage startup A/B testing three models — `gemini-3.1-pro`, `claude-sonnet-4.6` at $2.55 / $12.75, and `gpt-5.4` at $2.00 / $12.00 — and unsure which they'll standardize on. Their volume could 3x or could halve depending on a funding outcome in Q3. Here, locking $999 into one model's credit balance is a bet against their own flexibility. Metered billing on the discounted per-token rate costs them the $59.94 bonus but keeps every dollar portable and every model swap free. The forgone bonus is cheap insurance against a stranded balance.
+
+The deciding factor was never the headline rate — both scenarios pay the same per-token price. It was traffic stability and lock-in tolerance.
+
+## How providers classify
+
+Billing model is a property of the provider, not the model weights. A rough map of the landscape:
+
+| Provider type | Typical billing | Bonus on top-up | Credit expiry |
+|---------------|----------------|-----------------|---------------|
+| OpenAI / Anthropic (self-serve) | Prepaid credit, auto-recharge | Rare | Common, ~12 mo |
+| OpenAI / Anthropic (enterprise) | Metered invoicing | n/a | n/a |
+| Google Vertex AI | Metered (cloud billing) | n/a | n/a |
+| Credit-only aggregators | Prepaid credit | Sometimes | Varies, often 12 mo |
+| Discount aggregators (incl. TokenMart) | Prepaid credit **on top of** discounted per-token rate | Yes, +4-20% | Check terms |
+
+The important nuance: on a discount aggregator, the per-token discount and the credit bonus are separable. The structural discount — `gpt-5.4` at $2.00 / $12.00 against a $2.50 / $15.00 list, or `grok-4.1` at $1.05 / $2.10 against $3.00 / $6.00 — applies whether you prepay or not. So the credit decision is purely about cash flow and the bonus, not about unlocking the savings. That removes the most coercive form of the trap, where you must prepay to get any discount at all.
+
+## When credits trap you — and when this whole analysis doesn't apply
+
+Be honest about the failure modes before you top up.
+
+**Credits trap you when** your traffic is unpredictable, when a model migration is plausible within the expiry window, or when you bought the largest tier purely for the headline bonus without modeling your burn rate. The trap also springs on **seasonal businesses**: load credit in your busy quarter, coast through a slow one, and watch the balance age toward expiry. And it traps anyone who treats "auto-recharge" as set-and-forget — auto-recharge can stack fresh credit on top of an aging balance you're not draining, compounding the expiry exposure.
+
+**This analysis does not apply when:**
+
+- **You're below ~$50/month of spend.** The bonus and the expiry risk are both rounding errors. Pick whichever is less hassle and move on.
+- **Your provider's credits genuinely never expire.** Then prepaid is close to a free option — capture the bonus and stop worrying. Verify this in writing; "no expiry" sometimes hides a dormancy clause.
+- **You have an enterprise contract.** Negotiated committed-use deals have their own economics — true-ups, rollover, custom rates — that override the self-serve credit-vs-metered question entirely.
+- **Latency is your binding constraint, not cost.** Aggregator routing adds ~20-80ms p95 per request. If you're optimizing tail latency over invoice size, billing model is the wrong thing to be tuning.
+
+The practical rule that survives all of this: size each top-up to one-to-three months of *measured* spend, not to the biggest bonus tier. Track burn weekly, set a calendar alert 60 days before any expiry, and never prepay against a model you might replace. The bonus is real, but it is small, and the principal you can lose is not.
+
+If you want the discounted per-token rate without being forced to prepay for it — and a credit bonus available only if and when your traffic is stable enough to use it — [Sign in to TokenMart](https://console.service-inference.ai/signin) and start metered, then top up once you've measured a month of real burn.
+
+## The one-paragraph version
+
+Per-token billing costs more on paper and less in practice for anyone whose usage is uncertain, because it never strands capital. Prepaid credit costs less on paper — a 4-20% bonus — and can cost far more in practice if any meaningful slice expires unused, since lost principal dwarfs the bonus at any realistic over-buy. Decide on three axes: traffic stability, cash-flow flexibility, and provider lock-in. When all three favor commitment, prepay in modest tiers. When any one is shaky, stay metered.

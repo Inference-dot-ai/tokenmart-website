@@ -1,0 +1,111 @@
+---
+title: "Cost per Outcome, Not per Token: Reframing LLM Unit Economics"
+description: "A pipeline cut its per-token price 18x and the invoice went up 14%. Why per-token cost lies, and how to measure cost per resolved ticket instead."
+publishedAt: 2026-06-24
+updatedAt: 2026-06-24
+author: "client"
+tags: ["pricing", "costs", "playbook"]
+coverImage: "/blog/covers/warehouse-racks.jpg"
+ogImage: "/blog/og/warehouse-racks.jpg"
+faq:
+  - q: "Why is cost per token a misleading metric for LLM applications?"
+    a: "Cost per token only measures the price of raw compute, not the work done. A cheaper model can require more retries, longer reasoning chains, larger few-shot prompts, or human escalation to reach the same outcome. When you multiply per-token price by the actual tokens consumed per successful result, a model with a higher sticker price often wins on total cost per resolved ticket, qualified lead, or processed document."
+  - q: "How do you calculate cost per outcome for an LLM workflow?"
+    a: "Multiply the tokens consumed per attempt by the per-token price, then divide by the success rate to account for retries and failures, and add any downstream human-handling cost for the cases the model misses. The formula is: (input_tokens x input_price + output_tokens x output_price) / success_rate + escalation_cost x failure_rate. Measure tokens and success rate from production traces, not from vendor benchmarks."
+  - q: "When is raw cost per token actually the right metric?"
+    a: "Cost per token is the correct metric for uniform, high-volume, single-shot tasks where every model in contention clears the quality bar and output length is fixed. Examples include embedding generation, deterministic classification into a fixed label set, and translation of short strings. When success rate is effectively 100 percent across candidates and there is no retry or escalation path, per-token price is the whole story."
+  - q: "Can a model with a lower per-token price cost more per outcome?"
+    a: "Yes, and it is common. A cheaper model that needs two retries to produce valid output, or that generates twice the tokens to reach the same answer, effectively triples or doubles its per-token cost. If it also escalates more cases to human review, the loaded cost per outcome can exceed a premium model that succeeds on the first attempt with tight output."
+  - q: "How do retries change the real cost of a cheaper LLM?"
+    a: "Each retry re-bills the full prompt, since the input tokens are resent every attempt. A model at a 60 percent first-pass success rate consumes roughly 1.67 attempts per success on average, so its effective per-outcome cost is 1.67x its single-attempt cost. Retries also add latency and, on long prompts, can erase the per-token savings that justified picking the cheaper model."
+  - q: "Does prompt caching affect cost per outcome calculations?"
+    a: "Significantly. Cache reads are billed at 0.1x the input rate, a 90 percent discount, so workflows with a large stable prompt prefix (system instructions, schemas, few-shot examples) see input cost collapse on repeated calls. On a 9,000-token prefix this turns roughly $0.018 of input into about $0.0018 per call, which often makes a premium model with strong instruction-following cheaper per outcome than a cheap model run without caching."
+---
+
+A document-extraction pipeline switched from gpt-5.4 ($2.50/$15.00 per 1M tokens) to deepseek-v3.2 ($0.14/$0.28) expecting an 18x cut in cost per token. Three weeks later the invoice was up 14%. The cheaper model parsed 71% of invoices cleanly on the first pass instead of 96%, so every miss triggered a retry, a longer correction prompt, and a chunk of human review. The per-token price fell through the floor; the per-document cost climbed. This article shows how to measure the unit that actually appears on your P&L — cost per business outcome — and when the raw per-token number is still the right thing to optimize.
+
+## The unit you bill internally is not the unit that matters
+
+A token is an input to your system, not an output of it. Nobody downstream cares how many tokens you spent — they care about a resolved support ticket, a qualified lead, a processed document, a passing code review. Those are the units your business runs on, and they are what your model spend should be denominated in.
+
+The per-token price is seductive because it is printed on the pricing page and varies by two orders of magnitude across models. gemini-2.5-flash-lite at $0.10/$0.40 looks 50x cheaper than claude-opus-4.7 at $5.00/$25.00. But the pricing page hides three multipliers that sit between a token and an outcome:
+
+- **Tokens per attempt.** A weaker model often needs more few-shot examples, longer chain-of-thought, or more verbose output to reach the same answer. More tokens per attempt at a lower price can net out flat — or worse.
+- **Attempts per outcome.** First-pass success below 100% means retries. Each retry re-bills the full input prompt, because input tokens are resent every call.
+- **Escalation per miss.** Whatever the model can't do gets handed to a human, a more expensive model, or a fallback path. That cost belongs in the denominator too.
+
+The formula that captures all three:
+
+```
+cost_per_outcome = tokens_per_attempt_cost / success_rate
+                 + escalation_cost * (1 - success_rate)
+```
+
+where `tokens_per_attempt_cost = input_tokens × input_price + output_tokens × output_price`.
+
+Each multiplier is independent, and any one of them can dominate. A model can be best on tokens per attempt yet worst on attempts per outcome; a model can be middling on both yet win because it never escalates. That is why you cannot read the winner off the pricing page — the three terms interact, and the interaction is workload-specific.
+
+## Worked example 1: support ticket resolution
+
+A tier-1 support agent reads a ticket plus retrieved context (~3,500 input tokens) and writes a resolution (~600 output tokens). "Resolved" means the customer doesn't reopen. Below, prices are the discounted pass-through rates where available, and a human escalation costs $4.00 in agent time per missed ticket.
+
+| Model | $/1M in / out | Cost/attempt | First-pass resolve | Attempts/resolve | Model cost/resolve | + escalation | **Total $/resolved ticket** |
+|---|---|---|---|---|---|---|---|
+| claude-haiku-4.5 | $0.21 / $1.06 | $0.00137 | 68% | 1.47 | $0.00202 | $1.28 | **$1.28** |
+| gpt-5.4 | $2.00 / $12.00 | $0.01420 | 89% | 1.12 | $0.01596 | $0.44 | **$0.46** |
+| claude-sonnet-4.6 | $2.55 / $12.75 | $0.01657 | 93% | 1.08 | $0.01782 | $0.28 | **$0.30** |
+
+The per-token cheapest model, claude-haiku-4.5, is **4.3x more expensive per resolved ticket** than claude-sonnet-4.6. The escalation column dominates everything else: at 68% first-pass resolution, 32% of tickets hit the $4.00 human path, and that $1.28 swamps the fractions of a cent in model cost. The lesson is not "always buy the premium model" — it's that the denominator (success rate) moves cost per outcome far more than the per-token price does. Note also that gpt-5.4 and claude-sonnet-4.6 differ by only 17% per resolved ticket despite gpt-5.4 carrying the lower sticker price; the four-point gap in first-pass resolution nearly cancels its per-token advantage.
+
+## Worked example 2: qualified-lead enrichment
+
+Here the economics flip, because there is no expensive escalation path — a missed enrichment is just retried automatically until valid JSON comes back. Each call sends ~1,200 input tokens and returns ~300 output tokens of structured fields.
+
+| Model | $/1M in / out | Cost/attempt | Valid-JSON rate | Attempts/lead | **$/qualified lead** |
+|---|---|---|---|---|---|
+| gemini-2.5-flash-lite | $0.10 / $0.40 | $0.00024 | 82% | 1.22 | **$0.00029** |
+| gpt-5.4-mini | $0.40 / $1.60 | $0.00096 | 94% | 1.06 | **$0.00102** |
+| gemini-3.1-pro | $1.40 / $8.40 | $0.00420 | 99% | 1.01 | **$0.00424** |
+
+With no human in the loop, the retry multiplier is small (1.22x at worst) and never enough to overcome a 4x–18x per-token gap. gemini-2.5-flash-lite wins decisively here at $0.00029 per lead. This is the case where the cheap model is genuinely cheap — and the next section explains exactly why.
+
+## Worked example 3: document processing with caching
+
+A contract-review pipeline reads a 60-page document. The system prompt, extraction schema, and few-shot examples (~9,000 tokens) are identical on every call; only the document changes. That stable prefix is cacheable, and cache reads bill at **0.1x the input rate** — a 90% discount. The columns below isolate the prefix cost: what those 9,000 fixed tokens cost at full price versus on a cache hit, plus the per-document output.
+
+| Model | $/1M in / out | Prefix w/o cache | Prefix w/ 90% cache hit | Output (4k tok) | **$/document** |
+|---|---|---|---|---|---|
+| gpt-5.4 | $2.00 / $12.00 | $0.0180 | $0.0018 | $0.0480 | **$0.0498** |
+| gemini-3.1-pro | $1.40 / $8.40 | $0.0126 | $0.0013 | $0.0336 | **$0.0349** |
+| claude-opus-4.7 | $4.25 / $21.25 | $0.0383 | $0.0038 | $0.0850 | **$0.0888** |
+
+(Prefix column is the ~9,000 fixed scaffold tokens; on a cache hit they re-bill at 0.1x. The variable document body and output bill at full rate.) The 90% cache discount cuts the prefix cost by an order of magnitude on every model, but it matters most where the prefix is large and the per-token price is high — for claude-opus-4.7 it removes $0.0345 per document. Caching is the single biggest lever for any workflow with a fixed prompt scaffold, and it changes nothing in your application logic beyond marking the prefix. For batch-eligible work, the **50%-off async tier** (both input and output, 24h turnaround) stacks on top of this and is worth modeling separately for any non-interactive document run.
+
+## How to actually measure this
+
+You cannot get success rate or tokens-per-attempt from a vendor benchmark. They come from your own production traces. The minimum instrumentation:
+
+1. **Log tokens per call** (input and output separately) and tag each with the outcome it served.
+2. **Define the outcome and its success test** unambiguously — "ticket not reopened in 72h," "JSON validates against schema," "extraction matches gold label." If you can't write the test, you can't compute the metric.
+3. **Track the escalation cost** for misses: human minutes, fallback-model spend, or rework.
+4. **Compute cost per outcome weekly per model**, not per token. Route on this number.
+
+A useful sanity check: take any "we should switch to the cheaper model" proposal and ask for the proposed model's measured first-pass success rate on *your* traffic. If that number doesn't exist yet, the per-token comparison is premature. Run the candidate in shadow mode against a slice of live traffic for a week, score it against the same success test, and only then put the two cost-per-outcome figures side by side. A switch that survives that test is real; one justified by the pricing page alone is a guess.
+
+## When raw cost per token IS the right metric
+
+The outcome framing is not universal. Cost per token is exactly right when **all candidate models clear the quality bar and output is single-shot with fixed length**. In that regime, success rate is ~100% across the board, there is no retry multiplier, and no escalation path exists — so the only variable left is price per token. Concrete cases:
+
+- **Embedding generation and deterministic classification** into a small fixed label set, where modern small models hit near-ceiling accuracy and the cheapest valid option wins outright.
+- **High-volume, uniform transformations** — short translations, format conversions, boilerplate normalization — where every model produces equivalent output and you are buying raw throughput.
+- **Worked example 2 above** is essentially this case: no human escalation, near-equal validity once retries are cheap, so the per-token-cheapest model genuinely is the cheapest per outcome.
+
+The tell is the shape of your success-rate column. If it's flat and near 100% across every candidate, stop computing cost per outcome — it adds nothing, and per-token price is the honest answer. The outcome framing earns its keep precisely when success rates *diverge*, because that divergence, not the sticker price, is what determines your real bill.
+
+One more caveat: cost per outcome is a cost metric, not a quality metric. A model can be cheapest per resolved ticket while producing resolutions customers find curt or wrong in ways that don't trigger a reopen. Pair the cost number with a quality sample, and don't let a spreadsheet talk you into shipping a worse experience to save a cent.
+
+## The takeaway
+
+Per-token price is an input cost; per-outcome cost is what your business pays. The gap between them is set by success rate, tokens per attempt, and escalation cost — and that gap can invert a 4x or 18x per-token advantage. Measure the three multipliers from your own traces, denominate spend in resolved tickets and processed documents, and route on that number. A structural per-token discount of −15% to −65% on the same model weights, plus a 90% cache read discount and a 50% async tier, all reduce the numerator — but they only pay off once you're optimizing the right ratio.
+
+If you want to model these numbers against your own traffic on discounted pass-through pricing, [Sign in to TokenMart](https://console.service-inference.ai/signin) and pull your token logs into the cost-per-outcome formula above.

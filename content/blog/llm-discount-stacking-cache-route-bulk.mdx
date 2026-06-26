@@ -1,0 +1,105 @@
+---
+title: "Discount Stacking on LLM APIs: Cache + Route + Bulk Math"
+description: "A support bot at $144,000/month drops to $21,642 — not by switching models, but by stacking four discount layers in the right order. Here's the math."
+publishedAt: 2026-06-24
+updatedAt: 2026-06-24
+author: "client"
+tags: ["pricing", "costs", "infrastructure"]
+coverImage: "/blog/covers/abstract-mesh.jpg"
+ogImage: "/blog/og/abstract-mesh.jpg"
+faq:
+  - q: "Do LLM API discounts stack or do you have to pick one?"
+    a: "They stack multiplicatively when each discount acts on a different cost dimension. Prompt caching reduces repeated input volume, model routing lowers the per-token rate for easy traffic, batch processing cuts both dimensions 50% for latency-tolerant work, and bulk pass-through pricing discounts the published rate. Because these touch disjoint terms in the cost equation, their multipliers compound rather than substitute."
+  - q: "In what order should I apply caching, routing, and batch discounts?"
+    a: "Apply caching first, routing second, batch third, and the bulk per-token discount last. Caching reshapes your token economics (often making the bill output-dominated), which determines how you route; routing sets the per-token rate; batch then halves an already-minimized slice; and the flat bulk discount multiplies whatever remains. The layers commute mathematically but not operationally, because each one changes the input the next layer reasons about."
+  - q: "How much can discount stacking actually save on an LLM bill?"
+    a: "In the worked example, an 11.5B-token/month support chatbot on claude-opus-4.7 drops from $144,000 to $21,642 per month, an 85% reduction. That comes from multiplying four layer factors: caching 0.82x, routing 0.29x, batch 0.75x, and a 15% bulk discount 0.85x. No single layer cuts more than 71%, but together they reach 85%."
+  - q: "Why does prompt caching sometimes save less than routing?"
+    a: "Caching discounts only the input dimension (cached reads bill at 0.1x input, 90% off), so its impact depends on how input-heavy your workload is. In an output-dominated chatbot, caching is a modest 0.82x multiplier while routing to a model with 20x cheaper output is the dominant 0.29x lever. On an input-heavy RAG pipeline the ranking flips and caching becomes the biggest saver."
+  - q: "When does prompt caching cost money instead of saving it?"
+    a: "Caching loses money when a cached prefix expires before it is reused. With a 5-minute default TTL (or 1 hour at 2x write cost) and a write premium of 1.25x to 2x input, sparse or bursty traffic pays to populate caches that go unused. Below roughly 5 to 10 reuses per cache write, caching is a net cost, so verify your cache hit rate before assuming savings."
+  - q: "What workloads cannot benefit from model routing?"
+    a: "Routing requires a price ladder — a cheaper model to send easy traffic to. It does not help workloads pinned to a single specialized model or to an already-cheap model like deepseek-v3.2 at $0.14/$0.28, where no meaningfully cheaper frontier alternative exists. When the price ladder under you is flat, the routing multiplier collapses toward 1.0 and the savings disappear."
+---
+
+A support chatbot answering 11.5 billion tokens a month on `claude-opus-4.7` at list price costs $144,000. The same workload, with three discount layers applied in the right order, costs $21,642. That is an 85% reduction, and not one byte of it comes from switching to a worse model for the conversations that actually need the strong one. This article shows exactly how three independent discount layers — bulk pass-through pricing, prompt caching, and model routing, plus an async batch tier — compound rather than substitute, and the order you must apply them in to capture the full multiplier.
+
+## The mental model: discounts multiply when they hit different cost dimensions
+
+The reason teams under-save is that they treat discounts as alternatives — "should we cache, or should we route to a cheaper model?" — when these levers act on entirely different parts of the bill. Each one is a multiplier on the cost that survives the previous layer. Stack four multipliers of 0.82, 0.29, 0.75, and 0.85 and you get 0.15 — an 85% cut — even though no single layer cuts more than 71%.
+
+The four layers, and the dimension each one attacks:
+
+| Layer | What it discounts | Mechanism | Multiplier in this example |
+|---|---|---|---|
+| Prompt caching | Repeated input tokens | Cached reads bill at 0.1× input (90% off) | 0.82× |
+| Model routing | Per-token rate of easy traffic | Send simple turns to a cheaper model | 0.29× |
+| Batch / async | Latency-tolerant traffic | 50% off both input and output, 24h window | 0.75× |
+| Bulk pass-through | The published per-token rate itself | Volume-tier discount applied to every call | 0.85× |
+
+The first three are usage-shaping: you change *how* you call the API. The fourth is a flat rate cut on whatever is left. Because routing changes the per-token rate, caching changes the effective input volume, and batch changes the rate on a slice of traffic, they touch disjoint terms in the cost equation. Disjoint terms multiply.
+
+## Why order matters
+
+The layers commute mathematically — multiplication is multiplication — but they do **not** commute operationally. You should apply them cache-first, route-second, batch-third for a concrete reason: each layer changes the input the next layer reasons about.
+
+- **Cache first** because caching reshapes your token economics before you decide anything else. A support bot re-sends the same system prompt, tool definitions, and retrieved knowledge-base chunks on every turn. Once 80% of input tokens bill at 0.1×, your input cost collapses and your bill becomes *output-dominated*. That changes which model is worth routing where.
+- **Route second** because the routing decision depends on the post-cache cost. If output now dominates, you route based on output price spread, not input. `claude-opus-4.7` output is $25.00/1M; `claude-haiku-4.5` output is $1.25/1M — a 20× gap. That gap is where routing earns its keep, and you only see it clearly after caching.
+- **Batch third** because batch eligibility is a property of individual requests (can this wait 24 hours?), and you want to apply the 50% async discount to traffic that has *already* been cached and routed, so you are halving an already-minimized number.
+
+## The worked example, layer by layer
+
+The workload: a customer-support assistant, 11.5B tokens/month, split 7.2B input / 4.32B output. Default model `claude-opus-4.7` for quality. We apply each layer on top of the last.
+
+| Step | Configuration | Monthly cost | × previous | Cumulative vs. baseline |
+|---|---|---:|---:|---:|
+| Baseline | `claude-opus-4.7`, list price, sync, no cache | $144,000 | — | 1.00× |
+| + Caching | 80% of input is a stable cacheable prefix (0.1×) | $118,080 | 0.82× | 0.82× |
+| + Routing | 75% of turns → `claude-haiku-4.5`, 25% stay on opus | $33,948 | 0.29× | 0.24× |
+| + Batch | 50% of traffic async-eligible, 50% off both dims | $25,461 | 0.75× | 0.18× |
+| + Bulk pass-through | −15% structural discount on both models | $21,642 | 0.85× | 0.15× |
+
+Read the **× previous** column: the routing step is the heavyweight (0.29×) because output volume is what dominates after caching, and most of that output can come from a model priced 20× cheaper. Caching alone looks modest (0.82×) precisely *because* this is an output-heavy workload — on an input-heavy RAG pipeline, caching would be the dominant lever instead. The layers trade rank depending on your token mix, which is the whole point: you measure your own mix, then apply each lever where it bites.
+
+A note on the caching arithmetic. With 80% of input tokens served as cache reads at 0.1× and 20% fresh at 1.0×, the effective input price on opus drops from $5.00 to $1.40 per 1M tokens — a 72% cut on the input dimension. That does not include the cache-*write* premium (1.25× input for a 5-minute TTL, 2× for a 1-hour TTL), which you pay once per prefix and amortize across every turn that reuses it. For a chatbot reusing the same 30k-token knowledge prefix across thousands of conversations, the write cost rounds to noise. For a prefix reused twice, it does not — see the limits section.
+
+## The compounding identity
+
+Here is the arithmetic that makes the case, stripped down. The final cost is the baseline times the product of the per-layer multipliers:
+
+```
+$144,000 × 0.82 × 0.29 × 0.75 × 0.85 ≈ $21,600
+```
+
+If you had treated these as substitutes and picked only the single best one — routing, at 0.24× cumulative — you would land at roughly $35,000/month and leave $13,000/month on the table. The "pick the best discount" instinct costs you more than half of your achievable savings, every month, forever.
+
+## When this does NOT compound
+
+Stacking is multiplicative only when each layer has real traffic to act on. Three common cases break the math:
+
+### 1. Sparse or bursty traffic kills caching
+
+Caching saves money only when a cached prefix is reused before its TTL expires. Anthropic's default cache TTL is 5 minutes (extendable to 1 hour at 2× write cost). A support tool with 4 conversations an hour, randomly spaced, will pay the 1.25–2× write premium to populate a cache that expires unused before the next request arrives. In that regime caching is a *net cost*, not a discount, and the 0.82× multiplier becomes a number above 1.0. The fix is to verify your cache *hit rate* before assuming the savings — below roughly 5–10 reuses per write, caching does not pay.
+
+### 2. Single-model or already-cheap workloads have no cheaper sibling to route to
+
+Routing works because of a price ladder: send easy turns down to a model 20× cheaper. That ladder exists for the big families — `claude-opus-4.7` → `claude-haiku-4.5`, `gpt-5.4` ($2.50/$15.00) → `gpt-5.4-mini` ($0.40/$1.60). It does **not** exist if your workload is pinned to a single specialized or already-cheap model. If you are already running `deepseek-v3.2` at $0.14/$0.28, there is no meaningfully cheaper frontier model to route down to, and `gemini-2.5-flash-lite` at $0.10/$0.40 is so close that routing churn is not worth the eval risk. The routing multiplier collapses toward 1.0 when the price ladder under you is flat.
+
+### 3. Single-tenant compliance can forbid batch and shared routing
+
+The 50% batch discount assumes you can tolerate a 24-hour turnaround and that async processing on shared infrastructure is acceptable. Real-time, interactive support has no latency budget for batch — you cannot make a user wait a day for a reply, so the batch multiplier simply does not apply to synchronous turns. Separately, some regulated single-tenant or data-residency contracts prohibit the cross-tenant routing and shared async queues that make aggregator pricing and batch tiers cheap. If every request must run in a dedicated, audited path, you keep the per-token bulk discount but lose the batch layer entirely, and your floor rises accordingly.
+
+There is also a fixed tax to weigh: aggregator routing adds roughly 20–80ms of p95 overhead per request. For a chatbot that is invisible; for a tight agentic loop making 50 sequential model calls per task, that overhead compounds the other direction. Stacking pricing layers is worth it when latency is slack, not when it is the binding constraint.
+
+## The order-of-operations checklist
+
+Before you assume any multiplier, measure the input it depends on:
+
+1. **Cache:** What fraction of input tokens is a stable, repeated prefix ≥ the model's minimum cacheable length (1,024–4,096 tokens)? What is the reuse-per-write ratio? Below ~5, skip it.
+2. **Route:** After caching, is your bill input- or output-dominated? Pick the dimension with the larger price ladder and route the easy traffic down it. Hold an eval set to confirm the cheaper model meets quality on the routed slice.
+3. **Batch:** What fraction of traffic tolerates a 24-hour window? Apply 50% off both dimensions to exactly that slice, no more.
+4. **Bulk:** Apply the structural per-token discount last, as a flat multiplier on everything that survived.
+
+Then multiply the four numbers. If your traffic is dense, your prefixes are reusable, a price ladder exists, and some traffic is async-tolerant, an 80–85% reduction off list is an arithmetic consequence, not a sales claim. If any one of those preconditions is missing, drop that layer's multiplier to 1.0 and recompute honestly — the remaining layers still stack.
+
+[Sign in to TokenMart](https://console.service-inference.ai/signin) to apply the bulk pass-through layer on top of caching, routing, and batch you are already running, since that layer multiplies the rest without changing a line of your code.

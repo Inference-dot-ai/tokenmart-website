@@ -1,0 +1,132 @@
+---
+title: "Batch API Economics: When Async Inference Halves Your Bill"
+description: "Batch APIs cut inference cost 50% on input and output for a 24h SLA. Which jobs qualify, how to build a hybrid pipeline, and when it saves nothing."
+publishedAt: 2026-06-24
+updatedAt: 2026-06-24
+author: "client"
+tags: ["pricing", "infrastructure", "costs"]
+coverImage: "/blog/covers/server-rack-multi.jpg"
+ogImage: "/blog/og/server-rack-multi.jpg"
+faq:
+  - q: "How much does a batch API discount save versus synchronous inference?"
+    a: "Batch endpoints apply a 50% discount to both input and output tokens compared to the synchronous list price for the same model. There is no separate per-request fee, so the entire job is half price. The tradeoff is a turnaround window of up to 24 hours instead of a real-time response."
+  - q: "Which workloads qualify for batch inference?"
+    a: "Any job that is not user-facing and synchronous qualifies: overnight report generation, bulk classification, embeddings backfills, evaluation runs, and data labeling. The defining test is whether a human or system is blocked waiting on the response. If nothing is blocked for seconds, the work can usually move to batch and collect the 50% discount."
+  - q: "Does batch pricing stack with caching and prepaid bonuses?"
+    a: "The 50% batch discount applies to the per-token rate, then prompt caching (cache reads at 0.1x input) and any structural model discount apply on top of that reduced rate. Prepaid credit bonuses are a separate account-level lever and reduce the effective cost of every token you spend, batch or not. The discounts are multiplicative, not additive."
+  - q: "When does batch inference save nothing?"
+    a: "Batch saves nothing for latency-bound interactive workloads such as chatbots, autocomplete, live agents, and anything a user waits on. A job that must return in under a few seconds cannot tolerate a 24-hour SLA, so the 50% rate is unavailable. Caching and a structural per-token discount are the levers for those synchronous paths."
+  - q: "What is the turnaround SLA for batch jobs?"
+    a: "Most providers quote a completion target of up to 24 hours from submission, and a large share of jobs finish well inside that window during off-peak hours. The window is a ceiling, not a guarantee of exactly 24 hours. Architect your pipeline to tolerate the full window so a slow run never breaks a deadline."
+  - q: "How do I architect a hybrid sync plus batch pipeline?"
+    a: "Split traffic by whether a response is on the critical path. Route interactive, blocking calls to the synchronous endpoint and queue everything deferrable to the batch endpoint with a result poller. Persist job IDs, reconcile completed results back into your store, and set a fallback that promotes a batch item to synchronous only if a deadline is at risk."
+---
+
+Move a 40-million-token nightly classification job from the synchronous endpoint to the batch endpoint and the invoice for that single job drops by exactly half — same model, same weights, same outputs, only a delay between submission and result. On `gpt-5.4` at list, that 40M-token job (say 30M input, 10M output) costs $75 in input plus $150 in output, $225 total; the batch version is $112.50. Nothing about the prompt changed. The only thing you traded away was a real-time response you weren't using anyway. This article explains the batch/async discount across providers, which workloads qualify, how to build a hybrid sync-plus-batch pipeline, and the cases where async saves you nothing.
+
+## What the batch discount actually is
+
+Every major provider runs two lanes for the same models. The synchronous lane returns a response in seconds and is priced at list. The batch (or "async") lane accepts a file of requests, processes them on the provider's schedule, and returns results within a turnaround window — universally quoted at up to 24 hours. In exchange for surrendering latency, you pay **50% less on both input and output tokens**.
+
+That symmetry matters. Some discounts only touch input (caching) or only touch output. Batch halves the whole bill. For output-heavy jobs — report generation, long-form summarization, synthetic data — where output tokens dominate cost at 5x to 6x the input rate, that 50% off output is the single largest lever available short of changing models.
+
+Here is what the discount does to per-1M-token rates on representative models:
+
+| Model | Sync input | Sync output | Batch input | Batch output |
+|---|---|---|---|---|
+| `claude-opus-4.7` | $5.00 | $25.00 | $2.50 | $12.50 |
+| `claude-sonnet-4.6` | $3.00 | $15.00 | $1.50 | $7.50 |
+| `gpt-5.4` | $2.50 | $15.00 | $1.25 | $7.50 |
+| `gemini-3.1-pro` | $2.00 | $12.00 | $1.00 | $6.00 |
+| `deepseek-v3.2` | $0.14 | $0.28 | $0.07 | $0.14 |
+
+The discount is a flat halving, so a model that is already cheap stays cheap and a model that is expensive becomes meaningfully less so. The absolute dollars saved scale with how much you were spending, which is why batch is most interesting on the frontier tier.
+
+## Which workloads qualify
+
+The test is one question: **is anything blocked waiting on this response?** If a human is staring at a cursor or a downstream request is holding a connection open, the work is synchronous. If the result is consumed minutes or hours later by a job, a dashboard, or a person who has moved on, it is a batch candidate.
+
+Workloads that almost always qualify:
+
+- **Overnight report generation.** Summaries, digests, and briefs assembled on a schedule and read in the morning. The 24-hour window is invisible here.
+- **Bulk classification.** Tagging, moderation, sentiment, routing labels applied to a backlog or a daily feed. Throughput matters, per-item latency does not.
+- **Embeddings backfills.** Re-embedding a corpus after a model upgrade or a chunking change. These are large, one-shot, and entirely deferrable.
+- **Evaluation runs.** Scoring model outputs across a test set, LLM-as-judge grading, regression suites. Evals are inherently offline.
+- **Data labeling.** Generating training labels, synthetic examples, or weak supervision at volume.
+
+The common thread is decoupling: the producer of the request and the consumer of the result are separated in time. Anywhere that gap already exists in your architecture, batch is free money.
+
+## The latency tradeoff, stated honestly
+
+The 24-hour figure is a **ceiling, not a promise of exactly 24 hours**. In practice a large share of jobs finish well inside the window, often within an hour or two during off-peak periods, because the provider is backfilling spare capacity. But you cannot design around the optimistic case. If your report must exist by 6 a.m., submit the batch by 6 a.m. the previous day, not at midnight on a hope.
+
+Two failure modes to plan for. First, a job that partially completes — most batch APIs return per-request success and error states, so your reconciliation code must handle a file where 98% succeeded and 2% need a retry. Second, a deadline that moves. If a "deferrable" job suddenly becomes urgent, you need a path to promote it to the synchronous lane rather than waiting out the window. Both are solvable, but only if you build for them up front.
+
+## Architecting a hybrid sync + batch pipeline
+
+The goal is to route each call by whether its response is on the critical path, and to do so without two separate codebases. Because the batch and synchronous endpoints accept the same OpenAI-compatible request shape, the model call itself is identical — only the submission path differs.
+
+A workable shape:
+
+1. **Classify at the call site.** Tag each request `interactive` or `deferrable` based on whether a caller is blocked. Default to `deferrable` and make `interactive` the explicit exception, since most volume in a mature system is background work.
+2. **Two queues, one model contract.** Interactive requests go straight to the sync endpoint. Deferrable requests accumulate in a buffer and flush to a batch file on a timer or size threshold (e.g., every 15 minutes or every 10,000 items).
+3. **Persist the job ID and poll.** Store the batch job ID with the IDs of the requests it contains. A poller checks status and writes completed results back into your store, reconciling per-item successes and failures.
+4. **Build a deadline escape hatch.** For each batch item, record the latest time its result is needed. A watchdog promotes any item approaching its deadline to the synchronous lane and cancels it from the batch.
+
+This pattern lets you push the maximum possible share of traffic into the half-price lane while guaranteeing that genuinely urgent work never waits.
+
+## How batch stacks with other discounts
+
+Batch is one lever among several, and the levers multiply rather than collide. Order of operations:
+
+1. The **structural per-token rate** for your model (a discounted rate, where available, applies first).
+2. The **50% batch discount** on that rate.
+3. **Prompt caching** — cache reads bill at 0.1x the input rate (90% off) on top of whatever the input rate already is.
+4. **Prepaid credit bonuses**, an account-level multiplier that lowers the effective cost of every token regardless of lane.
+
+A worked example shows why stacking matters. Take a daily batch job on a Claude-tier model with a large, stable system prompt that is identical across every request — a perfect caching candidate. The structural pass-through already reduces the rate; batch halves it again; the repeated prefix bills at the cache-read rate. Each discount applies to the output of the last.
+
+The table below compares the same 50M-token job (40M input, 10M output) across configurations on a `claude-sonnet-4.6`-class rate. The structural row uses the discounted pass-through ($2.55 / $12.75); the batch row halves list; the combined row halves the structural rate.
+
+| Configuration | Input rate | Output rate | Job cost (40M in / 10M out) |
+|---|---|---|---|
+| Synchronous, list | $3.00 | $15.00 | $270.00 |
+| Structural discount only | $2.55 | $12.75 | $229.50 |
+| Batch only (50% off list) | $1.50 | $7.50 | $135.00 |
+| Batch + structural | $1.28 | $6.38 | $114.90 |
+
+Layer caching onto the batch-plus-structural row and the input portion of a heavily-cached prompt drops toward a tenth of its already-reduced rate. The discounts compound; none of them cancels another out.
+
+A note on the routing tax: an aggregator that fans requests across providers adds roughly 20–80ms of p95 overhead per call. On a synchronous chat path that overhead is worth scrutinizing. On a batch job measured in hours, 80ms is statistical noise — async is exactly where aggregation overhead disappears entirely.
+
+## Provider landscape
+
+The mechanics are near-identical across providers, which is what makes a hybrid pipeline portable.
+
+| Provider family | Batch discount | Turnaround SLA | Typical supported endpoints |
+|---|---|---|---|
+| Anthropic (`claude-opus-4.7`, `claude-sonnet-4.6`) | 50% in + out | up to 24h | chat / messages |
+| OpenAI (`gpt-5.4`, `gpt-5.4-mini`) | 50% in + out | up to 24h | chat, embeddings |
+| Google (`gemini-3.1-pro`, `gemini-3-flash`) | 50% in + out | up to 24h | chat, embeddings |
+| DeepSeek (`deepseek-v3.2`) | 50% in + out | up to 24h | chat |
+
+The 50%/24h pairing is the de facto industry standard. Endpoint coverage is where they diverge — embeddings backfills, one of the highest-value batch workloads, are supported where an embeddings endpoint exists in the batch lane, so confirm that before you build a re-embedding pipeline around it.
+
+## When batch saves nothing — or costs you
+
+Batch is not a universal win, and pretending otherwise gets people burned.
+
+- **Latency-bound interactive workloads.** Chatbots, autocomplete, live coding assistants, voice agents, and any UI where a human waits cannot tolerate a 24-hour SLA. The 50% rate is simply unavailable to them. For these paths, caching and a structural per-token discount are your only real levers.
+- **Low-volume jobs.** A few thousand tokens a day saves cents under batch. The operational cost of building submission, polling, and reconciliation logic dwarfs the savings. Stay synchronous until volume justifies the plumbing.
+- **Tight-deadline "background" work.** If a job is technically offline but must finish in 10 minutes, the batch window is a liability. Run it synchronously and pay full rate, or it will miss the deadline a few percent of the time.
+- **Tightly chained multi-step agents.** When step N's output is step N+1's input within a single user-facing transaction, you cannot batch the chain without serializing 24-hour waits between steps. The latency compounds catastrophically.
+
+The honest framing: batch is a discount you earn by giving up latency you weren't using. If you are using the latency, there is no discount to claim, and trying to force it produces missed SLAs instead of savings.
+
+## The bottom line
+
+Audit your traffic by a single axis — is a caller blocked? — and you will usually find that a large fraction of token spend is background work running at full synchronous price for no reason. Moving that fraction to the batch lane halves its cost on both input and output, stacks cleanly on top of caching and structural discounts, and makes aggregation overhead irrelevant. The engineering is a buffer, a poller, and a reconciler, not a rewrite. Through an OpenAI-compatible aggregator like TokenMart, the same batch contract works across every provider behind one endpoint, so the routing decision becomes a config flag rather than four separate integrations.
+
+[Sign in to TokenMart](https://console.service-inference.ai/signin)
+
+Start with your single largest offline job, measure the before-and-after on one night's invoice, and let the number decide how much of the rest of your pipeline follows.
