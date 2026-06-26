@@ -1,0 +1,148 @@
+---
+title: "Forecasting LLM Spend Before You Ship: A Token Budget Playbook"
+description: "A single formula, a reproducible worked example, and the four mistakes that turn a tidy LLM cost estimate into a budget overrun."
+publishedAt: 2026-06-24
+updatedAt: 2026-06-24
+author: "client"
+tags: ["pricing", "playbook", "costs"]
+coverImage: "/blog/covers/warehouse-aisle.jpg"
+ogImage: "/blog/og/warehouse-aisle.jpg"
+faq:
+  - q: "What is the basic formula to forecast monthly LLM spend?"
+    a: "Monthly cost = requests/day x (avg input tokens x input rate + avg output tokens x output rate) x 30. Rates are per token, so divide the per-million-token price by 1,000,000. Then multiply by a retry factor (typically 1.05-1.15) and subtract any caching savings on the input portion."
+  - q: "Why do LLM cost forecasts usually come in too low?"
+    a: "The four most common errors are: ignoring the output-to-input price ratio (output is 4-6x more expensive on most models), forgetting retries and re-asks (5-15% overhead), forecasting on list price instead of your effective negotiated or aggregated rate, and modeling launch-day volume with no growth curve. Each error compounds, so a forecast can be off by 2-3x."
+  - q: "How much does output token pricing matter versus input?"
+    a: "On most frontier models output costs 4-6x more than input. gpt-5.4 is $2.50 input and $15.00 output per 1M tokens, a 6x ratio. A workload that reads 8,000 tokens and writes 600 can still spend more on those 600 output tokens than on the entire prompt, so the output:input ratio drives the bill more than total token count."
+  - q: "How should I account for retries in a token budget?"
+    a: "Add a retry multiplier to the whole request cost. Timeouts, 5xx responses, rate-limit backoffs, and user re-asks typically add 5-15% to billed tokens because a failed generation that emitted partial output is still billed. Use 1.10 as a starting multiplier and tighten it once you have production telemetry."
+  - q: "When is building a cost forecast not worth the effort?"
+    a: "Pre-product-market-fit prototypes are usually not worth forecasting. If you have fewer than a few hundred daily requests, no stable prompt, and uncertainty about whether the product survives the quarter, the entire monthly bill is often less than an hour of engineering time. Set a hard billing cap, ship, and forecast later once the workload stabilizes."
+  - q: "Does prompt caching change the forecast formula?"
+    a: "Yes. Cache reads are billed at 0.1x the input rate (90% off), so for a RAG or system-prompt-heavy workload you split input tokens into cached and uncached portions before multiplying. Anthropic cache writes cost 1.25x input (5-min TTL) or 2x (1-hr TTL); OpenAI caching is automatic with no write premium. Caching only helps when a prefix of at least 1,024-4,096 tokens repeats across requests."
+---
+
+A 200-request-per-day internal support assistant, reading 6,000 tokens of retrieved context and writing 500 tokens per answer on gpt-5.4, costs about $99 a month. Triple the traffic, add a retry buffer, and forget that output tokens are billed at six times the input rate, and the same product lands at a board meeting as a $1,200 surprise. The gap is almost never the model — it is the forecast. This article gives you a single formula, a fully worked example you can reproduce, and the four mistakes that turn a tidy estimate into a budget overrun.
+
+## The formula
+
+Every credible LLM forecast reduces to one line:
+
+```
+monthly_cost = requests_per_day
+             × (avg_input_tokens  × input_rate
+              + avg_output_tokens × output_rate)
+             × 30
+             × retry_factor
+             − caching_savings
+```
+
+`input_rate` and `output_rate` are per-token, so take the published per-1M price and divide by 1,000,000. gpt-5.4 at $2.50 / $15.00 per 1M becomes `0.0000025` input and `0.000015` output. The `retry_factor` is a multiplier above 1.0 that captures timeouts, 5xx retries, rate-limit backoffs, and user re-asks. `caching_savings` applies only to the repeated portion of your input.
+
+Four inputs do all the work: how many requests, how many tokens each way, the two rates, and a retry buffer. Get those four honest and your forecast will be within ~15% of the real invoice. Get any one of them wrong and you can be off by 2-3x.
+
+### Step 1: count requests, not users
+
+Forecast in requests per day, not monthly active users. One user session may fire 1 request (a single Q&A) or 12 (an agent loop with tool calls). Instrument a prototype or estimate the request fan-out per user action explicitly. A multi-step agent that calls the model 6 times per task is a 6x multiplier hiding in plain sight.
+
+### Step 2: separate input and output token averages
+
+Pull real numbers from a sample of traffic if you have it. If you don't, estimate the two independently — they behave nothing alike. Input is driven by your prompt and retrieved context (often 2,000-10,000 tokens for RAG). Output is driven by how much you ask the model to write (200-2,000 tokens for most assistant replies). The ratio between them is the single most important number in the whole forecast, for reasons the next section makes painful.
+
+## A worked example: a RAG support product
+
+Assume a customer-support RAG assistant on gpt-5.4:
+
+- 600 requests/day
+- 6,500 input tokens per request (system prompt + 5 retrieved chunks + question)
+- 550 output tokens per request
+- retry factor 1.10
+- no caching yet
+
+Per-request cost: `(6,500 × $0.0000025) + (550 × $0.000015)` = `$0.01625 + $0.00825` = `$0.0245`.
+
+Daily: `600 × $0.0245 × 1.10` = `$16.17`. Monthly: `× 30` = **$485** on list pricing with retries.
+
+Now apply two adjustments most teams miss. First, the system prompt and retrieval template (about 1,800 tokens) are identical on every request, so they are cacheable. At a cache-read rate of 0.1× input, those 1,800 tokens drop from $0.0000025 to $0.00000025 each. With the 1.10 retry factor applied, that saves roughly `1,800 × $0.00000225 × 600 × 30 × 1.10` ≈ **$80/month** off the list figure. Second, the effective rate. On gpt-5.4 the pass-through discounted rate is $2.00 / $12.00 instead of the list $2.50 / $15.00 — a 20% cut on both legs.
+
+| Forecast version | Input rate | Output rate | Monthly cost |
+|---|---|---|---|
+| List, no caching, no retries | $2.50 | $15.00 | $441 |
+| List + retries (1.10) | $2.50 | $15.00 | $485 |
+| List + retries + caching | $2.50 | $15.00 | $405 |
+| Discounted + retries + caching | $2.00 | $12.00 | $324 |
+
+The honest forecast for this workload is **~$324/month**, not the $485 a list-price estimate with retries produces, and not the $441 a naive single-line estimate suggests. The naive list number overstates the bill here — but as the next section shows, the errors usually run the *other* way and understate it.
+
+## The four forecasting errors
+
+### 1. Ignoring the output:input ratio
+
+On most frontier models, output costs 4-6x more than input. gpt-5.4 is 6x ($2.50 vs $15.00). claude-opus-4.7 is 5x ($5.00 vs $25.00). Teams forecast on "total tokens" and assume a blended rate, which silently underprices any workload that writes a lot.
+
+| Model | Input /1M | Output /1M | Output:input ratio |
+|---|---|---|---|
+| claude-opus-4.7 | $5.00 | $25.00 | 5.0x |
+| claude-sonnet-4.6 | $3.00 | $15.00 | 5.0x |
+| gpt-5.4 | $2.50 | $15.00 | 6.0x |
+| gemini-3.1-pro | $2.00 | $12.00 | 6.0x |
+| grok-4.1 | $3.00 | $6.00 | 2.0x |
+| deepseek-v3.2 | $0.14 | $0.28 | 2.0x |
+
+A summarization tool that reads 10,000 tokens and writes 300 is input-bound; a code generator that reads 1,500 and writes 3,000 is output-bound and far more expensive per request despite the smaller prompt. grok-4.1 and deepseek-v3.2, with 2x ratios, change the math entirely for write-heavy workloads — worth modeling explicitly before you commit to a default model.
+
+### 2. Forgetting retries and re-asks
+
+A generation that times out after emitting 400 of 600 tokens is still billed for those 400. Add rate-limit backoffs, transient 5xx retries, and users who hit "regenerate," and you get 5-15% of billed tokens that never reached a happy-path response. Skip the retry factor and your forecast is structurally low. Start at 1.10 and refine from production logs.
+
+### 3. Assuming list price
+
+Forecasting on published list price ignores volume discounts, batch pricing, and aggregated pass-through rates. Two levers move the number materially:
+
+- **Batch / async**: 50% off both input and output for a 24-hour turnaround. Any non-interactive workload — nightly enrichment, bulk classification, eval runs — should be forecast at half rate.
+- **Structural discount**: pass-through aggregation runs 15-65% below list depending on model (gemini-3.1-pro −30%, grok-4.1 −65%). A forecast built on list price for an interactive product can overstate spend, while one that ignores batch eligibility understates how cheap the async portion really is.
+
+### 4. Ignoring growth
+
+A launch-day forecast is a snapshot, and snapshots don't get budgeted — months do. If traffic grows 15% month over month, your month-6 bill is roughly 2x month one. Forecast a curve, not a point. Pick a conservative and an aggressive growth rate and bracket the quarter.
+
+| Month | Requests/day | Monthly cost (discounted, cached) |
+|---|---|---|
+| 1 | 600 | $324 |
+| 3 | 793 | $428 |
+| 6 | 1,207 | $652 |
+
+The day-one number ($324) is real; the number that matters for planning is the month-6 number ($652), and it only appears if growth is in the model.
+
+## A reusable forecast table
+
+Drop your four inputs into this shape and it survives review:
+
+| Parameter | Value | Source |
+|---|---|---|
+| Requests/day | 600 | prototype telemetry |
+| Avg input tokens | 6,500 | sampled prompts |
+| Cacheable prefix | 1,800 | system + template |
+| Avg output tokens | 550 | sampled completions |
+| Retry factor | 1.10 | assumed, refine later |
+| Input rate /1M | $2.00 | discounted |
+| Output rate /1M | $12.00 | discounted |
+| Growth rate | 15%/mo | PM estimate |
+
+Every cell is a number with a source. When finance asks "what if output doubles," you change one row instead of rebuilding a spreadsheet. Prepaid credit can also shift the effective rate before traffic ever flows: a $999 top-up that lands as $1,058.94 in spendable credit is a flat 6% reduction on whatever the formula produces — small, but free to model. This is the level of rigor that lets a team commit to a number on a platform like TokenMart without padding the estimate by 50% out of fear.
+
+## When you should NOT build a forecast
+
+Forecasting has a floor below which it costs more than it saves.
+
+**Pre-PMF prototypes.** If you have fewer than a few hundred daily requests, a prompt that changes weekly, and genuine uncertainty about whether the product ships next quarter, do not build a forecast. The entire monthly bill is often under $100 — less than the hour of engineering you'd spend modeling it. Set a hard billing cap, ship, and revisit once the workload stabilizes.
+
+**Unstable token profiles.** If average input or output tokens swing more than ~40% week to week because the prompt or retrieval strategy is still in flux, any forecast is fiction. Stabilize the workload first; a forecast built on a moving target gives false confidence.
+
+**Sub-$50/month line items.** If a feature's projected spend is below your team's noise floor, the precise number doesn't change a decision. Round up generously and move on.
+
+Forecasting earns its keep when volume is real, the prompt is stable, and someone will be held to the number. Below that bar, a billing alert beats a spreadsheet.
+
+## Putting it together
+
+The discipline is four honest inputs, two adjustments (retries up, caching down), and a growth curve. The worked example moved from a list-price $485 to a defensible $324 at launch and a budgeted $652 by month six — a 2x range that only a real forecast surfaces. Build the table once, source every cell, and you can answer "what does this cost at 10x" in seconds. When you're ready to model your own workload against effective rates rather than list price, [Sign in to TokenMart](https://console.service-inference.ai/signin) and run the formula against your actual traffic.

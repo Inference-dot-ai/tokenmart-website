@@ -1,0 +1,107 @@
+---
+title: "Multi-Provider Redundancy: The Real Cost of No Fallback"
+description: "A 47-minute provider outage cost one team $61K in lost requests. Wiring a cross-provider fallback would have cost about a day of engineering. Here's the math."
+publishedAt: 2026-06-24
+updatedAt: 2026-06-24
+author: "client"
+tags: ["infrastructure", "pricing", "playbook"]
+coverImage: "/blog/covers/server-rack-blue.jpg"
+ogImage: "/blog/og/server-rack-blue.jpg"
+faq:
+  - q: "Why is cross-provider failover better than retrying the same provider during an outage?"
+    a: "Retry-with-backoff assumes the failure is transient and isolated to your request. During a capacity event or regional outage, the failure is correlated across every request hitting that provider, so retries just queue behind the same saturated endpoint and add latency before failing anyway. A cross-provider fallback routes the second attempt to a different vendor's infrastructure, which has no shared fate with the one that is down."
+  - q: "How much does it cost to add a cross-provider fallback?"
+    a: "Through an OpenAI-compatible gateway, the marginal cost is near zero: you change a model identifier in a fallback list rather than rewriting client code. The only standing cost is the routing overhead, roughly 20 to 80 milliseconds of p95 latency per request, plus the per-token price of whatever traffic actually fails over. Most months that fallback traffic is a rounding error because outages are rare."
+  - q: "Do the fallback models produce different outputs?"
+    a: "Yes, switching from claude-opus-4.7 to gpt-5.4 mid-incident will change the wording, formatting, and occasionally the structure of responses. For most production traffic this is acceptable because a slightly different valid answer beats an HTTP 503. If your output must be byte-stable, pin the fallback to a sibling model from the same family or gate failover behind a schema validator."
+  - q: "When is a single provider genuinely fine?"
+    a: "Single-provider is fine for low-stakes internal tooling where a failed request can be retried by a human, for batch and async jobs that already tolerate a 24-hour window, and for workloads already covered by a paid enterprise SLA with financial remedies. In those cases the engineering and reasoning cost of dual-provider routing outweighs the downtime it prevents."
+  - q: "How do I estimate the cost of a provider outage?"
+    a: "Multiply your peak requests per minute by the outage duration in minutes to get lost requests, then assign a dollar value per lost request based on what that request would have earned or saved. Add on-call labor (engineer hours times loaded hourly rate) and any churn from users who hit the failure. Compare that figure against the routing overhead and occasional fallback token cost of a gateway."
+  - q: "Does failover change my per-token bill significantly?"
+    a: "Only for the fraction of traffic that actually fails over, which in a typical month is well under one percent. If your primary is claude-opus-4.7 at a discounted $4.25 per million input tokens and your fallback is gpt-5.4 at $2.00, fallback traffic is often cheaper, not more expensive. The bill moves by the cost of the diverted tokens, not by the cost of your whole workload."
+---
+
+In June 2025, a single frontier-model API region returned HTTP 529s for 47 minutes during business hours. One team running a customer-facing assistant on that endpoint logged 18,400 failed requests, a spike in support tickets, and two engineers paged out of a sprint review to stare at a status page they did not control. Their post-incident estimate put the direct cost at roughly $61,000. The fix they shipped the following week — a cross-provider fallback through an OpenAI-compatible gateway — took about a day of engineering and added 40 milliseconds of p95 latency. This article works out when that trade is obviously worth it, when it is not, and how to put real numbers on both sides.
+
+## The failure modes you are actually buying insurance against
+
+"The provider went down" is rarely the literal failure. The events that take a workload offline cluster into a few recognizable shapes, and they behave very differently from the random one-off timeout your retry logic was designed for.
+
+| Failure mode | What you see | Single-provider outcome | Cross-provider outcome |
+|---|---|---|---|
+| Regional capacity event | HTTP 529 / 503 on most requests | Retries queue behind the same saturated endpoint; failures persist for the full event | Second attempt routes to an unaffected vendor; most requests complete |
+| Per-key rate limit (RPM/TPM) | HTTP 429 with `retry-after` | Whole workload throttled until the window resets | Overflow spills to a second provider's separate quota |
+| Model deprecation / version pull | 404 or silent quality shift | Hard outage until you redeploy a new model id | Fallback id absorbs traffic while you migrate deliberately |
+| Elevated latency (no errors) | p95 climbs 3–10x, no 5xx | Requests "succeed" but time out downstream | Latency-based routing shifts load before users notice |
+| Bad deploy on provider side | Intermittent malformed output | Silent corruption until someone notices | Validator-gated failover catches and reroutes |
+
+The pattern that matters: in the first two rows, the failures are **correlated**. Every request you send hits the same overloaded infrastructure at the same time. This is exactly the case where retry-with-backoff is weakest.
+
+## Why same-provider retry loses during a capacity event
+
+Retry-with-backoff is built on an assumption: failures are independent, so the second attempt has a fresh, near-baseline chance of succeeding. That holds for a dropped TCP connection. It collapses during a capacity event, because the thing you are retrying against is the thing that is down.
+
+Walk the arithmetic. Suppose a healthy endpoint fails 0.5% of requests, and your client retries three times. Independent failures give you a compound failure probability of 0.005³ ≈ 1 in 8 million — effectively never. Now the provider hits a capacity wall and the per-request failure rate jumps to 80%. Three independent retries would still give 0.8³ = 51% success. But the failures are not independent: they share a saturated queue, so the conditional failure rate on retry stays near 80%, and each retry you fire adds backoff delay *and* more load to the endpoint you are trying to drain. You have built a small DDoS against your own dependency.
+
+A cross-provider fallback breaks the correlation. The retry lands on a different vendor's silicon, schedulers, and quota. If claude-opus-4.7 is returning 529s, a fallback to gpt-5.4 or gemini-3.1-pro has no shared fate with the Anthropic capacity pool. You are not buying a *faster* retry; you are buying an **uncorrelated** one, which is the only kind that helps when the whole endpoint is the problem.
+
+## The worked example: putting a dollar figure on downtime
+
+The decision to add fallback is an expected-value calculation. You need three numbers: how often a disruptive event happens, how long it lasts, and what a lost request costs you.
+
+Take a mid-sized assistant: 1,200 requests per minute at peak, each request worth $0.40 in expected revenue or avoided support cost (a deliberately modest figure). Assume two disruptive events per year averaging 30 minutes each that fall inside peak hours.
+
+**Per-event direct loss:**
+- Lost requests: 1,200 × 30 = 36,000
+- Revenue/value at risk: 36,000 × $0.40 = **$14,400**
+- On-call: 2 engineers × 2 hours × $120/hr loaded = **$480**
+- Conservative churn (0.5% of affected users don't return, LTV $50): assume 1,800 unique users hit it, 9 churn × $50 = **$450**
+
+That is roughly **$15,330 per event**, or about **$30,660 per year** across two events. The number is dominated by lost requests, not labor — which is the usual shape and the reason "we'll just page someone" is not a strategy.
+
+Now the cost of the fallback. The standing cost is the gateway's routing overhead (20–80ms p95) plus the per-token price of traffic that *actually* fails over. Across a year, fallback traffic for two 30-minute events is well under 0.1% of total volume. On the per-token side, failover is frequently *cheaper* than the primary, not pricier:
+
+| Primary (discounted) | Input $/1M | Output $/1M | Fallback (discounted) | Input $/1M | Output $/1M |
+|---|---|---|---|---|---|
+| claude-opus-4.7 | $4.25 | $21.25 | gpt-5.4 | $2.00 | $12.00 |
+| claude-sonnet-4.6 | $2.55 | $12.75 | gemini-3.1-pro | $1.40 | $8.40 |
+| gpt-5.4 | $2.00 | $12.00 | grok-4.1 | $1.05 | $2.10 |
+| gemini-3.1-pro | $1.40 | $8.40 | claude-haiku-4.5 | $0.21 | $1.06 |
+
+For the 36,000 diverted requests per event, even at a generous 2,000 input + 500 output tokens each, the fallback token cost on gpt-5.4 is roughly 72M input + 18M output tokens → about $144 + $216 = **$360 per event**. Set against $15,330 of avoided loss, the fallback pays for itself more than 40 times over on the very first incident, and the routing overhead is the only thing you pay in the 364 days nothing breaks.
+
+## What "near-zero marginal cost" actually means
+
+The reason the fallback side of the ledger is so cheap is the gateway. When every model speaks the same OpenAI-compatible request and response shape, failover is a configuration concern, not a code-rewrite. You declare an ordered list — primary, then one or two fallbacks — and the client never learns there was a switch.
+
+```python
+# Same SDK, same request shape; only the model list changes.
+client = OpenAI(base_url="https://api.aggregator/v1", api_key=KEY)
+
+resp = client.chat.completions.create(
+    model="claude-opus-4.7",
+    extra_body={"fallbacks": ["gpt-5.4", "gemini-3.1-pro"]},
+    messages=msgs,
+)
+```
+
+No second SDK, no per-provider auth juggling, no bespoke error-translation layer mapping Anthropic's 529 to OpenAI's 503. That homogenization is the entire reason the marginal engineering cost rounds to a day rather than a quarter. An aggregator that already fronts claude, gpt, gemini, grok, deepseek, and mistral behind one schema is doing the boring integration work you would otherwise repeat per vendor — and on TokenMart that same routing carries the discounted token prices above, so the fallback path is not a cost penalty.
+
+## When you should NOT do this
+
+Redundancy is not free of *all* cost — it costs reasoning, output variance, and a config surface that can itself break. There are real cases where a single provider is the correct, disciplined choice.
+
+- **Low-stakes internal tooling.** A nightly script that summarizes commits, or an internal search box used by 12 people, can fail and be re-run by a human. The expected loss per outage is a few minutes of annoyance, not $15,000. Adding cross-provider routing here is over-engineering.
+- **Workloads already on an enterprise SLA with remedies.** If you have a contract that guarantees uptime and pays service credits when it is breached, you have already bought insurance. A second provider is belt-and-suspenders; spend the effort elsewhere unless the SLA's remedy is smaller than your actual loss.
+- **Batch and async jobs.** Anything you submit to a 50%-off batch lane with a 24-hour turnaround window is, by definition, tolerant of delay. A provider hiccup inside that window is absorbed by the window itself. Failover buys you nothing.
+- **Strict output-stability requirements.** If downstream code parses model output byte-for-byte, silently swapping claude-opus-4.7 for gpt-5.4 mid-incident can produce a *worse* failure than a clean 503. Either pin the fallback to a same-family sibling (claude-sonnet-4.6 → claude-haiku-4.5), or gate failover behind a schema validator so a malformed fallback response is rejected rather than served.
+- **You haven't measured your own numbers.** If your requests-per-minute, value-per-request, and historical incident frequency are all guesses, build the fallback but do not claim a dollar figure for it. The math above only works when the inputs are real.
+
+A useful rule of thumb: if a 30-minute outage during peak would cost you less than a day of engineering time, single-provider is the rational default. Above that threshold, the fallback is the cheapest insurance you will ever buy.
+
+## The takeaway
+
+Cross-provider redundancy is not about distrusting any one vendor. It is about refusing to share fate with infrastructure you cannot see or control. The thing that makes it affordable is that an OpenAI-compatible gateway turns "integrate a second provider" into "add a model to a list" — collapsing what used to be a multi-week project into a config change with 20–80ms of overhead. Price the downtime you are exposed to with your own three numbers, compare it to that overhead, and the decision usually makes itself.
+
+If you want to wire a fallback list across claude, gpt, gemini, and grok behind one endpoint and one bill, [Sign in to TokenMart](https://console.service-inference.ai/signin) and point your existing client at it.

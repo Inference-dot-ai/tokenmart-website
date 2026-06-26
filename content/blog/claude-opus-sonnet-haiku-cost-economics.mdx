@@ -1,0 +1,119 @@
+---
+title: "Claude Opus vs Sonnet vs Haiku: Tier-by-Tier Cost Economics"
+description: "claude-opus-4.7 output costs 20x claude-haiku-4.5. Here's the per-route math for when that 20x premium pays for itself and when it is pure waste."
+publishedAt: 2026-06-24
+updatedAt: 2026-06-24
+author: "client"
+tags: ["pricing", "model-comparison", "costs"]
+coverImage: "/blog/covers/chart-laptop.jpg"
+ogImage: "/blog/og/chart-laptop.jpg"
+faq:
+  - q: "How much more expensive is claude-opus-4.7 than claude-haiku-4.5?"
+    a: "On list pricing, claude-opus-4.7 costs $5.00 input / $25.00 output per 1M tokens, while claude-haiku-4.5 costs $0.25 / $1.25. That is exactly 20x on both input and output. A workload that runs fine on haiku and gets switched to opus pays 20x for the same token count, so the quality gain has to be large and measurable to justify it."
+  - q: "When is claude-opus-4.7 worth the price over claude-sonnet-4.6?"
+    a: "claude-opus-4.7 ($5.00 / $25.00) is roughly 1.67x more expensive than claude-sonnet-4.6 ($3.00 / $15.00) per token. It earns that premium on routes where a single wrong answer is expensive: multi-step agentic planning, hard refactors across large codebases, and ambiguous reasoning where sonnet's error rate forces human rework. If your eval shows sonnet matching opus accuracy on a route, the premium is waste."
+  - q: "Why does the minimum cacheable prefix differ across Claude tiers?"
+    a: "The minimum cacheable prefix is 4,096 tokens for claude-opus-4.7, 2,048 for claude-sonnet-4.6, and 1,024 for claude-haiku-4.5. Larger models require a longer prefix before caching engages, so a short system prompt that caches on haiku may be below the threshold on opus and get billed at full input price every call."
+  - q: "How much does prompt caching save on Claude models?"
+    a: "A cache read is billed at 0.1x the input price, a 90% discount on cached tokens. A cache write costs 1.25x input for a 5-minute TTL or 2x input for a 1-hour TTL on Anthropic models. Caching pays off when a stable prefix is reused enough times that the cumulative 90% read savings exceed the one-time write premium."
+  - q: "When is no Claude tier the right choice?"
+    a: "For high-volume, low-stakes classification and extraction, gemini-2.5-flash-lite ($0.10 / $0.40) or deepseek-v3.2 ($0.14 / $0.28) often match claude-haiku-4.5 quality at a fraction of the output cost. When throughput and cost dominate and the task is simple, a cheaper non-Claude model frequently wins on the same accuracy."
+  - q: "Does batch processing change which Claude tier to pick?"
+    a: "Batch (async) is 50% off both input and output with a 24-hour turnaround window. It does not change the relative ordering of the tiers, but it halves the absolute cost of whichever tier you choose. For overnight bulk jobs, running opus in batch can cost less than running sonnet synchronously, which can shift the quality-vs-cost decision."
+---
+
+A single API route that swaps `claude-haiku-4.5` for `claude-opus-4.7` on the same token volume gets 20x more expensive on output, instantly, with no change in latency budget and no warning. That is the exact ratio between the two: $1.25 versus $25.00 per 1M output tokens on list pricing. Most teams pick a Claude tier once, globally, and never revisit it per route, which means they are either overpaying on the easy 80% of traffic or under-serving the hard 20%. This article gives you the per-route decision: where opus-grade reasoning is worth the 20x, where it is pure waste, and how caching shifts the breakeven differently for each tier.
+
+## The three tiers, priced side by side
+
+The Claude lineup is not three points on a smooth quality curve at proportional prices. The jumps are uneven, and the caching mechanics differ by tier, which is the part most cost models miss.
+
+| Tier | List (in / out) | Discounted (in / out) | Best-fit workload | Cache min-prefix |
+|---|---|---|---|---|
+| `claude-opus-4.7` | $5.00 / $25.00 | $4.25 / $21.25 | Multi-step agents, hard refactors, ambiguous reasoning | 4,096 tokens |
+| `claude-sonnet-4.6` | $3.00 / $15.00 | $2.55 / $12.75 | General coding, drafting, RAG synthesis, mid-complexity tools | 2,048 tokens |
+| `claude-haiku-4.5` | $0.25 / $1.25 | $0.21 / $1.06 | Classification, extraction, routing, short summaries | 1,024 tokens |
+
+Read the output column first, because output dominates most bills. `claude-opus-4.7` output is 1.67x `claude-sonnet-4.6` and 20x `claude-haiku-4.5`. `claude-sonnet-4.6` is 12x `claude-haiku-4.5`. The discounted column reflects a structural pass-through (−15% across the Claude tiers here), but the *ratios between tiers stay almost identical* — discounts do not change which tier is right for a route, only the absolute invoice.
+
+The practical consequence: the decision that matters is the tier, not the discount. A −15% reduction on the wrong tier still loses to the right tier at list price on most workloads.
+
+## Where opus-4.7 earns its 20x
+
+The premium is justified when one wrong answer costs more than the token delta. Concretely, that happens on three route types.
+
+**Agentic loops that compound errors.** A 12-step tool-using agent where step 4's mistake corrupts steps 5–12 is the canonical opus case. If `claude-haiku-4.5` gets step 4 wrong 15% of the time and `claude-opus-4.7` gets it wrong 2%, the cheaper model's "savings" evaporate into retries, wasted downstream tokens, and human cleanup. Across a long trajectory, a 13-point accuracy gap per step is the difference between a loop that finishes and one that spins.
+
+**Hard refactors and cross-file reasoning.** Editing one function is a `claude-sonnet-4.6` task. Reasoning over a 40-file change where an incorrect edit breaks a build — and a broken build costs an engineer 30 minutes — is where opus-4.7 pays. At $25.00 / 1M output, a 5,000-token corrected diff costs $0.125. Thirty minutes of engineer time costs vastly more, so even a modest accuracy edge clears the bar.
+
+**Genuinely ambiguous reasoning.** Legal-style analysis, architectural trade-off calls, and root-cause debugging where the answer is not retrievable but must be reasoned out. Here the value is in *not* producing a confident wrong answer that someone acts on.
+
+## Where opus-4.7 is pure waste
+
+The same $25.00 output price is indefensible on routes where a smaller tier already hits the accuracy ceiling. If your eval shows `claude-sonnet-4.6` or `claude-haiku-4.5` already at 99% on a task, opus cannot beat 100% — you are paying 1.67x or 20x for headroom that does not exist.
+
+Concrete waste cases:
+
+- **Classification into a fixed label set.** Routing a support ticket into one of eight queues. `claude-haiku-4.5` saturates this; opus burns 20x for the same label.
+- **Structured extraction with a schema.** Pulling five fields from an invoice. The schema constrains the output space so tightly that the marginal reasoning of opus is unused.
+- **Boilerplate generation.** Formulaic emails, commit messages, changelog lines.
+- **Deterministic transforms.** Reformatting, simple summarization of short text, language detection.
+
+The cost of this mistake at volume is brutal. Consider 50M output tokens/month on a classification route:
+
+| Tier | Output cost (50M, discounted) | vs. haiku |
+|---|---|---|
+| `claude-opus-4.7` | $1,062.50 | 20.0x |
+| `claude-sonnet-4.6` | $637.50 | 12.0x |
+| `claude-haiku-4.5` | $53.13 | 1.0x |
+
+Same labels, same accuracy on a saturated task — and a $1,009/month bill for choosing the wrong tier once.
+
+## How caching changes the math per tier
+
+Caching is where the tiers diverge in a way flat cost models miss. A cache read costs 0.1x input (90% off cached tokens). An Anthropic cache write costs 1.25x input for a 5-minute TTL or 2x input for a 1-hour TTL. The catch: the **minimum cacheable prefix differs** — 4,096 tokens for opus-4.7, 2,048 for sonnet-4.6, 1,024 for haiku-4.5.
+
+This matters because a system prompt that caches on one tier may be invisible on another. A 1,500-token system prompt caches on `claude-haiku-4.5` (above its 1,024 floor) and on `claude-sonnet-4.6` (below 2,048 — *no*, it does not), and never on `claude-opus-4.7` (4,096 floor). So the same prompt gets the 90% read discount on haiku, full price on sonnet, and full price on opus. Caching tends to help the cheap tier *more readily* and the expensive tier *only at scale*.
+
+Here is the breakeven logic on a reused prefix. Take an 8,000-token system prompt on `claude-opus-4.7` (input $4.25/1M discounted), reused 100 times in an hour:
+
+| Strategy | Per-call input cost | 100 calls |
+|---|---|---|
+| No cache | 8,000 × $4.25/1M = $0.0340 | $3.400 |
+| Cache (1-hr write 2x + 99 reads 0.1x) | write $0.0680 + reads 99 × $0.0034 | $0.4046 |
+
+Caching cuts the prefix cost from $3.40 to about $0.40 — an 88% reduction — but only because the 8,000-token prefix clears opus-4.7's 4,096 floor and is reused enough to amortize the 2x write. Reuse it only twice and the write premium barely pays back. On haiku, with its 1,024 floor, far shorter prefixes qualify, so caching kicks in on routes where opus would never cache at all.
+
+The rule: caching favors stable, long, frequently-reused prefixes. The longer your prefix and the higher your reuse, the more the expensive tiers benefit — but the low floor on haiku means it captures caching wins on a much broader set of routes.
+
+## When none of the three Claude tiers is the right answer
+
+The honest limit of intra-Claude optimization: sometimes the cheapest *correct* model is not a Claude model at all. If a route is high-volume and low-stakes, and an eval shows a non-Claude model matching `claude-haiku-4.5` on accuracy, the economics favor leaving the family.
+
+| Model | List (in / out) | vs. haiku output | Fit |
+|---|---|---|---|
+| `claude-haiku-4.5` | $0.25 / $1.25 | 1.0x | Cheapest Claude tier |
+| `deepseek-v3.2` | $0.14 / $0.28 | 0.22x | Bulk reasoning, cost-dominated |
+| `gemini-2.5-flash-lite` | $0.10 / $0.40 | 0.32x | High-throughput classification/extraction |
+| `gemini-3-flash` | $0.50 / $3.00 | 2.4x | Long-context summarization at mid cost |
+
+For a 50M-output-token extraction job, `gemini-2.5-flash-lite` at $0.40/1M output costs $20.00 against haiku's $53.13 — a 62% cut — if your eval confirms equal accuracy. `deepseek-v3.2` at $0.28/1M output costs $14.00 on the same job. The discipline is the same one that governs the opus-vs-haiku call: pick the cheapest tier that clears your accuracy bar on *that route*, and let the eval, not brand loyalty, decide.
+
+When you should *not* leave Claude: routes that need Claude's specific tool-use reliability, its caching ergonomics, or output-format consistency your downstream parser depends on. Switching providers to save $6 on a route that then needs a parser rewrite is a false economy. The aggregator routing layer also adds roughly 20–80ms p95 per request, so latency-critical paths should weigh that overhead too.
+
+## A practical routing policy
+
+Stop choosing one tier globally. Tag each route with a stakes level and bind a tier:
+
+- **Stakes high, errors compound** → `claude-opus-4.7`. Reserve for agent planning, hard refactors, ambiguous reasoning.
+- **Stakes medium, general work** → `claude-sonnet-4.6`. The default for most coding and synthesis.
+- **Stakes low, task saturated** → `claude-haiku-4.5`, or a cheaper non-Claude model if an eval ties.
+- **Bulk and overnight** → run the chosen tier in batch (async) for 50% off both input and output, 24h window. Batched opus can undercut synchronous sonnet.
+
+Settling these route bindings once, with an eval per route, is what turns the 20x output spread from a liability into a lever. The structural discounts available through an aggregator like TokenMart compound on top of correct tier selection, but they never substitute for it — a −15% reduction on an over-provisioned route still loses to right-sizing.
+
+[Sign in to TokenMart](https://console.service-inference.ai/signin)
+
+## The one-line takeaway
+
+The Claude tier decision is not "which model is best" — it is "which tier clears the accuracy bar for this route at the lowest cost." Opus-4.7 earns its 20x premium over haiku-4.5 only where a wrong answer is expensive or errors compound; everywhere else it is a $1,000/month rounding error in the wrong direction. Bind tiers per route, cache long stable prefixes where the per-tier floor allows, and let evals — not defaults — own the call.

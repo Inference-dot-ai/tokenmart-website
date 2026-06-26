@@ -1,0 +1,96 @@
+---
+title: "Prepaid AI Credits as a Working-Capital Trade"
+description: "A prepaid LLM-credit bonus is an early-payment discount. Here's how to compute its effective annualized yield, tier by tier, and when prepaying is a bad trade."
+publishedAt: 2026-06-24
+updatedAt: 2026-06-24
+author: "client"
+tags: ["pricing", "costs", "playbook"]
+coverImage: "/blog/covers/chart-monitor.jpg"
+ogImage: "/blog/og/chart-monitor.jpg"
+faq:
+  - q: "How do you calculate the effective annualized return on a prepaid AI credit bonus?"
+    a: "Use the formula (1 + bonus)^(12 / months_to_burn) − 1. The bonus is the extra credit as a fraction of the amount paid, and months_to_burn is how long it takes to consume the balance. For example, a 6% bonus consumed over 3 months annualizes to about 26.2%, while the same 6% bonus stretched over 12 months annualizes to just 6.0%."
+  - q: "What is the prepaid credit bonus schedule?"
+    a: "The tiers are: $99 returns $118.80 (+20%), $499 returns $518.96 (+4%), $999 returns $1,058.94 (+6%), $4,999 returns $5,398.92 (+8%), and $9,999 returns $10,998.90 (+10%). The $99 tier has the highest headline percentage but the smallest absolute bonus (about $20); from $499 upward the bonus percentage rises with the top-up size."
+  - q: "Is prepaying for AI credits better than keeping cash in a money-market fund?"
+    a: "It depends on your burn rate. At a 4% money-market hurdle, the $999 tier and above clear comfortably when the credit is consumed within six months. But the $499 tier burned over a full year annualizes to only 4.0%, which merely matches idle-cash yield while sacrificing liquidity, making it a wash rather than a win."
+  - q: "When is prepaying for AI API credits a bad trade?"
+    a: "Avoid prepaying when usage is uncertain (you can't forecast volume within roughly ±30%), when cash is scarce or runway is under about nine months, or when the credit might expire before you consume it. Unused credit earns 0%, and locked-up cash has an opportunity cost that a 10% bonus cannot offset if the alternative use is making payroll."
+  - q: "Does the prepaid bonus stack with per-token discounts?"
+    a: "Yes. The prepaid bonus is independent of per-token pricing, so it applies on top of an already-discounted rate card. For example, an aggregated rate of $1.40/$8.40 per 1M tokens on gemini-3.1-pro (a 30% structural cut from $2.00/$12.00 list) still earns the full prepaid bonus on top, compounding the saving."
+  - q: "What size prepayment should I choose?"
+    a: "Pick the largest tier your near-term burn can fully absorb before the credit expires. A team spending $3,000/month burns the $4,999 tier's $399.92 free credit in under two months, annualizing past 60%, whereas splitting the same annual spend into $999 chunks yields only 6% per chunk. Always run at least one month of pay-as-you-go first to confirm your burn forecast before committing to a large prepayment."
+---
+
+A $99 prepayment that converts to $118.80 of usable API credit is not a coupon. It is a loan you make to your vendor, and the $19.80 of extra credit is the interest they pay you for it. Framed that way, the right question is not "is 20% a good discount?" but "what annualized return am I earning on cash I would have spent anyway, and how does that compare to leaving the cash in a money-market fund at 4%?" This article computes the effective yield of prepaid LLM API credits, tier by tier, and tells you exactly when prepaying is a worse trade than holding cash.
+
+## The mechanics: a prepaid bonus is an early-payment discount
+
+When a vendor offers you extra credit for paying up front, they are doing what suppliers have done for a century with terms like "2/10 net 30" — a 2% discount if you pay within 10 days instead of 30. The supplier trades a slice of margin for cash today. You, the buyer, decide whether the discount beats your cost of capital.
+
+The LLM-credit version is cleaner because the discount is explicit and the consumption is metered. You wire money, you receive more credit than you wired, and you draw it down as you call the API. The "interest" is the bonus credit, and the "term" is however long it takes you to burn the balance.
+
+Here is the canonical bonus schedule:
+
+| Top-up | Credit received | Bonus | Free credit |
+|--------|----------------|-------|-------------|
+| $99 | $118.80 | +20.0% | $19.80 |
+| $499 | $518.96 | +4.0% | $19.96 |
+| $999 | $1,058.94 | +6.0% | $59.94 |
+| $4,999 | $5,398.92 | +8.0% | $399.92 |
+| $9,999 | $10,998.90 | +10.0% | $999.90 |
+
+Two things jump out. First, the schedule is non-monotonic in percentage: the $99 tier pays the highest headline bonus (20%) but the smallest absolute dollars ($19.80). The $99 tier is a starter incentive — a fixed ~$20 sweetener to get a card on file — not a treasury instrument. Second, from $499 upward the bonus climbs with size (4% → 6% → 8% → 10%), which is the part a finance team should actually model.
+
+## Converting a bonus into an annualized return
+
+A bonus percentage is not a yield until you attach a time horizon. Getting 6% back on money you burn in one month is wildly different from getting 6% on money you burn over a year.
+
+The clean way to express it: a bonus of `b` realized over a burn period of `N` months annualizes to `(1 + b)^(12/N) − 1`. This treats the bonus as a return you capture once you've consumed the credit, then compounds it to a yearly figure so you can compare it against any other annual rate — a savings account, a credit line, your weighted-average cost of capital.
+
+The horizon is everything. If you burn the credit in one month, you've earned the full bonus in 1/12 of a year, and the annualized number is enormous. If the credit sits for a year before you finish it, the annualized return equals the raw bonus.
+
+| Top-up | Bonus | Burn in 1 mo | Burn in 3 mo | Burn in 6 mo | Burn in 12 mo |
+|--------|-------|-------------|-------------|-------------|--------------|
+| $499 | +4.0% | 60.1% | 17.0% | 8.2% | 4.0% |
+| $999 | +6.0% | 101.2% | 26.2% | 12.4% | 6.0% |
+| $4,999 | +8.0% | 151.8% | 36.0% | 16.6% | 8.0% |
+| $9,999 | +10.0% | 213.8% | 46.4% | 21.0% | 10.0% |
+
+Read the $9,999 row. If your team genuinely consumes $10,998.90 of inference inside three months, the prepayment earned an effective 46.4% annualized — roughly 11x a 4% money-market fund. Even stretched over a full year, the floor is 10%, still well above any cash-equivalent yield available in 2026. The $499 tier at a 12-month burn earns 4.0%, which is a wash against a savings account: at that horizon you are not being paid to prepay, you are merely matching your idle-cash yield while giving up liquidity.
+
+That last point is the crux. The return is real only if the cash had a low opportunity cost and the burn is fast and certain. Both conditions matter.
+
+## The opportunity-cost hurdle
+
+The annualized bonus is the gross return. The decision rule is whether it clears your hurdle rate — what the same dollars would earn or save elsewhere.
+
+For most software companies the relevant hurdle is one of three numbers: the ~4% you'd earn parking cash in a money-market fund, the ~8–12% APR on a revolving credit line you'd otherwise draw against, or your internal cost of capital, which for a venture-funded startup burning toward a milestone can be effectively infinite (every dollar is scarce and already earmarked).
+
+Against a 4% money-market hurdle, every tier from $999 up clears comfortably at a 6-month-or-faster burn. Against a 10% credit-line hurdle, you need either the larger tiers or a burn inside about six months. Against an infinite hurdle — a startup with eight months of runway — prepaying is a mistake regardless of the bonus, because the limiting resource is survival time, not inference cost. The bonus cannot be spent on payroll.
+
+A worked example. A team spending a steady $3,000/month on `gemini-3.1-pro` and `claude-sonnet-4.6` is choosing between five $999 top-ups spread across the year versus one $4,999 top-up plus a $99 starter. The $4,999 tier returns $399.92 of free credit; at $3,000/month that balance burns in roughly 1.8 months, annualizing past 60%. The same $4,999 spent in $999 chunks returns 6% per chunk — $59.94 each, $299.70 total over the year — meaningfully less free credit for the same annual spend. Bundling the prepayment into the largest tier your near-term burn can absorb is where the yield lives.
+
+## Where the structural discount and the bonus stack
+
+The prepaid bonus is independent of per-token pricing, so it stacks on top of an already-discounted rate card. On the aggregated tier, `grok-4.1` runs $1.05/$2.10 per 1M tokens versus a $3.00/$6.00 list — a 65% structural cut — and `gemini-3.1-pro` runs $1.40/$8.40 versus $2.00/$12.00, a 30% cut. Prepaying for that usage adds the bonus on top of the discount, so the effective saving compounds: you pay less per token and you get extra credit for prepaying the tokens.
+
+For a price-sensitive workload, the right order of operations is to first pick the cheapest model that meets quality, then layer caching (cache reads at 0.1x input) and batch (50% off both directions, 24h window), and only then size the prepayment around the resulting monthly burn. The bonus is the last optimization, not the first — it cannot rescue a workload running an overpriced model at full rate.
+
+## When prepaying is the wrong trade
+
+Credibility requires naming the cases where the math above turns against you. Prepay only when usage is certain, cash is non-scarce, and the burn is fast. Fail any of those and hold your cash.
+
+- **Uncertain or unproven usage.** If you cannot forecast next quarter's token volume within roughly ±30%, you are buying credit you might not consume. Unused credit earns 0%, and a 10% bonus on credit you only half-use is a 5% effective bonus at best — likely below your cash hurdle. Run at least one full month on pay-as-you-go before sizing any large prepayment.
+- **Expiry risk.** A bonus is only a yield if the credit doesn't expire before you spend it. Confirm the expiry window in writing. If credit expires in 12 months and your realistic burn is 18, you are modeling a return on dollars you will forfeit. Size the prepayment to the credit you'll consume well inside the expiry window, not the credit you hope to consume.
+- **Tight cash or short runway.** If you have under ~9 months of runway, or a credit line you're actively drawing on, the opportunity cost of locked-up cash exceeds any bonus. A 10% annualized return is irrelevant when the alternative use of that cash is making payroll. Liquidity has option value that a bonus does not compensate.
+- **Imminent price cuts or model churn.** Frontier prices have fallen repeatedly. If you expect a 20%+ price drop within your burn window, prepaying locks you out of consuming that balance at the lower future rate — though since credit is denominated in dollars, not tokens, this risk is muted: a balance still buys more tokens after a price cut. The sharper risk is committing to a vendor or model mix you may abandon.
+- **Vendor concentration.** Prepaid credit is an unsecured receivable. You are an unsecured creditor of the vendor until you've drawn it down. Size your prepayment so that a worst-case total loss of the balance is an annoyance, not a board-level event.
+
+## The decision rule in one line
+
+Compute `(1 + bonus)^(12 / months_to_burn) − 1`. If that number beats your cost of capital and you are confident you'll consume the credit before it expires, prepay the largest tier your near-term burn can absorb. Otherwise, keep the cash and top up pay-as-you-go. The bonus is a working-capital trade, and like any such trade it rewards certainty and punishes optimism.
+
+If you've already run a month of pay-as-you-go and have a burn forecast you trust, you can size and place a top-up in a couple of minutes. [Sign in to TokenMart](https://console.service-inference.ai/signin) to model the tier against your actual monthly spend.
+
+A prepaid bonus will not change which model you should run or how you should cache and batch it — those decisions move far more money than the top-up bonus ever will. Treat it as the last few points of yield on cash you were going to deploy anyway, claimed only when the burn is certain and the cash is idle.
