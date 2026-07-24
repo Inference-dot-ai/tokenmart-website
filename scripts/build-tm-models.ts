@@ -5,7 +5,7 @@
 // first-paint + offline fallback).
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { groupEndpointModels, type EndpointData } from "../lib/tm-models";
+import { endpointTier, groupEndpointModels, liveMaxDiscountPct } from "../lib/tm-models";
 import { TM_MODELS } from "../components/tm/families";
 
 const ENDPOINT =
@@ -17,13 +17,25 @@ async function main() {
   try {
     const res = await fetch(ENDPOINT, { headers: { accept: "application/json" } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = (await res.json()) as EndpointData;
+    const data: unknown = await res.json();
     const grouped = groupEndpointModels(data);
     if (grouped.length > 0) {
       models = grouped;
-      console.log(`[build-tm-models] grouped ${grouped.length} families from live endpoint (tier=${data.tier ?? "?"})`);
+      console.log(`[build-tm-models] grouped ${grouped.length} families from live endpoint (tier=${endpointTier(data) ?? "?"})`);
     } else {
       console.warn("[build-tm-models] grouping produced no families — using static fallback");
+    }
+
+    // The hero / ticker "SAVE UP TO X%" claim is derived from the live tier so
+    // the marketing number can never overstate the public catalog. Only
+    // written on a successful fetch — otherwise the checked-in value stands.
+    const maxPct = liveMaxDiscountPct(data);
+    if (maxPct > 0) {
+      writeFileSync(
+        join(process.cwd(), "lib", "live-stats.json"),
+        JSON.stringify({ maxDiscountPct: maxPct }, null, 2) + "\n"
+      );
+      console.log(`[build-tm-models] live max discount ${maxPct}% -> lib/live-stats.json`);
     }
   } catch (err) {
     console.warn("[build-tm-models] live fetch failed — using static fallback:", err);

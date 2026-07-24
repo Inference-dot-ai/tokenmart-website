@@ -4,6 +4,7 @@
 import { useEffect, useRef } from "react";
 import { HERO_STACK } from "./catalog";
 import { trackCtaClick, useGetuHref } from "@/lib/attribution";
+import liveStats from "@/lib/live-stats.json";
 
 const MODELS_HREF = "https://console.service-inference.ai/models";
 
@@ -79,7 +80,7 @@ export function Hero() {
           <h1 className="tm-save">
             <span className="tm-save-up">SAVE UP TO</span>
             <span className="tm-save-big">
-              75<span className="tm-pctsign">%</span>
+              {liveStats.maxDiscountPct}<span className="tm-pctsign">%</span>
             </span>
             <span className="tm-save-on">ON AI TOKENS</span>
           </h1>

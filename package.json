@@ -7,6 +7,7 @@
     "prebuild": "tsx scripts/build-models-json.ts && tsx scripts/build-tm-models.ts",
     "build": "next build",
     "start": "next start",
+    "verify:models": "tsx scripts/verify-tm-models.ts",
     "lint": "eslint"
   },
   "dependencies": {
@@ -26,7 +27,8 @@
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
-    "three": "^0.183.2"
+    "three": "^0.183.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
