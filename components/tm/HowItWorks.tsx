@@ -3,6 +3,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { Burst } from "./primitives";
+import liveStats from "@/lib/live-stats.json";
 import { TM_V2_MODELS } from "./catalog";
 
 function Step2Network() {
@@ -137,24 +138,29 @@ export function HowItWorks() {
             </div>
           </div>
 
-          {/* STEP 4 — Save Up To 75% */}
+          {/* STEP 4 — the live "up to X%" saving */}
           <div className="tm-stage">
             <div className="tm-stage-visual">
               <span className="tm-stage-num">04</span>
-              <div className="tm-v4">
-                <Burst pct={75} tone="pink" size={56} style={{ position: "absolute", top: 6, right: 10 }} />
+              <div
+                className="tm-v4"
+                style={{ ["--tm-whole-h" as string]: `${Math.round((86 * (100 - liveStats.maxDiscountPct)) / 100)}px` }}
+              >
+                <Burst pct={liveStats.maxDiscountPct} tone="pink" size={56} style={{ position: "absolute", top: 6, right: 10 }} />
                 <div className="tm-v4-bar">
                   <span className="tm-v4-col retail" />
                   <span className="tm-v4-price retail">$10,000</span>
                 </div>
                 <div className="tm-v4-bar">
                   <span className="tm-v4-col whole" />
-                  <span className="tm-v4-price whole">$3,500</span>
+                  <span className="tm-v4-price whole">
+                    ${((10000 * (100 - liveStats.maxDiscountPct)) / 100).toLocaleString("en-US")}
+                  </span>
                 </div>
               </div>
             </div>
             <div className="tm-stage-txt">
-              <h3>Save Up To 75%</h3>
+              <h3>Save Up To {liveStats.maxDiscountPct}%</h3>
               <p>Wholesale rates kick in automatically — bulk volume, bulk discount.</p>
             </div>
           </div>

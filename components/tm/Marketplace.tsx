@@ -12,12 +12,14 @@ function ModelCard({ m, apiHref }: { m: TMModel; apiHref: string }) {
   const lg = m.size === "lg";
   return (
     <article className={`tm-card sz-${m.size}`} style={{ ["--tint" as string]: m.tint }}>
-      <Burst
-        pct={badge}
-        tone="pink"
-        size={lg ? 128 : 110}
-        style={{ position: "absolute", top: -24, right: -20, zIndex: 6, color: m.tint }}
-      />
+      {badge > 0 && (
+        <Burst
+          pct={badge}
+          tone="pink"
+          size={lg ? 128 : 110}
+          style={{ position: "absolute", top: -24, right: -20, zIndex: 6, color: m.tint }}
+        />
+      )}
       <div className="tm-card-head">
         <GlyphChip glyph={m.glyph} tint={m.tint} size={lg ? 56 : 44} logo={m.logo} />
         <div className="tm-card-id">

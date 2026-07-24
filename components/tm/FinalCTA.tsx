@@ -2,6 +2,7 @@
 
 import { Btn, Sticker } from "./primitives";
 import { trackCtaClick, useGetuHref } from "@/lib/attribution";
+import liveStats from "@/lib/live-stats.json";
 
 const MODELS_HREF = "https://console.service-inference.ai/models";
 
@@ -24,7 +25,7 @@ export function FinalCTA() {
           Stop paying <s>retail</s> for AI.
         </h2>
         <p className="tm-finalcta-sub">
-          One API key. Every frontier model. Up to 75% off list price, billed to the token. Connect once. Start
+          One API key. Every frontier model. Up to {liveStats.maxDiscountPct}% off list price, billed to the token. Connect once. Start
           saving immediately.
         </p>
         <div className="tm-hero-ctas center">

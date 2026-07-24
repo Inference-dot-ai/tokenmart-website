@@ -172,10 +172,12 @@ export function PriceTag({
 }) {
   return (
     <div className={`tm-price sz-${sz}`} style={{ textAlign: align }}>
-      <div className="tm-price-row">
-        <span className="tm-retail">${fmt(retail)}</span>
-        <span className="tm-disc">−{discount}%</span>
-      </div>
+      {discount > 0 && (
+        <div className="tm-price-row">
+          <span className="tm-retail">${fmt(retail)}</span>
+          <span className="tm-disc">−{discount}%</span>
+        </div>
+      )}
       <div className="tm-whole">
         <span className="tm-cur">$</span>
         {fmt(wholesale)}

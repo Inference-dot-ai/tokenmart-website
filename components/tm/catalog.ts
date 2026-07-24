@@ -5,12 +5,13 @@
 // public models endpoint at build time (scripts/build-tm-models.ts). The card
 // type + data are re-exported here for the existing import sites.
 import type { Tone } from "./primitives";
+import liveStats from "../../lib/live-stats.json";
 
 export { FAMILIES, TM_MODELS, discountOf } from "./families";
 export type { TMModel, Family } from "./families";
 
 export const TM_TICKER: string[] = [
-  "SAVE UP TO 75%", "PAY AS YOU GO", "NO COMMITMENT", "NO MIN. ORDER",
+  `SAVE UP TO ${liveStats.maxDiscountPct}%`, "PAY AS YOU GO", "NO COMMITMENT", "NO MIN. ORDER",
   "ONE API · EVERY FRONTIER MODEL", "WHOLESALE TOKEN PRICING",
   "BULK READY", "PRICES SLASHED DAILY",
 ];
@@ -20,6 +21,7 @@ export const HERO_STACK: HeroStackItem[] = [
   { name: "GPT", logo: "/tm-assets/openai-logo.png" },
   { name: "Claude", logo: "/tm-assets/claude-logo.png" },
   { name: "Gemini", logo: "/tm-assets/gemini-logo.png" },
+  { name: "Nano Banana", logo: "/tm-assets/nanobanana-logo.png" },
   { name: "Grok", logo: "/tm-assets/grok-logo.png" },
   { name: "MiniMax", logo: "/tm-assets/minimax-logo.png" },
   { name: "DeepSeek", logo: "/tm-assets/deepseek-logo.png" },
