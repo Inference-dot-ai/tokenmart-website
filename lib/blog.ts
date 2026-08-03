@@ -132,4 +132,4 @@ export async function getPost(slug: string): Promise<PostContent | null> {
 
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://thetokenmart.ai";
+  "https://thetokenmart.com";
