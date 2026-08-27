@@ -3,12 +3,14 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Navbar } from "@/components/ui/navbar";
 import { Footer } from "@/components/ui/footer";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Terms of Service — TokenMart",
+export const metadata: Metadata = buildPageMetadata({
+  path: "/terms-and-services",
+  title: "Terms of Service",
   description:
     "Console Service Agreement for inference.ai — terms and conditions governing access to and use of the Platform.",
-};
+});
 
 export default function TermsAndServicesPage() {
   return (

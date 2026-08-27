@@ -8,22 +8,15 @@ import { listPosts, SITE_URL } from "@/lib/blog";
 import {
   buildBlogIndexJsonLd,
   buildBreadcrumbJsonLd,
+  buildPageMetadata,
 } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Blog · TokenMart",
+export const metadata: Metadata = buildPageMetadata({
+  path: "/blog",
+  title: "Blog",
   description:
     "Pricing, infrastructure and product notes from the TokenMart team. Same GPT, Claude, Gemini and 40+ models — at up to 65% below retail.",
-  alternates: { canonical: `${SITE_URL}/blog` },
-  openGraph: {
-    type: "website",
-    url: `${SITE_URL}/blog`,
-    title: "Blog · TokenMart",
-    description:
-      "Pricing, infrastructure and product notes from the TokenMart team.",
-    siteName: "TokenMart",
-  },
-};
+});
 
 export default async function BlogIndex() {
   const posts = await listPosts();

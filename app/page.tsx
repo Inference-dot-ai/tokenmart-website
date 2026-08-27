@@ -1,32 +1,16 @@
-"use client";
+import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
+import HomeClient from "./home-client";
 
-import { TMHeader } from "@/components/tm/Header";
-import { DealTicker } from "@/components/tm/DealTicker";
-import { Hero } from "@/components/tm/Hero";
-import { Marketplace } from "@/components/tm/Marketplace";
-import { HowItWorks } from "@/components/tm/HowItWorks";
-import { Benefits } from "@/components/tm/Benefits";
-import { FinalCTA } from "@/components/tm/FinalCTA";
-import { TMFooter } from "@/components/tm/Footer";
-import { useGetuHref } from "@/lib/attribution";
+// The page body needs `useGetuHref`, so it stays a client component and lives
+// in ./home-client. This wrapper exists purely so the route can export
+// metadata — client components can't.
+export const metadata: Metadata = buildPageMetadata({
+  path: "/",
+  title: "TokenMart",
+  absoluteTitle: true,
+});
 
-const MODELS_HREF = "https://console.service-inference.ai/models";
-
-export default function Home() {
-  const apiHref = useGetuHref(MODELS_HREF);
-
-  return (
-    <div className="tm-root bg-grid finish-glossy density-medium">
-      <TMHeader />
-      <DealTicker />
-      <main>
-        <Hero />
-        <Marketplace apiHref={apiHref} />
-        <HowItWorks />
-        <Benefits />
-        <FinalCTA />
-      </main>
-      <TMFooter />
-    </div>
-  );
+export default function Page() {
+  return <HomeClient />;
 }

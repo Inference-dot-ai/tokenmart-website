@@ -6,9 +6,75 @@ const PUBLISHER_LOGO = "/tokenmart-logo.jpeg";
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
 
+export const SITE_NAME = "TokenMart";
+
+export const SITE_DESCRIPTION =
+  "Same GPT, Claude, Gemini and 40+ models at up to 65% below retail. Real savings from GPU-level optimization — not routing tricks.";
+
+export const RSS_URL = `${SITE_URL}/rss.xml`;
+
+/**
+ * Feed discovery. Lives here rather than on the root layout because Next.js
+ * replaces whole nested metadata objects — a page setting `alternates` for its
+ * canonical would otherwise drop the layout's feed link.
+ */
+const FEED_ALTERNATES = {
+  types: { "application/rss+xml": RSS_URL },
+} as const;
+
 function absoluteUrl(path: string): string {
   return path.startsWith("http") ? path : `${SITE_URL}${path}`;
 }
+
+/**
+ * Per-page canonical + Open Graph.
+ *
+ * Every route must call this (or set `alternates` itself). The root layout
+ * deliberately declares no canonical: Next.js merges metadata by replacing
+ * whole nested objects, so a canonical on the layout is inherited verbatim by
+ * every page that doesn't override it — which is how /models, /signup and
+ * /terms-and-services all ended up declaring the homepage as their canonical
+ * and dropping out of the index. With no layout canonical, a route that
+ * forgets to set one self-canonicalizes, which is the safe default.
+ */
+export function buildPageMetadata({
+  path,
+  title,
+  description = SITE_DESCRIPTION,
+  absoluteTitle = false,
+}: {
+  path: string;
+  /** Bare page name — the root layout appends " · TokenMart". */
+  title: string;
+  description?: string;
+  /** Opt out of the layout's title template (the homepage is just "TokenMart"). */
+  absoluteTitle?: boolean;
+}): Metadata {
+  const url = path === "/" ? SITE_URL : `${SITE_URL}${path}`;
+  const ogTitle = absoluteTitle ? title : `${title} · ${SITE_NAME}`;
+  return {
+    title: absoluteTitle ? { absolute: title } : title,
+    description,
+    alternates: { canonical: url, ...FEED_ALTERNATES },
+    openGraph: {
+      type: "website",
+      url,
+      siteName: SITE_NAME,
+      title: ogTitle,
+      description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: ogTitle,
+      description,
+    },
+  };
+}
+
+/** Routes that must never reach the index (empty, internal or demo-only). */
+export const NOINDEX: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export function postUrl(slug: string): string {
   return `${SITE_URL}/blog/${slug}`;
@@ -22,7 +88,7 @@ export function buildPostMetadata(post: PostContent): Metadata {
     title: post.title,
     description: post.description,
     keywords: post.tags,
-    alternates: { canonical: url },
+    alternates: { canonical: url, ...FEED_ALTERNATES },
     openGraph: {
       type: "article",
       url,

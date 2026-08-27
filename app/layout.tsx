@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Space_Mono, Outfit } from "next/font/google";
 import { GetuAttribution } from "@/components/attribution/getu-attribution-provider";
 import { SITE_URL } from "@/lib/blog";
-import { buildWebSiteJsonLd } from "@/lib/seo";
+import { buildWebSiteJsonLd, SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
 import "./globals.css";
 
 // Warehouse redesign type system. Variable names are kept identical to the
@@ -29,28 +29,27 @@ const outfit = Outfit({
   variable: "--font-outfit",
 });
 
+// No `alternates.canonical` and no `openGraph.url` here on purpose — both are
+// inherited verbatim by every page that doesn't override them, which is how
+// /models, /signup and /terms-and-services came to declare the homepage as
+// their canonical. Routes set their own via `buildPageMetadata`.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "TokenMart",
-    template: "%s · TokenMart",
+    default: SITE_NAME,
+    template: `%s · ${SITE_NAME}`,
   },
-  description:
-    "Same GPT, Claude, Gemini and 40+ models at up to 65% below retail. Real savings from GPU-level optimization — not routing tricks.",
-  alternates: { canonical: "/" },
+  description: SITE_DESCRIPTION,
   openGraph: {
     type: "website",
-    url: SITE_URL,
-    siteName: "TokenMart",
-    title: "TokenMart",
-    description:
-      "Same GPT, Claude, Gemini and 40+ models at up to 65% below retail.",
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "TokenMart",
-    description:
-      "Same GPT, Claude, Gemini and 40+ models at up to 65% below retail.",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
   },
 };
 
