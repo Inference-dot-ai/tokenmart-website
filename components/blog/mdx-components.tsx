@@ -22,7 +22,7 @@ export const blogMdxComponents: MDXComponents = {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "var(--pink)" }}
+          style={{ color: "var(--accent)" }}
           className="underline underline-offset-4 decoration-1 hover:decoration-2"
           {...rest}
         >
@@ -33,7 +33,7 @@ export const blogMdxComponents: MDXComponents = {
     return (
       <Link
         href={href}
-        style={{ color: "var(--pink)" }}
+        style={{ color: "var(--accent)" }}
         className="underline underline-offset-4 decoration-1 hover:decoration-2"
       >
         {children}

@@ -2,7 +2,7 @@
 //
 // Ground truth comes from the live public model endpoint
 // (https://model.service-inference.ai/public/models) — the same source
-// scripts/verify-tm-models.ts checks the baked catalog against. NOTE: as of
+// scripts/verify-catalog.ts checks the baked catalog against. NOTE: as of
 // 2026-08-27 the baked lib/live-stats.json has drifted (it claims a 20% max
 // discount; live reports 15%), so figures here are taken from live, not baked.
 

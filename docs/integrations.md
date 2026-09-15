@@ -4,101 +4,62 @@ This document is the source of truth for how the site talks to external services
 
 ---
 
-## 1. Models data — Google Sheet (read)
+## 1. Model catalog and pricing (drr400000, read)
 
-Powers the `/models` catalog page and the **Featured Deals** grid on the home page. Read-only.
+Every model, price, list price and discount on the site comes from the TokenMart gateway (`drr400000`) public endpoint. The website never stores or invents prices.
 
 ### Data flow
 
 ```
-Google Sheet  ──service account──▶  lib/google-sheets.ts  ──▶  app/api/models  ──▶  client pages
- (“All Model” tab, A2:L)              fetchModels()           GET /api/models    /models, /
+https://model.service-inference.ai/public/models      (drr400000, no auth, no CORS for this origin)
+   |
+   |-- build:   scripts/build-catalog.ts  -> public/catalog.json   (first paint + fallback, gitignored)
+   |                                      -> lib/live-stats.json   (static metadata: "up to N%", model count)
+   |                                      -> public/llms.txt tagline
+   |
+   '-- runtime: functions/api/catalog.ts  (Cloudflare Pages Function, same origin)
+                  edge cache 1 hour, browser cache 5 minutes, falls back to /catalog.json
+                    |
+                    '-> components/catalog/CatalogProvider.tsx swaps it in after hydration
 ```
 
-1. Editor updates rows in the Google Sheet (`All Model` tab).
-2. `fetchModels()` in [lib/google-sheets.ts](../lib/google-sheets.ts) calls `sheets.spreadsheets.values.get` with range `All Model!A2:L`, parses each row into the `Model` shape, and returns the list (or falls back to the hard-coded sample if env vars are missing).
-3. [app/api/models/route.ts](../app/api/models/route.ts) wraps `fetchModels()` in a `GET` handler with `revalidate = 300` and a matching `s-maxage=300, stale-while-revalidate=60` `Cache-Control` header.
-4. Client code on `/` ([app/page.tsx](../app/page.tsx)) and `/models` ([app/models/page.tsx](../app/models/page.tsx)) `fetch("/api/models")` on mount and render.
+`lib/catalog.ts` is the only code that reads the raw endpoint. It validates with zod, keeps only the ids the public tier lists, names them, classifies text / image / video, and computes each model's headline price, list price and discount. Build, server pages and the Pages Function all call the same `buildCatalog()`.
 
-### Sheet schema
+### Which price is shown
 
-Tab name: **`All Model`**. Rows are read from A2:L — row 1 is assumed to be a header row and is skipped.
+- `pricing` in the endpoint is what a customer on the public tier pays. That is the number shown large.
+- `reference` is the provider list price. It is shown struck through, and the discount badge is computed against it.
+- Models without `reference` are shown at list price with no badge.
+- `tier` from the endpoint is internal and is never rendered.
 
-| Col | Index | Meaning                                   | Notes                                                                 |
-|-----|-------|-------------------------------------------|-----------------------------------------------------------------------|
-| A   | 0     | (unused by parser)                        |                                                                       |
-| B   | 1     | Home-page flag                            | Value `"featured"` (case-insensitive) → surfaces on the home page     |
-| C   | 2     | Model name                                | Required. Rows with an empty name are skipped.                        |
-| D   | 3     | Type label                                | Must match `"Text Generation"`, `"Image Generation"`, `"Video Generation"`, or `"Audio Generation"`. Other values cause the row to be skipped. |
-| E   | 4     | "From" price                              | e.g. `"$15.00"`                                                       |
-| F   | 5     | Unit                                      | e.g. `"/1M tokens"`, `"/img"`, `"/s"`                                 |
-| G   | 6     | (unused by parser)                        |                                                                       |
-| H   | 7     | Discount percent                          | e.g. `"15%"` — any positive leading number counts as a discount       |
-| I   | 8     | Discounted price                          | e.g. `"$12.75"` — shown when H and E are both populated               |
-| J   | 9     | (unused by parser)                        |                                                                       |
-| K   | 10    | Provider                                  | e.g. `"Anthropic"`                                                    |
-| L   | 11    | Description                               | Free text. Displayed on the card.                                     |
+The public tier is `PUBLIC_MODELS_TIER` in `drr400000/wrangler.toml`. To show a higher public price than what negotiated customers pay, point that variable at a tier with a smaller default discount in drr400000. Customer-specific deals stay as per-org overrides in drr400000.
 
-Only rows with a valid name (C) **and** a recognized type (D) are returned. The display category (`"LLM" | "Image" | "Video" | "Audio"`) is derived from column D via `TYPE_TO_CATEGORY`.
-
-### Auth
-
-Service-account auth. The service account must be added as a **Viewer** collaborator on the sheet.
-
-- Scope: `https://www.googleapis.com/auth/spreadsheets.readonly`
-- Auth is created inline inside `fetchModels()` using `google.auth.GoogleAuth` with `credentials: { client_email, private_key }`.
+`TM_DISPLAY_MARKUP_PCT` is an interim website-only knob: it raises every displayed rate by that percent, never above list. Leave it unset once drr400000 serves the intended public tier.
 
 ### Env vars
 
-Set in `.env.local` (never committed). See [.env.local.example](../.env.local.example) for the template.
+| Var | Where | Purpose |
+|---|---|---|
+| `TM_MODELS_ENDPOINT` | build + Pages Function | Optional endpoint override, e.g. staging |
+| `TM_DISPLAY_MARKUP_PCT` | build + Pages Function | Interim display markup, percent. Set the same value in both places |
+| `NEXT_PUBLIC_CONTACT_URL` | build | Where "Talk to sales" on the savings calculator goes. Defaults to `/signup` |
+| `NEXT_PUBLIC_VOLUME_THRESHOLD_USD` | build | Monthly list-price spend at which the calculator pitches a volume rate. Default `5000` |
 
-| Var                              | Example value                                                      |
-|----------------------------------|--------------------------------------------------------------------|
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL`   | `xxx@yyy.iam.gserviceaccount.com` (from the service-account JSON)  |
-| `GOOGLE_PRIVATE_KEY`             | `"-----BEGIN PRIVATE KEY-----\n…\n-----END PRIVATE KEY-----\n"` — keep the literal `\n` escapes, wrap in quotes |
-| `GOOGLE_SHEET_ID`                | The long ID from the sheet URL (`…/d/<ID>/edit`)                   |
+### Checks
 
-If any of the three are missing (or the service-account email still starts with the placeholder `your-`), the code logs `[google-sheets] Not configured — using fallback data` and returns `FALLBACK_MODELS`.
-
-### Caching
-
-- Next.js route-level: `export const revalidate = 300` (ISR, 5-minute window).
-- HTTP: `Cache-Control: public, s-maxage=300, stale-while-revalidate=60`.
-- Effective latency from "editor updates the sheet" to "new data on site" is up to ~5 min per CDN node, then bumps on next request.
-
-### Setup checklist (for a new environment)
-
-1. Google Cloud console → new project (or reuse existing) → **Enable Google Sheets API**.
-2. **IAM & Admin → Service accounts** → Create service account → skip roles → **Keys → Add key → JSON** (download).
-3. From the JSON file:
-   - `client_email` → `GOOGLE_SERVICE_ACCOUNT_EMAIL`
-   - `private_key` → `GOOGLE_PRIVATE_KEY` (keep `\n` escapes intact)
-4. In the Google Sheet → **Share** → paste the service-account email → set role to **Viewer**.
-5. Copy the sheet ID from the URL → `GOOGLE_SHEET_ID`.
-6. Redeploy (or restart `next dev`). Hit `/api/models` and confirm real rows come back.
-
-### Troubleshooting
-
-| Symptom                                 | Likely cause                                                                 |
-|-----------------------------------------|------------------------------------------------------------------------------|
-| All cards show the small fallback list  | Env vars missing or placeholder → check `/api/models` server logs            |
-| `403` or `PERMISSION_DENIED` in logs    | Service account isn't shared on the sheet as Viewer                          |
-| `Unable to parse range: All Model!A2:L` | Tab was renamed. Update `SHEET_RANGE` in `lib/google-sheets.ts`              |
-| One or two rows missing                 | Row has an empty name (col C) or a type label (col D) the parser doesn't map |
-| Newline chars in the private key break  | `GOOGLE_PRIVATE_KEY` wasn't wrapped in quotes, or `\n` got materialized      |
-
----
+- `npm run catalog` rebuilds the snapshot without a full build.
+- `npm run verify:models` exits 1 when the snapshot or `lib/live-stats.json` no longer matches the live endpoint.
+- `curl -I https://thetokenmart.com/api/catalog` shows `x-catalog-source: snapshot` when the function is serving the fallback.
 
 ## 2. Signup / lead capture — Google Form (write)
 
-Powers the `/signup` page and the **discount popup** (`DiscountPopup`, shown 3 s after load on the home page). The form's linked response spreadsheet is the canonical store for all signup emails.
+Powers the `/signup` page. When `NEXT_PUBLIC_GOOGLE_FORM_URL` is unset the page sends people to the console instead. The form's linked response spreadsheet is the canonical store for all signup emails. (The home-page discount popup described in older notes was removed in the catalog redesign.)
 
 ### Current approach — prefill + open in new tab
 
 Today the integration is **100 % client-side** and **no server-side write**. The user's email is stuffed into a Google Forms *prefill URL* (`?entry.XXXX=email`), and the popup calls `window.open` with that URL; the user then lands on the real Google Form with their email pre-populated and clicks Submit themselves. Google Forms handles persistence into the response sheet on its end.
 
 Relevant files:
-- [components/ui/discount-popup.tsx](../components/ui/discount-popup.tsx) — modal with the email input. `buildFormUrl()` concatenates `FORM_URL + "?entry.<ID>=<email>"`. `handleSubmit()` calls `window.open(href, "_blank")`.
 - [app/signup/page.tsx](../app/signup/page.tsx) — a big CTA button that links out to the bare form URL (no email prefill; user types everything on Google's side).
 
 ### Env vars

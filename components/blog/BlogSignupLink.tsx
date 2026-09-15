@@ -24,7 +24,7 @@ export function BlogSignupLink({
       target="_blank"
       rel="noopener noreferrer"
       onClick={() => trackCtaClick(source(), { surface: "blog_post" })}
-      style={{ color: "var(--pink)" }}
+      style={{ color: "var(--accent)" }}
       className="underline underline-offset-4 decoration-1 hover:decoration-2"
     >
       {children}

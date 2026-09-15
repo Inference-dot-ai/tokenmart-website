@@ -1,30 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { Navbar } from "@/components/ui/navbar";
-import { Footer } from "@/components/ui/footer";
+import { PageShell } from "@/components/site/PageShell";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — TokenMart",
+  title: "Terms of Service",
   description:
-    "Console Service Agreement for inference.ai — terms and conditions governing access to and use of the Platform.",
+    "Console Service Agreement for inference.ai: terms and conditions governing access to and use of the Platform.",
 };
 
 export default function TermsAndServicesPage() {
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: "var(--color-bg)", color: "var(--color-text)" }}
-    >
-      <header className="flex justify-center pt-4">
-        <Navbar fixed={false} />
-      </header>
+    <PageShell>
 
-      <main className="max-w-3xl mx-auto px-6 md:px-10 pt-10 pb-24">
+      <div className="mx-auto max-w-3xl px-4 pb-24 pt-10 sm:px-6">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm mb-12 hover:opacity-80 transition-opacity"
-          style={{ color: "var(--color-text-dim)" }}
+          style={{ color: "var(--muted)" }}
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
@@ -32,20 +25,20 @@ export default function TermsAndServicesPage() {
 
         <p
           className="text-sm font-semibold tracking-widest mb-4"
-          style={{ color: "var(--color-text-dim)" }}
+          style={{ color: "var(--muted)" }}
         >
           INFERENCE.AI
         </p>
-        <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-8">
+        <h1 className="text-4xl md:text-5xl font-semibold tracking-[-0.03em] mb-6">
           Console Service Agreement
         </h1>
-        <p className="text-sm mb-16" style={{ color: "var(--color-text-muted)" }}>
+        <p className="text-sm mb-16" style={{ color: "var(--faint)" }}>
           Effective Date: 4/19/2026
         </p>
 
         <div
           className="space-y-8 text-base leading-relaxed"
-          style={{ color: "var(--color-text-dim)" }}
+          style={{ color: "var(--muted)" }}
         >
           <p>
             This Console Service Agreement (this &ldquo;Agreement&rdquo;) is
@@ -60,7 +53,7 @@ export default function TermsAndServicesPage() {
 
           <p
             className="font-semibold"
-            style={{ color: "var(--color-text)" }}
+            style={{ color: "var(--ink)" }}
           >
             PLEASE READ THIS AGREEMENT CAREFULLY. BY CLICKING &ldquo;I
             ACCEPT&rdquo; OR BY ACCESSING OR USING THE SERVICES, CLIENT
@@ -71,7 +64,7 @@ export default function TermsAndServicesPage() {
 
           <p
             className="font-semibold"
-            style={{ color: "var(--color-text)" }}
+            style={{ color: "var(--ink)" }}
           >
             THIS AGREEMENT CONTAINS A MANDATORY ARBITRATION PROVISION AND CLASS
             ACTION WAIVER IN SECTION 14.2. BY ACCEPTING THIS AGREEMENT, CLIENT
@@ -182,7 +175,7 @@ export default function TermsAndServicesPage() {
           </Subsection>
           <Subsection id="2.2" title="Intermediary Role">
             <p>
-              <strong style={{ color: "var(--color-text)" }}>
+              <strong style={{ color: "var(--ink)" }}>
                 CLIENT EXPRESSLY ACKNOWLEDGES AND AGREES THAT COMPANY ACTS
                 SOLELY AS A TECHNICAL INTERMEDIARY
               </strong>{" "}
@@ -215,7 +208,7 @@ export default function TermsAndServicesPage() {
             id="2.3"
             title="Critical Disclosure: Upstream Provider Dependency and Model Availability"
           >
-            <p className="font-semibold" style={{ color: "var(--color-text)" }}>
+            <p className="font-semibold" style={{ color: "var(--ink)" }}>
               CLIENT EXPRESSLY ACKNOWLEDGES AND AGREES TO THE FOLLOWING:
             </p>
             <NumberedList>
@@ -471,7 +464,7 @@ export default function TermsAndServicesPage() {
             id="4.6"
             title="AI Output Risks — Client Acknowledgment"
           >
-            <p className="font-semibold" style={{ color: "var(--color-text)" }}>
+            <p className="font-semibold" style={{ color: "var(--ink)" }}>
               CLIENT EXPRESSLY ACKNOWLEDGES AND AGREES THAT:
             </p>
             <NumberedList>
@@ -611,7 +604,7 @@ export default function TermsAndServicesPage() {
               liability to Company.
             </li>
           </NumberedList>
-          <p className="font-semibold" style={{ color: "var(--color-text)" }}>
+          <p className="font-semibold" style={{ color: "var(--ink)" }}>
             CLIENT ACKNOWLEDGES THAT UNAUTHORIZED RED TEAMING IS LIKELY TO
             TRIGGER AUTOMATIC DETECTION AND TERMINATION BY UPSTREAM PROVIDERS,
             WHICH MAY IMMEDIATELY AND PERMANENTLY IMPAIR COMPANY&rsquo;S ABILITY
@@ -847,7 +840,7 @@ export default function TermsAndServicesPage() {
 
         <Section number="9" title="Disclaimers; No Warranties">
           <Subsection id="9.1" title="As-Is Basis">
-            <p className="font-semibold" style={{ color: "var(--color-text)" }}>
+            <p className="font-semibold" style={{ color: "var(--ink)" }}>
               THE SERVICES, PLATFORM, AND ALL VENDOR PRODUCTS ARE PROVIDED
               &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE&rdquo; WITHOUT
               WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. TO THE MAXIMUM EXTENT
@@ -882,7 +875,7 @@ export default function TermsAndServicesPage() {
             </NumberedList>
           </Subsection>
           <Subsection id="9.2" title="No SLA">
-            <p className="font-semibold" style={{ color: "var(--color-text)" }}>
+            <p className="font-semibold" style={{ color: "var(--ink)" }}>
               CLIENT ACKNOWLEDGES THAT THE SERVICES ARE PROVIDED ON A
               BEST-EFFORT BASIS ONLY. COMPANY MAKES NO COMMITMENTS REGARDING
               UPTIME, AVAILABILITY, RESPONSE TIMES, LATENCY, OR SERVICE
@@ -897,7 +890,7 @@ export default function TermsAndServicesPage() {
             id="9.3"
             title="Third-Party Products and Upstream Providers"
           >
-            <p className="font-semibold" style={{ color: "var(--color-text)" }}>
+            <p className="font-semibold" style={{ color: "var(--ink)" }}>
               COMPANY MAKES NO REPRESENTATIONS OR WARRANTIES REGARDING ANY
               VENDOR PRODUCTS, AI MODELS, OR APIS ACCESSIBLE THROUGH THE
               SERVICES. ALL SUCH PRODUCTS ARE PROVIDED SOLELY BY THEIR
@@ -910,7 +903,7 @@ export default function TermsAndServicesPage() {
             </p>
           </Subsection>
           <Subsection id="9.4" title="Output Accuracy">
-            <p className="font-semibold" style={{ color: "var(--color-text)" }}>
+            <p className="font-semibold" style={{ color: "var(--ink)" }}>
               COMPANY DOES NOT WARRANT THE ACCURACY, COMPLETENESS, RELIABILITY,
               TIMELINESS, OR SUITABILITY OF ANY OUTPUT FOR ANY PURPOSE.
               AI-GENERATED OUTPUTS ARE INHERENTLY PROBABILISTIC AND MAY CONTAIN
@@ -925,7 +918,7 @@ export default function TermsAndServicesPage() {
             id="9.5"
             title="No Legal, Medical, or Professional Advice"
           >
-            <p className="font-semibold" style={{ color: "var(--color-text)" }}>
+            <p className="font-semibold" style={{ color: "var(--ink)" }}>
               NO OUTPUT OR OTHER CONTENT PROVIDED THROUGH THE SERVICES
               CONSTITUTES LEGAL, MEDICAL, FINANCIAL, REGULATORY, OR OTHER
               PROFESSIONAL ADVICE. CLIENT SHALL NOT SUBSTITUTE AI-GENERATED
@@ -945,7 +938,7 @@ export default function TermsAndServicesPage() {
 
         <Section number="10" title="Limitation of Liability">
           <Subsection id="10.1" title="Exclusion of Damages">
-            <p className="font-semibold" style={{ color: "var(--color-text)" }}>
+            <p className="font-semibold" style={{ color: "var(--ink)" }}>
               TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT
               SHALL COMPANY OR ITS AFFILIATES, DIRECTORS, OFFICERS, EMPLOYEES,
               AGENTS, OR LICENSORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
@@ -975,7 +968,7 @@ export default function TermsAndServicesPage() {
             </p>
           </Subsection>
           <Subsection id="10.3" title="Third-Party Liability">
-            <p className="font-semibold" style={{ color: "var(--color-text)" }}>
+            <p className="font-semibold" style={{ color: "var(--ink)" }}>
               COMPANY SHALL HAVE NO LIABILITY FOR ANY ACTS, OMISSIONS, ERRORS,
               FAILURES, POLICY CHANGES, OR DECISIONS OF ANY UPSTREAM PROVIDER,
               AI MODEL PROVIDER, API PROVIDER, OR OTHER VENDOR. ANY CLAIMS
@@ -1196,7 +1189,7 @@ export default function TermsAndServicesPage() {
               injunctive relief from a court of competent jurisdiction pending
               the outcome of arbitration.
             </p>
-            <p className="font-semibold" style={{ color: "var(--color-text)" }}>
+            <p className="font-semibold" style={{ color: "var(--ink)" }}>
               14.2.3 CLASS ACTION WAIVER. EACH PARTY AGREES THAT ANY DISPUTE
               RESOLUTION PROCEEDING UNDER THIS AGREEMENT SHALL BE CONDUCTED
               ONLY ON AN INDIVIDUAL BASIS AND NOT AS PART OF ANY CLASS,
@@ -1359,8 +1352,8 @@ export default function TermsAndServicesPage() {
         <div
           className="mt-16 pt-10 font-semibold"
           style={{
-            borderTop: "1px solid var(--color-border)",
-            color: "var(--color-text)",
+            borderTop: "1px solid var(--line)",
+            color: "var(--ink)",
           }}
         >
           BY ACCESSING OR USING THE SERVICES, CLIENT ACKNOWLEDGES THAT CLIENT
@@ -1368,10 +1361,8 @@ export default function TermsAndServicesPage() {
           INCLUDING THE MANDATORY ARBITRATION PROVISION AND CLASS ACTION WAIVER
           IN SECTION 14.2.
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </PageShell>
   );
 }
 
@@ -1388,13 +1379,13 @@ function Section({
     <section className="mt-16">
       <h2
         className="text-2xl md:text-3xl font-bold mb-6 tracking-tight"
-        style={{ color: "var(--color-text)" }}
+        style={{ color: "var(--ink)" }}
       >
         {number}. {title}
       </h2>
       <div
         className="space-y-5 text-base leading-relaxed"
-        style={{ color: "var(--color-text-dim)" }}
+        style={{ color: "var(--muted)" }}
       >
         {children}
       </div>
@@ -1415,7 +1406,7 @@ function Subsection({
     <div className="mt-8">
       <h3
         className="text-lg font-semibold mb-3"
-        style={{ color: "var(--color-text)" }}
+        style={{ color: "var(--ink)" }}
       >
         {id} {title}
       </h3>
@@ -1437,7 +1428,7 @@ function Clause({
 }) {
   return (
     <p className="mt-3">
-      <strong style={{ color: "var(--color-text)" }}>{id}</strong>{" "}
+      <strong style={{ color: "var(--ink)" }}>{id}</strong>{" "}
       &ldquo;{term}&rdquo;
       {altTerm ? (
         <>
@@ -1451,7 +1442,7 @@ function Clause({
 
 function NumberedList({ children }: { children: React.ReactNode }) {
   return (
-    <ul className="space-y-3 pl-4 border-l" style={{ borderColor: "var(--color-border)" }}>
+    <ul className="space-y-3 pl-4 border-l" style={{ borderColor: "var(--line)" }}>
       {children}
     </ul>
   );
