@@ -10,7 +10,7 @@ export const AUTHORS = {
   client: {
     name: "TokenMart Team",
     role: "TokenMart",
-    bio: "GPT, Claude, Gemini and 40+ models at up to 65% below retail.",
+    bio: "Frontier model APIs through one key, priced under provider list.",
   },
 } satisfies Record<string, Author>;
 

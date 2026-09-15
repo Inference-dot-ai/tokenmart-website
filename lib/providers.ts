@@ -1,12 +1,12 @@
-// Provider registry — the single source of truth for brand name + logo.
+// Provider registry: the single source of truth for brand name, logo and art.
 //
 // The public models endpoint carries no provider field, but the model id
-// reliably encodes it (e.g. "claude-*" -> Anthropic). This maps id-prefix ->
-// provider, and resolves a logo: a crisp local brand asset when we ship one,
-// otherwise an automatic favicon-by-domain fallback so any *new* provider the
-// endpoint adds still renders a mark without shipping a file first.
+// reliably encodes it (e.g. "claude-*" -> Anthropic). This maps id patterns to
+// a provider and resolves a logo: a local brand asset when we ship one,
+// otherwise a favicon-by-domain fallback so a *new* provider the endpoint adds
+// still renders a mark without shipping a file first.
 //
-// Pure data (no React) so it can be imported by the build script too.
+// Pure data (no React) so build scripts and the Pages Function can import it.
 
 export type Provider = {
   key: string;
@@ -14,27 +14,32 @@ export type Provider = {
   domain: string;
   /** Local brand asset under /public; omit to fall back to the domain favicon. */
   logo?: string;
+  /** Commissioned artwork under /public/art, used on deal tiles. */
+  art?: string;
 };
 
 export const PROVIDERS: Provider[] = [
-  { key: "anthropic", name: "Anthropic", domain: "anthropic.com", logo: "/tm-assets/claude-logo.png" },
-  { key: "openai", name: "OpenAI", domain: "openai.com", logo: "/tm-assets/openai-logo.png" },
-  { key: "google", name: "Google", domain: "google.com", logo: "/tm-assets/gemini-logo.png" },
-  { key: "xai", name: "xAI", domain: "x.ai", logo: "/tm-assets/grok-logo.png" },
-  { key: "deepseek", name: "DeepSeek", domain: "deepseek.com", logo: "/tm-assets/deepseek-logo.png" },
-  { key: "alibaba", name: "Alibaba", domain: "alibabacloud.com", logo: "/tm-assets/qwen-logo.png" },
-  { key: "moonshot", name: "Kimi AI", domain: "moonshot.cn", logo: "/tm-assets/kimi-logo.png" },
-  { key: "zai", name: "Z.AI", domain: "z.ai", logo: "/tm-assets/zai-logo.png" },
-  { key: "minimax", name: "MiniMax", domain: "minimaxi.com", logo: "/tm-assets/minimax-logo.png" },
-  { key: "bytedance", name: "ByteDance", domain: "bytedance.com", logo: "/tm-assets/seedance-logo.png" },
+  { key: "anthropic", name: "Anthropic", domain: "anthropic.com", logo: "/tm-assets/claude-logo.png", art: "/art/anthropic.webp" },
+  { key: "openai", name: "OpenAI", domain: "openai.com", logo: "/tm-assets/openai-logo.png", art: "/art/openai.webp" },
+  { key: "google", name: "Google", domain: "google.com", logo: "/tm-assets/gemini-logo.png", art: "/art/google.webp" },
+  { key: "xai", name: "xAI", domain: "x.ai", logo: "/tm-assets/grok-logo.png", art: "/art/xai.webp" },
+  { key: "deepseek", name: "DeepSeek", domain: "deepseek.com", logo: "/tm-assets/deepseek-logo.png", art: "/art/deepseek.webp" },
+  { key: "alibaba", name: "Alibaba Qwen", domain: "alibabacloud.com", logo: "/tm-assets/qwen-logo.png", art: "/art/alibaba.webp" },
+  { key: "moonshot", name: "Moonshot Kimi", domain: "moonshot.cn", logo: "/tm-assets/kimi-logo.png", art: "/art/moonshot.webp" },
+  { key: "zai", name: "Z.AI", domain: "z.ai", logo: "/tm-assets/zai-logo.png", art: "/art/zai.webp" },
+  { key: "minimax", name: "MiniMax", domain: "minimaxi.com", logo: "/tm-assets/minimax-logo.png", art: "/art/minimax.webp" },
+  { key: "bytedance", name: "ByteDance Seed", domain: "bytedance.com", logo: "/tm-assets/seedance-logo.png", art: "/art/bytedance.webp" },
 ];
 
 const BY_KEY: Record<string, Provider> = Object.fromEntries(PROVIDERS.map((p) => [p.key, p]));
 
-// Model-id prefix -> provider key. Order matters only for disjoint prefixes.
+/** Order of provider groups on the site (registry order). */
+export const PROVIDER_ORDER: string[] = PROVIDERS.map((p) => p.key);
+
+// Model-id pattern -> provider key. First match wins.
 const ID_TO_PROVIDER: [RegExp, string][] = [
   [/^claude/i, "anthropic"],
-  [/^gpt/i, "openai"],
+  [/^gpt|^o\d/i, "openai"],
   [/^gemini/i, "google"],
   [/^grok/i, "xai"],
   [/^deepseek/i, "deepseek"],
@@ -42,7 +47,7 @@ const ID_TO_PROVIDER: [RegExp, string][] = [
   [/^kimi/i, "moonshot"],
   [/^glm/i, "zai"],
   [/^minimax/i, "minimax"],
-  [/seedance|dreamina/i, "bytedance"],
+  [/seedance|seedream|dreamina|doubao|^dola-/i, "bytedance"],
 ];
 
 export function getProvider(key: string): Provider | undefined {
@@ -55,7 +60,7 @@ export function providerForId(id: string): Provider | undefined {
   return undefined;
 }
 
-/** Crisp local asset when present, else the provider's favicon (always resolves). */
+/** Local asset when present, else the provider's favicon (always resolves). */
 export function providerLogo(p: Provider): string {
   return p.logo ?? `https://www.google.com/s2/favicons?domain=${p.domain}&sz=128`;
 }

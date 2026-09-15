@@ -4,19 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "tsx scripts/build-models-json.ts && tsx scripts/build-tm-models.ts",
+    "prebuild": "tsx scripts/build-catalog.ts",
     "build": "next build",
     "start": "next start",
-    "verify:models": "tsx scripts/verify-tm-models.ts",
-    "lint": "eslint"
+    "verify:models": "tsx scripts/verify-catalog.ts",
+    "lint": "eslint",
+    "catalog": "tsx scripts/build-catalog.ts"
   },
   "dependencies": {
-    "@radix-ui/react-slot": "^1.2.4",
-    "@types/three": "^0.183.1",
-    "class-variance-authority": "^0.7.1",
     "framer-motion": "^12.38.0",
     "getu-attribution-v2-sdk": "^0.5.0",
-    "googleapis": "^171.4.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.8.0",
     "next": "16.2.3",
@@ -27,7 +24,6 @@
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
-    "three": "^0.183.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 # TokenMart
 
-> Same GPT, Claude, Gemini and 40+ models — at up to 65% below retail.
-> Real savings from GPU-level optimization, not routing tricks.
+> Claude, GPT, Gemini and 70+ frontier models through one API,
+> up to 15% under provider list price.
 
 ## About
 
@@ -13,7 +13,7 @@ clones. The model you call is the model you get.
 ## Site map
 
 - [Homepage](https://thetokenmart.com/)
-- [Models catalog](https://thetokenmart.com/models)
+- [Models and pricing](https://thetokenmart.com/models): every model with input, output and cache rates, list price and discount. Machine-readable prices: https://model.service-inference.ai/llms-full.txt
 - [Blog](https://thetokenmart.com/blog)
 - [Sign up](https://thetokenmart.com/signup)
 - [Terms of service](https://thetokenmart.com/terms-and-services)

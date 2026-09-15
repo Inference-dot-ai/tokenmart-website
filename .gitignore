@@ -17,11 +17,8 @@
 /.next/
 /out/
 
-# generated at build time by scripts/build-models-json.ts
-/public/models.json
-
-# generated at build time by scripts/build-tm-models.ts
-/public/tm-models.json
+# generated at build time by scripts/build-catalog.ts
+/public/catalog.json
 
 # production
 /build
@@ -46,3 +43,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local wrangler pages dev state
+/.wrangler

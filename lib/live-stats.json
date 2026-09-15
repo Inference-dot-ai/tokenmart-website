@@ -1,3 +1,5 @@
 {
-  "maxDiscountPct": 20
+  "maxDiscountPct": 15,
+  "modelCount": 70,
+  "providerCount": 10
 }

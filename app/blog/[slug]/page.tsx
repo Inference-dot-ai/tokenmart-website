@@ -6,14 +6,13 @@ import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import Link from "next/link";
 
-import { TMHeader } from "@/components/tm/Header";
-import { DealTicker } from "@/components/tm/DealTicker";
-import { TMFooter } from "@/components/tm/Footer";
-import { FinalCTA } from "@/components/tm/FinalCTA";
-import { BlogCover } from "@/components/tm/blog/BlogCover";
-import { CatPills } from "@/components/tm/blog/CatPills";
-import { BlogCard } from "@/components/tm/blog/BlogCard";
-import { coverFor } from "@/components/tm/blog/cover";
+import { ArrowLeft } from "lucide-react";
+import { BlogCard, formatPostDate } from "@/components/blog/BlogCard";
+import { BlogCover } from "@/components/blog/BlogCover";
+import { CatPills } from "@/components/blog/CatPills";
+import { FinalCTA } from "@/components/home/FinalCTA";
+import { Container } from "@/components/site/Container";
+import { PageShell } from "@/components/site/PageShell";
 import { Prose } from "@/components/blog/Prose";
 import { blogMdxComponents } from "@/components/blog/mdx-components";
 import { getAllSlugs, getPost, listPosts, SITE_URL } from "@/lib/blog";
@@ -43,14 +42,6 @@ export async function generateMetadata({
   const post = await getPost(slug);
   if (!post) return {};
   return buildPostMetadata(post);
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 }
 
 export default async function BlogPostPage({
@@ -92,107 +83,72 @@ export default async function BlogPostPage({
   ]);
 
   const author = getAuthor(post.author);
-  const markColor = coverFor(post.slug).c2;
   const related = (await listPosts()).filter((p) => p.slug !== post.slug).slice(0, 3);
 
   return (
-    <div className="tm-root bg-grid">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
-      />
+    <PageShell>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       {faqJsonLd ? (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       ) : null}
 
-      <TMHeader activeBlog />
-      <DealTicker />
+      <article className="pb-16 pt-10 lg:pt-14">
+        <Container className="max-w-[760px]">
+          <Link href="/blog" className="group inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
+            <ArrowLeft size={15} strokeWidth={1.75} className="transition-transform group-hover:-translate-x-0.5" />
+            All articles
+          </Link>
 
-      <main>
-        <article className="blog-article">
-          <div className="blog-article-in">
-            <Link className="blog-back" href="/blog">
-              ← All articles
-            </Link>
-
-            <CatPills cats={post.tags ?? []} />
-            <h1 className="blog-article-title">{post.title}</h1>
-
-            <div className="blog-article-meta">
-              <span className="blog-by-mark" style={{ background: markColor }}>
-                {author.name.charAt(0)}
-              </span>
-              <span>By {author.name}</span>
-              <span className="blog-dot">·</span>
-              <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
-              <span className="blog-dot">·</span>
-              <span>{post.readingMinutes} min read</span>
-            </div>
-
-            <BlogCover
-              coverImage={post.coverImage}
-              slug={post.slug}
-              title={post.title}
-              className="hero"
-            />
-
-            <Prose>{content}</Prose>
-
-            {post.faq && post.faq.length > 0 ? (
-              <section
-                className="mt-16 rounded-2xl p-7"
-                style={{
-                  background: "var(--color-surface)",
-                  border: "1px solid var(--color-border)",
-                }}
-              >
-                <h2
-                  className="text-2xl font-[family-name:var(--font-display)] mb-5"
-                  style={{ color: "var(--color-text)" }}
-                >
-                  FAQ
-                </h2>
-                <dl className="flex flex-col gap-5">
-                  {post.faq.map((item) => (
-                    <div key={item.q}>
-                      <dt className="font-semibold mb-1.5" style={{ color: "var(--color-text)" }}>
-                        {item.q}
-                      </dt>
-                      <dd className="leading-relaxed" style={{ color: "var(--color-text-dim)" }}>
-                        {item.a}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
-            ) : null}
+          <div className="mt-8">
+            <CatPills cats={post.tags ?? []} max={3} />
           </div>
-        </article>
+          <h1 className="mt-4 text-balance text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-ink md:text-5xl">
+            {post.title}
+          </h1>
+          <p className="tnum mt-5 text-sm text-muted">
+            By {author.name}, <time dateTime={post.publishedAt}>{formatPostDate(post.publishedAt, "long")}</time>,{" "}
+            {post.readingMinutes} min read
+          </p>
+        </Container>
 
-        {related.length > 0 ? (
-          <section className="blog-related">
-            <div className="blog-related-head">
-              <h2 className="blog-related-h">More from the warehouse</h2>
-            </div>
-            <div className="blog-grid">
+        <Container className="mt-10 max-w-[1040px]">
+          <BlogCover coverImage={post.coverImage} title={post.title} className="aspect-[16/8]" priority />
+        </Container>
+
+        <Container className="mt-12 max-w-[760px]">
+          <Prose>{content}</Prose>
+
+          {post.faq && post.faq.length > 0 ? (
+            <section className="mt-16 border-t border-line pt-10">
+              <h2 className="text-2xl font-semibold tracking-tight text-ink">Frequently asked questions</h2>
+              <dl className="mt-6 space-y-6">
+                {post.faq.map((item) => (
+                  <div key={item.q}>
+                    <dt className="font-medium text-ink">{item.q}</dt>
+                    <dd className="mt-1.5 leading-relaxed text-muted">{item.a}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ) : null}
+        </Container>
+      </article>
+
+      {related.length > 0 ? (
+        <section className="border-t border-line py-16 lg:py-20">
+          <Container>
+            <h2 className="text-2xl font-semibold tracking-tight text-ink md:text-3xl">Keep reading</h2>
+            <div className="mt-8 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((p) => (
                 <BlogCard key={p.slug} post={p} showExcerpt={false} />
               ))}
             </div>
-          </section>
-        ) : null}
+          </Container>
+        </section>
+      ) : null}
 
-        <FinalCTA />
-      </main>
-
-      <TMFooter />
-    </div>
+      <FinalCTA />
+    </PageShell>
   );
 }

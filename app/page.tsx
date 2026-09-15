@@ -1,32 +1,31 @@
-"use client";
+import { CatalogProvider } from "@/components/catalog/CatalogProvider";
+import { DealsGrid } from "@/components/home/DealsGrid";
+import { FinalCTA } from "@/components/home/FinalCTA";
+import { Hero } from "@/components/home/Hero";
+import { Integration } from "@/components/home/Integration";
+import { LatestPosts } from "@/components/home/LatestPosts";
+import { ProviderWall } from "@/components/home/ProviderWall";
+import { SavingsCalculator } from "@/components/home/SavingsCalculator";
+import { WhyCheaper } from "@/components/home/WhyCheaper";
+import { PageShell } from "@/components/site/PageShell";
+import { listPosts } from "@/lib/blog";
+import { getCatalog } from "@/lib/catalog-server";
 
-import { TMHeader } from "@/components/tm/Header";
-import { DealTicker } from "@/components/tm/DealTicker";
-import { Hero } from "@/components/tm/Hero";
-import { Marketplace } from "@/components/tm/Marketplace";
-import { HowItWorks } from "@/components/tm/HowItWorks";
-import { Benefits } from "@/components/tm/Benefits";
-import { FinalCTA } from "@/components/tm/FinalCTA";
-import { TMFooter } from "@/components/tm/Footer";
-import { useGetuHref } from "@/lib/attribution";
-
-const MODELS_HREF = "https://console.service-inference.ai/models";
-
-export default function Home() {
-  const apiHref = useGetuHref(MODELS_HREF);
+export default async function Home() {
+  const [catalog, posts] = await Promise.all([getCatalog(), listPosts()]);
 
   return (
-    <div className="tm-root bg-grid finish-glossy density-medium">
-      <TMHeader />
-      <DealTicker />
-      <main>
+    <CatalogProvider initial={catalog}>
+      <PageShell>
         <Hero />
-        <Marketplace apiHref={apiHref} />
-        <HowItWorks />
-        <Benefits />
+        <ProviderWall />
+        <DealsGrid />
+        <SavingsCalculator />
+        <Integration />
+        <WhyCheaper />
+        <LatestPosts posts={posts.slice(0, 4)} />
         <FinalCTA />
-      </main>
-      <TMFooter />
-    </div>
+      </PageShell>
+    </CatalogProvider>
   );
 }

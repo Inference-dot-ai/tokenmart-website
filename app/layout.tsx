@@ -1,68 +1,50 @@
-import type { Metadata } from "next";
-import { Space_Grotesk, Space_Mono, Outfit } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import { GetuAttribution } from "@/components/attribution/getu-attribution-provider";
 import { SITE_URL } from "@/lib/blog";
 import { buildWebSiteJsonLd } from "@/lib/seo";
+import { SITE_TAGLINE } from "@/lib/site";
 import "./globals.css";
 
-// Warehouse redesign type system. Variable names are kept identical to the
-// previous setup (--font-display / --font-mono / --font-outfit) so every
-// existing `var(--font-*)` reference across the app repoints automatically.
-// Space Grotesk drives all display headings; --font-chakra is aliased to it
-// in globals.css. Body stays Outfit (Google Sans Flex, the prototype's body
-// face, is not in next/font/google — Outfit is the closest available match).
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-display",
-});
-
-const spaceMono = Space_Mono({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-mono",
-});
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-outfit",
-});
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "TokenMart",
+    default: "TokenMart: frontier model APIs under list price",
     template: "%s · TokenMart",
   },
-  description:
-    "Same GPT, Claude, Gemini and 40+ models at up to 65% below retail. Real savings from GPU-level optimization — not routing tricks.",
+  description: SITE_TAGLINE,
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: SITE_URL,
     siteName: "TokenMart",
     title: "TokenMart",
-    description:
-      "Same GPT, Claude, Gemini and 40+ models at up to 65% below retail.",
+    description: SITE_TAGLINE,
   },
   twitter: {
     card: "summary_large_image",
     title: "TokenMart",
-    description:
-      "Same GPT, Claude, Gemini and 40+ models at up to 65% below retail.",
+    description: SITE_TAGLINE,
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f6f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0b0e" },
+  ],
+};
+
+// Runs before paint: apply a stored explicit theme choice. With no stored
+// choice we leave the attribute off and prefers-color-scheme decides.
+const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}})();`;
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${spaceGrotesk.variable} ${spaceMono.variable} ${outfit.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="en" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
         {/* Google Tag Manager */}
         <script
@@ -71,22 +53,13 @@ export default function RootLayout({
           }}
         />
         {/* End Google Tag Manager */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("theme");if(t){document.documentElement.setAttribute("data-theme",t)}else{document.documentElement.setAttribute("data-theme","light")}}catch(e){document.documentElement.setAttribute("data-theme","light")}})();`,
-          }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(buildWebSiteJsonLd()),
-          }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(buildWebSiteJsonLd()) }}
         />
       </head>
-      <body
-        className="font-[family-name:var(--font-outfit)] antialiased"
-        suppressHydrationWarning
-      >
+      <body className="min-h-[100dvh] antialiased" suppressHydrationWarning>
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
