@@ -48,8 +48,10 @@ html { scroll-behavior: smooth; }
 .tm-logo { display: flex; align-items: center; gap: 9px; }
 .tm-logo-img { height: 30px; width: auto; display: block; }
 .tm-footer-top .tm-logo-img { height: 34px; }
-.tm-logo-tag { font-family: var(--font-mono), ui-monospace, monospace; font-size: 9.5px; letter-spacing: .12em;
-  color: var(--dim); border: 1px solid var(--line2); border-radius: 4px; padding: 2px 6px; }
+.tm-logo-by { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  font-size: 13px; font-weight: 500; color: var(--dim); }
+.tm-logo-by img { height: 18px; width: auto; display: block; }
+.tm-logo-by b { color: var(--ink); font-weight: 600; }
 .tm-nav { display: flex; gap: 24px; margin-left: 8px; font-size: 14px; font-weight: 500; }
 .tm-nav a { color: var(--dim); transition: color .15s; }
 .tm-nav a:hover { color: var(--ink); }
@@ -391,6 +393,9 @@ html { scroll-behavior: smooth; }
   .tm-card.sz-lg, .tm-card.sz-md, .tm-card.sz-sm { grid-column: span 1; }
   .tm-benefit-grid { grid-template-columns: 1fr; }
   .tm-flow { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .tm-header .tm-logo-by { display: none; }
 }
 
 /* ============================================================

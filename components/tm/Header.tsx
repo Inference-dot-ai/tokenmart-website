@@ -14,7 +14,9 @@ export function TMHeader({ activeBlog = false }: { activeBlog?: boolean }) {
     <header className="tm-header">
       <Link className="tm-logo" href="/">
         <img className="tm-logo-img" src="/tm-assets/tokenmart-logo.png" alt="TokenMart" />
-        <span className="tm-logo-tag">WHOLESALE&nbsp;AI</span>
+        <span className="tm-logo-by">
+          by <img src="/tm-assets/inference-yarn.svg" alt="" /> <b>Inference.ai</b>
+        </span>
       </Link>
       <nav className="tm-nav">
         <Link className={activeBlog ? "is-active" : undefined} href="/blog">

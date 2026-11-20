@@ -6,7 +6,9 @@ export function TMFooter() {
     <footer className="tm-footer">
       <div className="tm-footer-top">
         <img className="tm-logo-img" src="/tm-assets/tokenmart-logo.png" alt="TokenMart" />
-        <span className="tm-logo-tag">WHOLESALE&nbsp;AI</span>
+        <a className="tm-logo-by" href="https://inference.ai" target="_blank" rel="noopener">
+          by <img src="/tm-assets/inference-yarn.svg" alt="" /> <b>Inference.ai</b>
+        </a>
       </div>
       <div className="tm-footer-links">
         <Link href="/blog">Blog</Link>
